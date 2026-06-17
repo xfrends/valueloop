@@ -1,0 +1,146 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+
+const stats = [
+  { label: 'Active Members', value: '42', trend: '+3 this week' },
+  { label: 'Challenges Completed', value: '128', trend: '+12 this month' },
+  { label: 'Avg Organization Score', value: '8.4', trend: '+0.2 from last month' },
+];
+
+const topMembers = [
+  { name: 'Sarah Jenkins', team: 'Engineering', score: 142, avg: 9.2 },
+  { name: 'Budi Santoso', team: 'Product', score: 135, avg: 8.9 },
+  { name: 'Michael Chen', team: 'Sales', score: 120, avg: 8.5 },
+  { name: 'Rina Wijaya', team: 'Marketing', score: 118, avg: 8.7 },
+];
+---
+
+<AppLayout title="Dashboard - ValueLoop" currentPath="/dashboard">
+  
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
+    <p class="text-slate-500 mt-1">Overview of your organization's culture metrics.</p>
+  </div>
+
+  <!-- Today's Challenge Banner -->
+  <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 md:p-8 text-white shadow-lg shadow-emerald-600/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-xs font-medium mb-3 backdrop-blur-sm">
+        <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+        Today's Challenge is Ready
+      </div>
+      <h2 class="text-xl md:text-2xl font-bold mb-1">Time for a culture check-in!</h2>
+      <p class="text-emerald-50">Gather your team, it's time to review our core values.</p>
+    </div>
+    <a href="/challenge" class="shrink-0 bg-white text-emerald-700 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-emerald-50 transition-colors active:scale-95">
+      Start Challenge &rarr;
+    </a>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    {stats.map(stat => (
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <p class="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
+        <div class="flex items-end gap-3">
+          <p class="text-3xl font-bold text-slate-900">{stat.value}</p>
+          <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded mb-1">
+            {stat.trend}
+          </span>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Top Members Leaderboard -->
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-slate-900">Top Members This Month</h3>
+        <a href="/leaderboard" class="text-sm font-medium text-emerald-600 hover:text-emerald-700">View all &rarr;</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-slate-500">
+            <tr>
+              <th class="px-6 py-3 font-medium">Rank</th>
+              <th class="px-6 py-3 font-medium">Member</th>
+              <th class="px-6 py-3 font-medium">Total Points</th>
+              <th class="px-6 py-3 font-medium text-right">Avg Score</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {topMembers.map((member, index) => (
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-6 py-4">
+                  <span class={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                    index === 0 ? 'bg-amber-100 text-amber-700' : 
+                    index === 1 ? 'bg-slate-200 text-slate-700' : 
+                    index === 2 ? 'bg-orange-100 text-orange-800' : 
+                    'bg-slate-100 text-slate-500'
+                  }`}>
+                    {index + 1}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="font-medium text-slate-900">{member.name}</div>
+                  <div class="text-slate-500 text-xs">{member.team}</div>
+                </td>
+                <td class="px-6 py-4 font-semibold text-slate-700">{member.score}</td>
+                <td class="px-6 py-4 text-right font-medium text-slate-900">{member.avg}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Value Distribution Widget -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
+      <h3 class="font-bold text-slate-900 mb-6">Value Focus (Last 30 Days)</h3>
+      
+      <div class="flex-1 flex flex-col justify-center gap-5">
+        <div>
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="font-medium text-slate-700">Ownership</span>
+            <span class="text-slate-500">45%</span>
+          </div>
+          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-500 rounded-full" style="width: 45%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="font-medium text-slate-700">Customer Obsession</span>
+            <span class="text-slate-500">30%</span>
+          </div>
+          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full" style="width: 30%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="font-medium text-slate-700">Innovation</span>
+            <span class="text-slate-500">15%</span>
+          </div>
+          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-500 rounded-full" style="width: 15%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="font-medium text-slate-700">Integrity</span>
+            <span class="text-slate-500">10%</span>
+          </div>
+          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-purple-500 rounded-full" style="width: 10%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</AppLayout>

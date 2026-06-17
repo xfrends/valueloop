@@ -1,0 +1,103 @@
+---
+import AppLayout from '../../../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Add Core Value - ValueLoop" currentPath="/settings/values">
+  <div class="max-w-3xl mx-auto">
+    
+    <div class="mb-8">
+      <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-600 mb-4 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Core Values
+      </a>
+      <h1 class="text-2xl font-bold text-slate-900">Create New Core Value</h1>
+      <p class="text-slate-500 mt-1">Define a new cultural pillar for your organization.</p>
+    </div>
+
+    <form class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" onsubmit="event.preventDefault();">
+      <div class="p-8 space-y-8">
+        
+        <!-- Basic Info Section -->
+        <section class="space-y-6">
+          <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2">1. Basic Information</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2 md:col-span-2">
+              <label class="block text-sm font-bold text-slate-900">Value Name <span class="text-red-500">*</span></label>
+              <input type="text" placeholder="e.g., Customer Obsession" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow" />
+            </div>
+
+            <div class="space-y-2 md:col-span-2">
+              <label class="block text-sm font-bold text-slate-900">Short Description <span class="text-red-500">*</span></label>
+              <input type="text" placeholder="A single sentence explaining the value." class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow" />
+            </div>
+
+            <div class="space-y-2 md:col-span-2">
+              <label class="block text-sm font-bold text-slate-900">Full Description</label>
+              <textarea rows="3" placeholder="Detailed explanation of what this value means to the company..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Behaviors Section -->
+        <section class="space-y-6">
+          <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2">2. Behaviors in Practice</h2>
+          
+          <div class="space-y-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-emerald-700">Expected Behaviors</label>
+              <p class="text-xs text-slate-500 mb-2">What does doing this well look like?</p>
+              <textarea rows="3" placeholder="e.g., We listen to customer feedback. We apologize when we make mistakes." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow"></textarea>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-red-700">Anti-patterns</label>
+              <p class="text-xs text-slate-500 mb-2">What are behaviors that violate this value?</p>
+              <textarea rows="3" placeholder="e.g., Ignoring support tickets. Blaming the customer." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow"></textarea>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-slate-900">Real-world Example</label>
+              <textarea rows="2" placeholder="Give an example of how a team member embodied this value..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Presentation Section -->
+        <section class="space-y-6">
+          <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2">3. Presentation & Order</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-slate-900">Theme Color</label>
+              <select class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow bg-white">
+                <option value="emerald">Emerald</option>
+                <option value="blue">Blue</option>
+                <option value="amber">Amber</option>
+                <option value="purple">Purple</option>
+                <option value="rose">Rose</option>
+                <option value="slate">Slate</option>
+              </select>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-slate-900">Sort Order</label>
+              <input type="number" min="0" value="0" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow" />
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="bg-slate-50 border-t border-slate-200 p-6 flex justify-end gap-3">
+        <a href="/settings/values" class="px-6 py-2.5 rounded-lg font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
+          Cancel
+        </a>
+        <button type="button" class="px-6 py-2.5 rounded-lg font-medium text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm">
+          Save Core Value
+        </button>
+      </div>
+    </form>
+  </div>
+</AppLayout>

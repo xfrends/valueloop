@@ -1,0 +1,127 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Daily Challenge - ValueLoop" currentPath="/challenge">
+  <div class="max-w-4xl mx-auto">
+    
+    <div class="mb-8 flex items-end justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Daily Challenge</h1>
+        <p class="text-slate-500 mt-1">Facilitate the core value discussion and record the result.</p>
+      </div>
+      <div class="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        In Progress
+      </div>
+    </div>
+
+    <!-- The Randomizer Result / Active Challenge Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden mb-8">
+      <!-- Header Area -->
+      <div class="bg-slate-50 border-b border-slate-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Challenge #129</p>
+          <p class="text-slate-900 font-medium">Selected by randomizer on {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+        <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-colors flex items-center gap-2 group">
+          <svg class="w-4 h-4 text-slate-400 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          Reroll Challenge
+        </button>
+      </div>
+
+      <div class="p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+          <!-- Member Selection -->
+          <div class="flex gap-5 items-start">
+            <div class="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center border border-blue-200 shadow-sm">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Selected Member</h3>
+              <p class="text-xl font-bold text-slate-900">Budi Santoso</p>
+              <p class="text-sm text-slate-500">Product Team</p>
+            </div>
+          </div>
+
+          <!-- Value Selection -->
+          <div class="flex gap-5 items-start">
+            <div class="w-14 h-14 shrink-0 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-sm">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Selected Value</h3>
+              <p class="text-xl font-bold text-slate-900">Ownership</p>
+              <p class="text-sm text-slate-500">Taking initiative beyond core duties.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Question -->
+        <div class="bg-slate-900 rounded-xl p-6 text-white shadow-inner mb-8 relative overflow-hidden">
+          <div class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 opacity-10">
+            <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L16.4 14.6h-4.382l2.383-6.4H12.02l-2.382 6.4h4.382L11.638 21h2.379zm-7.618 0L8.782 14.6H4.4L6.782 8.2H4.402L2.02 14.6h4.382L4.022 21h2.377z"></path></svg>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Question</h3>
+          <p class="text-2xl font-medium leading-relaxed relative z-10">
+            "Ceritakan satu kejadian minggu ini di mana kamu mengambil inisiatif di luar tugas utamamu untuk menyelesaikan masalah tim."
+          </p>
+        </div>
+
+        <hr class="border-slate-100 mb-8" />
+
+        <!-- Interactive Form Prototype -->
+        <form class="space-y-8" onsubmit="event.preventDefault();">
+          
+          <div class="space-y-3">
+            <label class="block text-sm font-bold text-slate-900">Member's Answer</label>
+            <p class="text-sm text-slate-500 mb-2">Listen to the member and summarize their response.</p>
+            <textarea 
+              class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow"
+              rows="4"
+              placeholder="e.g., Budi explained that he helped the QA team set up the testing environment when they were short-staffed..."
+            ></textarea>
+          </div>
+
+          <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-5">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="block text-sm font-bold text-slate-900">Score (0 - 10)</label>
+                <span class="text-sm font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">Facilitator Only</span>
+              </div>
+              <p class="text-sm text-slate-500 mb-2">Evaluate the answer based on relevance to the core value and depth of the example.</p>
+              
+              <div class="flex gap-2 flex-wrap">
+                {[0,1,2,3,4,5,6,7,8,9,10].map(score => (
+                  <button type="button" class="w-10 h-10 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 focus:bg-emerald-600 focus:text-white focus:border-emerald-600 transition-colors">
+                    {score}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <label class="block text-sm font-bold text-slate-900">Evaluator Note (Optional)</label>
+              <input 
+                type="text" 
+                class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                placeholder="Any private notes about why this score was given..."
+              />
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end gap-3">
+            <button type="button" class="px-6 py-2.5 rounded-lg font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
+              Save as Draft
+            </button>
+            <button type="button" class="px-6 py-2.5 rounded-lg font-medium text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm">
+              Submit Score
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+</AppLayout>

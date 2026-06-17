@@ -1,0 +1,101 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+
+const historyData = [
+  { id: '#128', date: 'Today, 10:00 AM', member: 'Sarah Jenkins', team: 'Engineering', value: 'Customer Obsession', status: 'Scored', score: 9 },
+  { id: '#127', date: 'Yesterday, 09:30 AM', member: 'Budi Santoso', team: 'Product', value: 'Ownership', status: 'Scored', score: 8 },
+  { id: '#126', date: 'Jun 14, 10:15 AM', member: 'Rina Wijaya', team: 'Marketing', value: 'Innovation', status: 'Draft', score: null },
+  { id: '#125', date: 'Jun 13, 09:00 AM', member: 'Michael Chen', team: 'Sales', value: 'Integrity', status: 'Scored', score: 9 },
+  { id: '#124', date: 'Jun 12, 14:00 PM', member: 'David Lee', team: 'Engineering', value: 'Ownership', status: 'Cancelled', score: null },
+];
+---
+
+<AppLayout title="Challenge History - ValueLoop" currentPath="/history">
+  
+  <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Challenge History</h1>
+      <p class="text-slate-500 mt-1">Review past challenges, answers, and scores.</p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input type="text" placeholder="Search member or value..." class="pl-10 pr-4 py-2 w-64 rounded-lg border border-slate-300 bg-white text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none shadow-sm" />
+      </div>
+      <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+        Filters
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm">
+          <tr>
+            <th class="px-6 py-4 font-medium">Date & ID</th>
+            <th class="px-6 py-4 font-medium">Member</th>
+            <th class="px-6 py-4 font-medium">Core Value</th>
+            <th class="px-6 py-4 font-medium">Status</th>
+            <th class="px-6 py-4 font-medium text-right">Score</th>
+            <th class="px-6 py-4 font-medium text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-sm">
+          {historyData.map((row) => (
+            <tr class="hover:bg-slate-50 transition-colors group cursor-pointer">
+              <td class="px-6 py-4">
+                <div class="font-medium text-slate-900">{row.date}</div>
+                <div class="text-slate-400 text-xs mt-0.5">{row.id}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="font-medium text-slate-900">{row.member}</div>
+                <div class="text-slate-500 text-xs mt-0.5">{row.team}</div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="inline-flex px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-md border border-emerald-100">
+                  {row.value}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
+                  row.status === 'Scored' ? 'bg-green-100 text-green-800' :
+                  row.status === 'Draft' ? 'bg-amber-100 text-amber-800' :
+                  'bg-slate-100 text-slate-600'
+                }`}>
+                  {row.status === 'Scored' && <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>}
+                  {row.status === 'Draft' && <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
+                  {row.status === 'Cancelled' && <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>}
+                  {row.status}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                {row.score !== null ? (
+                  <span class="font-bold text-slate-900 text-base">{row.score}<span class="text-slate-400 text-xs font-normal">/10</span></span>
+                ) : (
+                  <span class="text-slate-400">-</span>
+                )}
+              </td>
+              <td class="px-6 py-4 text-right">
+                <a href="/history/128" class="text-emerald-600 font-medium hover:text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                  View
+                </a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+      <p class="text-sm text-slate-500">Showing 1-5 of 128 results</p>
+      <div class="flex gap-2">
+        <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-500 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Prev</button>
+        <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50">Next</button>
+      </div>
+    </div>
+  </div>
+
+</AppLayout>

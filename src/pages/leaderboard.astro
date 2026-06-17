@@ -1,0 +1,96 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+
+const leaderboardData = [
+  { rank: 1, name: 'Sarah Jenkins', team: 'Engineering', score: 142, avg: 9.2, totalAnswered: 15, trend: 'up' },
+  { rank: 2, name: 'Budi Santoso', team: 'Product', score: 135, avg: 8.9, totalAnswered: 14, trend: 'same' },
+  { rank: 3, name: 'Michael Chen', team: 'Sales', score: 120, avg: 8.5, totalAnswered: 13, trend: 'up' },
+  { rank: 4, name: 'Rina Wijaya', team: 'Marketing', score: 118, avg: 8.7, totalAnswered: 12, trend: 'down' },
+  { rank: 5, name: 'David Lee', team: 'Engineering', score: 105, avg: 8.1, totalAnswered: 13, trend: 'same' },
+  { rank: 6, name: 'Siti Aminah', team: 'Customer Support', score: 98, avg: 7.9, totalAnswered: 11, trend: 'up' },
+  { rank: 7, name: 'John Doe', team: 'Sales', score: 85, avg: 7.5, totalAnswered: 10, trend: 'down' },
+];
+---
+
+<AppLayout title="Leaderboard - ValueLoop" currentPath="/leaderboard">
+  
+  <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Leaderboard</h1>
+      <p class="text-slate-500 mt-1">Ranking based on scored challenge sessions.</p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <select class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+        <option>All Teams</option>
+        <option>Engineering</option>
+        <option>Product</option>
+        <option>Sales</option>
+      </select>
+      <select class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+        <option>This Month</option>
+        <option>Last 30 Days</option>
+        <option>All Time</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm">
+          <tr>
+            <th class="px-6 py-4 font-medium w-24">Rank</th>
+            <th class="px-6 py-4 font-medium">Member</th>
+            <th class="px-6 py-4 font-medium text-center">Total Points</th>
+            <th class="px-6 py-4 font-medium text-center">Avg Score</th>
+            <th class="px-6 py-4 font-medium text-center">Total Answered</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-sm">
+          {leaderboardData.map((row) => (
+            <tr class="hover:bg-slate-50/70 transition-colors group">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <span class={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold shadow-sm ${
+                    row.rank === 1 ? 'bg-gradient-to-br from-amber-200 to-amber-400 text-amber-900' : 
+                    row.rank === 2 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900' : 
+                    row.rank === 3 ? 'bg-gradient-to-br from-orange-200 to-orange-400 text-orange-900' : 
+                    'bg-slate-100 text-slate-500'
+                  }`}>
+                    {row.rank}
+                  </span>
+                  {row.trend === 'up' && <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>}
+                  {row.trend === 'down' && <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>}
+                  {row.trend === 'same' && <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg>}
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">{row.name}</div>
+                <div class="text-slate-500 text-xs mt-0.5">{row.team}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex justify-center">
+                  <span class="inline-flex px-3 py-1 bg-slate-100 text-slate-800 rounded-md font-bold text-base">
+                    {row.score}
+                  </span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center font-medium text-slate-700">{row.avg}</td>
+              <td class="px-6 py-4 text-center text-slate-500">{row.totalAnswered}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+      <p class="text-sm text-slate-500">Showing top 7 members</p>
+      <div class="flex gap-2">
+        <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-500 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Prev</button>
+        <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50">Next</button>
+      </div>
+    </div>
+  </div>
+
+</AppLayout>
