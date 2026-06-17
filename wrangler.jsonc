@@ -10,7 +10,16 @@
 	},
 	"vars": {
 		"PUBLIC_APP_URL": "http://localhost:4321",
-		"PUBLIC_TURNSTILE_SITE_KEY": ""
+		"PUBLIC_TURNSTILE_SITE_KEY": "",
+		"GOOGLE_CLIENT_ID": "",
+		"AUTH_EMAIL_FROM": "ValueLoop <no-reply@valueloop.local>",
+		"SMTP_HOST": "",
+		"SMTP_PORT": "587",
+		"SMTP_USERNAME": "",
+		"SMTP_FROM": "ValueLoop <no-reply@valueloop.local>",
+		"SMTP_SECURE": "starttls",
+		"OPENAI_TEXT_MODEL": "gpt-5.2",
+		"OPENAI_IMAGE_MODEL": "gpt-image-1"
 	},
 	"d1_databases": [
 		{

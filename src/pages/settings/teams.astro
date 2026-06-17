@@ -1,0 +1,64 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { listOrganizationMembers, listTeams } from '../../lib/services/members';
+
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
+const members = organization && runtime?.env?.DB ? await listOrganizationMembers(runtime.env.DB, organization.id) : [];
+---
+
+<AppLayout title="Teams - ValueLoop" currentPath="/settings/teams">
+  <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Teams</h1>
+      <p class="text-slate-500 mt-1">Group members by department or working group.</p>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="lg:col-span-2 space-y-6">
+      {teams.map((team) => (
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">{team.name}</h2>
+              <p class="text-sm text-slate-500">{team.description || 'No description'}</p>
+            </div>
+            <span class="text-sm text-slate-500">{team.member_count} members</span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h2 class="font-bold text-slate-900 mb-4">Create Team</h2>
+        <form method="post" action="/api/settings/teams" class="space-y-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Name</label>
+            <input name="name" type="text" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Description</label>
+            <textarea name="description" rows="3" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"></textarea>
+          </div>
+          <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Save Team</button>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h2 class="font-bold text-slate-900 mb-4">Members</h2>
+        <div class="space-y-2 text-sm">
+          {members.map((member) => (
+            <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+              <span>{member.full_name}</span>
+              <span class="text-slate-500">{member.role}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</AppLayout>

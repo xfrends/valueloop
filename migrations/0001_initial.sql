@@ -244,6 +244,7 @@ create index idx_sessions_round on challenge_sessions(organization_id, round_no)
 create index idx_audit_org_created on audit_logs(organization_id, created_at);
 create index idx_audit_actor on audit_logs(actor_user_id);
 
+drop view if exists leaderboard_view;
 create view leaderboard_view as
 select
   om.organization_id,
@@ -273,3 +274,55 @@ group by
   u.email,
   om.role,
   om.status;
+
+insert or ignore into plans (id, code, name, limits, features, is_active)
+values
+  (
+    'plan-free',
+    'free',
+    'Free',
+    json_object('maxMembers', 25, 'maxActiveValues', 10, 'maxChallengesPerMonth', 31, 'exports', 1, 'insights', 1),
+    json_object('exports', 1, 'insights', 1, 'selfScoring', 0),
+    1
+  ),
+  (
+    'plan-pro',
+    'pro',
+    'Pro',
+    json_object('maxMembers', 500, 'maxActiveValues', 100, 'maxChallengesPerMonth', 1000, 'exports', 1, 'insights', 1),
+    json_object('exports', 1, 'insights', 1, 'selfScoring', 1),
+    1
+  );
+
+insert or ignore into value_templates (id, code, name, description, is_active)
+values
+  ('template-good-values', 'good-values', '5 Good Values', 'Template values for teams that want a balanced starter pack.', 1),
+  ('template-leadership', 'leadership-values', 'Leadership Values', 'Template for leadership and management teams.', 1),
+  ('template-service', 'service-team', 'Service Team', 'Template for service-oriented organizations.', 1),
+  ('template-startup', 'startup-culture', 'Startup Culture', 'Template for fast-moving startup teams.', 1);
+
+insert or ignore into value_template_items (id, template_id, name, short_description, description, expected_behaviors, anti_patterns, example, color, icon_name, sort_order)
+values
+  (
+    'template-good-values-ownership',
+    'template-good-values',
+    'Ownership',
+    'Taking initiative beyond core duties.',
+    'Ownership means acting on behalf of the company and solving problems proactively.',
+    json_array('Takes responsibility for outcomes', 'Follows through without waiting to be told'),
+    json_array('Blames others', 'Waits passively for direction'),
+    'When a deployment issue happened, the team member coordinated the fix even though it was outside their task list.',
+    '#2563EB',
+    'star',
+    1
+  );
+
+insert or ignore into question_template_items (id, value_template_item_id, question_text, difficulty, suggested_rubric_note)
+values
+  (
+    'template-good-values-ownership-q1',
+    'template-good-values-ownership',
+    'Ceritakan satu contoh ketika kamu mengambil inisiatif untuk menyelesaikan masalah tanpa diminta.',
+    'medium',
+    'Nilai tinggi diberikan jika ada tindakan konkret, dampak jelas, dan rasa tanggung jawab.'
+  );

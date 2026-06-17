@@ -1,0 +1,44 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { listAuditLogs } from '../../lib/services/members';
+import { formatOrgDateTime } from '../../lib/utils/date';
+
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const auditLogs = organization && runtime?.env?.DB ? await listAuditLogs(runtime.env.DB, organization.id, 100, 0) : [];
+---
+
+<AppLayout title="Audit Log - ValueLoop" currentPath="/settings/audit">
+  <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Audit Log</h1>
+      <p class="text-slate-500 mt-1">Read-only trail of important organization changes.</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50 text-slate-500">
+          <tr>
+            <th class="px-6 py-3 font-medium">Time</th>
+            <th class="px-6 py-3 font-medium">Actor</th>
+            <th class="px-6 py-3 font-medium">Action</th>
+            <th class="px-6 py-3 font-medium">Entity</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {auditLogs.map((log) => (
+            <tr>
+              <td class="px-6 py-4">{formatOrgDateTime(new Date(log.created_at), organization?.timezone || 'Asia/Jakarta')}</td>
+              <td class="px-6 py-4">{log.actor_name || '-'}</td>
+              <td class="px-6 py-4">{log.action}</td>
+              <td class="px-6 py-4">{log.entity_type}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AppLayout>

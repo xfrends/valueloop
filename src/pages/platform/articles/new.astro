@@ -1,0 +1,43 @@
+---
+import AppLayout from '../../../layouts/AppLayout.astro';
+
+const allowed = Astro.locals.user?.platform_role === 'platform_admin';
+---
+
+<AppLayout title="New Article - ValueLoop" currentPath="/platform/articles">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">New Article</h1>
+    <p class="text-slate-500 mt-1">Buat artikel manual. Untuk thumbnail otomatis, gunakan AI generator di halaman Articles.</p>
+  </div>
+
+  {!allowed ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin platform admin.</div>
+  ) : (
+    <form method="post" action="/api/platform/articles" class="grid gap-6 lg:grid-cols-3">
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <input name="title" placeholder="Title" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-lg font-semibold" required />
+          <input name="slug" placeholder="Slug optional" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <textarea name="excerpt" rows="3" placeholder="Excerpt" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required></textarea>
+          <textarea name="contentHtml" rows="18" placeholder="<p>Isi artikel...</p>" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 font-mono text-sm" required></textarea>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <input name="category" placeholder="Category" value="Budaya Kerja" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required />
+          <select name="status" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5">
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+          </select>
+          <input name="authorName" value="Admin ValueLoop" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required />
+          <input name="thumbnailR2Key" placeholder="Thumbnail R2 key" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <input name="thumbnailAlt" placeholder="Thumbnail alt" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <input name="seoTitle" placeholder="SEO title" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <textarea name="seoDescription" rows="3" placeholder="SEO description" class="w-full rounded-lg border border-slate-300 px-4 py-2.5"></textarea>
+          <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Save Article</button>
+        </div>
+      </div>
+    </form>
+  )}
+</AppLayout>

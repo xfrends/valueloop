@@ -1,1 +1,155 @@
 @import "tailwindcss";
+
+/* ─── Landing page animations ─── */
+
+/*
+ * Reveal classes start visible by default (no-JS fallback).
+ * The inline <script> at page top adds `js-ready` to <html>,
+ * which then hides reveal elements so the observer can animate them in.
+ */
+
+/* Without js-ready: everything visible, no animation flicker */
+.reveal,
+.reveal-scale,
+.reveal-left,
+.reveal-right {
+  opacity: 1;
+  transform: none;
+}
+
+/* With js-ready: start hidden, transition in when .is-visible is added */
+html.js-ready .reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.js-ready .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+html.js-ready .reveal-scale {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.js-ready .reveal-scale.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+html.js-ready .reveal-left {
+  opacity: 0;
+  transform: translateX(-48px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.js-ready .reveal-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+html.js-ready .reveal-right {
+  opacity: 0;
+  transform: translateX(48px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.js-ready .reveal-right.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/*
+ * Stagger delays — prefixed `stagger-` to avoid clashing with
+ * Tailwind v4 built-in `delay-*` utilities.
+ */
+.stagger-1 { transition-delay: 100ms; }
+.stagger-2 { transition-delay: 200ms; }
+.stagger-3 { transition-delay: 300ms; }
+.stagger-4 { transition-delay: 400ms; }
+.stagger-5 { transition-delay: 500ms; }
+.stagger-6 { transition-delay: 600ms; }
+
+/* Hero entrance — CSS-only, plays once on load, always deterministic */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-animate {
+  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.hero-animate-delay-1 {
+  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+.hero-animate-delay-2 {
+  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+.hero-animate-delay-3 {
+  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+}
+
+/* Shimmer effect for the hero CTA — subtle, looping micro-interaction */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Glow pulse for timeline step numbers */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 24px 8px rgba(16, 185, 129, 0.15); }
+}
+
+.glow-step {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html.js-ready .reveal,
+  html.js-ready .reveal-scale,
+  html.js-ready .reveal-left,
+  html.js-ready .reveal-right {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .hero-animate, .hero-animate-delay-1,
+  .hero-animate-delay-2, .hero-animate-delay-3 {
+    animation: none;
+    opacity: 1;
+  }
+  .btn-shimmer::after,
+  .glow-step {
+    animation: none;
+  }
+}

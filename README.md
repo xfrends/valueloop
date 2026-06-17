@@ -40,7 +40,8 @@ Aturan detail untuk agent ada di `AGENTS.md`.
 MVP mencakup:
 
 - Multi-tenant organization support.
-- Email/password auth.
+- Google auth sebagai jalur register/login utama.
+- Email/password auth dengan OTP email confirmation.
 - Organization onboarding.
 - Organization switcher.
 - Role-based permission guard.
@@ -91,16 +92,33 @@ Runtime variables and secrets:
 ```env
 PUBLIC_APP_URL=
 PUBLIC_TURNSTILE_SITE_KEY=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+AUTH_EMAIL_FROM=
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_FROM=
+SMTP_SECURE=starttls
 SESSION_SECRET=
 TURNSTILE_SECRET_KEY=
 
-# Phase 2
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-
 # Phase 3
 OPENAI_API_KEY=
+OPENAI_TEXT_MODEL=gpt-5.2
+OPENAI_IMAGE_MODEL=gpt-image-1
 ```
+
+Catatan auth:
+
+- Set redirect URI Google OAuth ke `${PUBLIC_APP_URL}/api/auth/google/callback`.
+- OTP email dikirim lewat SMTP. Gunakan port 587 dengan `SMTP_SECURE=starttls` atau port 465 dengan `SMTP_SECURE=on`.
+- Port SMTP 25 tidak didukung di Cloudflare Workers.
+- Di mode development tanpa konfigurasi SMTP lengkap, kode OTP dicetak ke console server dan ditampilkan sebagai dev hint setelah signup/resend.
+- Payment gateway belum digunakan karena SaaS sementara berjalan gratis.
+- Artikel blog dikelola dari backend D1 melalui `/platform/articles`.
+- AI article generator memakai OpenAI Responses API untuk draft artikel dan Images API untuk thumbnail. Thumbnail disimpan ke R2 dan dilayani melalui `/api/assets/[key]`.
 
 ## Expected Structure
 
@@ -164,6 +182,8 @@ After the Astro project is scaffolded, expected commands are:
 
 ```bash
 npm install
+npm run db:migrate:local
+npm run setup
 npm run dev
 ```
 
@@ -171,9 +191,46 @@ Wrangler should be used for Cloudflare resources and D1 migrations:
 
 ```bash
 npx wrangler d1 migrations apply valueloop --local
+npx wrangler d1 execute valueloop --local --command "select count(*) as count from users;"
 npm run build
 npm run preview
 ```
+
+## Bootstrap Awal
+
+ValueLoop sekarang tidak memakai endpoint `/setup` lagi. Bootstrap pertama dilakukan lewat command CLI agar root user, organisasi pertama, dan data awal dibuat sekali dari terminal.
+Command ini aman dijalankan ulang jika proses sebelumnya berhenti di tengah.
+
+### Setup Lokal
+
+1. Pastikan migration D1 sudah dijalankan.
+2. Jalankan:
+
+```bash
+npm run setup
+```
+
+3. Ikuti prompt untuk mengisi:
+   - Nama root user
+   - Email root user
+   - Kata sandi root user
+   - Nama organisasi pertama
+   - Slug, timezone, locale, dan template awal
+
+### Setup Remote
+
+Untuk database production / remote:
+
+```bash
+npm run db:migrate:remote
+npm run setup -- --remote
+```
+
+### Setelah Bootstrap
+
+1. Jalankan `npm run dev`.
+2. Buka `/login`.
+3. Masuk memakai email dan kata sandi root user yang dibuat saat bootstrap.
 
 Exact scripts should be finalized in `package.json` during scaffold.
 

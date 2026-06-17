@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const error = Astro.url.searchParams.get('error') || '';
 ---
 
 <BaseLayout title="Onboarding | ValueLoop">
@@ -7,7 +9,38 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
       <p class="text-sm font-medium uppercase tracking-[0.18em] text-emerald-700">Onboarding</p>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight">Buat organisasi pertama</h1>
-      <p class="mt-3 text-slate-600">Flow ini akan memakai D1, KV, R2, dan permission guard sesuai brief.</p>
+      {error && (
+        <div class="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+      <form method="post" action="/api/organizations" class="mt-6 space-y-4">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="space-y-2 md:col-span-2">
+            <label class="text-sm font-medium text-slate-700">Nama Organisasi</label>
+            <input name="name" type="text" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Slug</label>
+            <input name="slug" type="text" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Timezone</label>
+            <input name="timezone" type="text" value="Asia/Jakarta" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+          </div>
+          <div class="space-y-2 md:col-span-2">
+            <label class="text-sm font-medium text-slate-700">Template</label>
+            <select name="templateId" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white">
+              <option value="">Blank</option>
+              <option value="template-good-values">5 Good Values</option>
+              <option value="template-leadership">Leadership Values</option>
+              <option value="template-service">Service Team</option>
+              <option value="template-startup">Startup Culture</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Buat organisasi</button>
+      </form>
     </section>
   </main>
 </BaseLayout>

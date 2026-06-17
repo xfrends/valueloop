@@ -1,0 +1,48 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { listPlatformOrganizations } from '../../lib/services/organization';
+
+const user = Astro.locals.user;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = user?.platform_role === 'platform_admin';
+const organizations = allowed && runtime?.env?.DB ? await listPlatformOrganizations(runtime.env.DB) : [];
+---
+
+<AppLayout title="Platform Organizations - ValueLoop" currentPath="/platform/organizations">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Platform Organizations</h1>
+    <p class="text-slate-500 mt-1">Platform-level organization overview for ValueLoop operators.</p>
+  </div>
+
+  {!allowed ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin platform admin.</div>
+  ) : (
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-slate-500">
+            <tr>
+              <th class="px-6 py-3 font-medium">Organization</th>
+              <th class="px-6 py-3 font-medium">Slug</th>
+              <th class="px-6 py-3 font-medium">Members</th>
+              <th class="px-6 py-3 font-medium">Plan</th>
+              <th class="px-6 py-3 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {organizations.map((org) => (
+              <tr>
+                <td class="px-6 py-4 font-medium text-slate-900">{org.name}</td>
+                <td class="px-6 py-4">{org.slug}</td>
+                <td class="px-6 py-4">{org.member_count}</td>
+                <td class="px-6 py-4">{org.plan_name ?? 'Free'}</td>
+                <td class="px-6 py-4">{org.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+</AppLayout>

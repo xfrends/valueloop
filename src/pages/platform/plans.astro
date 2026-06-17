@@ -1,0 +1,48 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { listPlatformPlans } from '../../lib/services/organization';
+
+const user = Astro.locals.user;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = user?.platform_role === 'platform_admin';
+const plans = allowed && runtime?.env?.DB ? await listPlatformPlans(runtime.env.DB) : [];
+---
+
+<AppLayout title="Platform Plans - ValueLoop" currentPath="/platform/plans">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Platform Plans</h1>
+    <p class="text-slate-500 mt-1">Plan limits and feature flags. Payment provider fields remain unused while SaaS is free.</p>
+  </div>
+
+  {!allowed ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin platform admin.</div>
+  ) : (
+    <div class="grid gap-6 lg:grid-cols-2">
+      {plans.map((plan) => (
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">{plan.name}</h2>
+              <p class="text-sm text-slate-500">{plan.code}</p>
+            </div>
+            <span class={plan.is_active === 1 ? 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700' : 'rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600'}>
+              {plan.is_active === 1 ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+          <div class="mt-5 grid gap-4 md:grid-cols-2">
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="text-xs font-medium uppercase text-slate-400">Organizations</p>
+              <p class="mt-1 text-2xl font-bold text-slate-900">{plan.organization_count}</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="text-xs font-medium uppercase text-slate-400">Created</p>
+              <p class="mt-1 text-sm font-medium text-slate-900">{plan.created_at}</p>
+            </div>
+          </div>
+          <pre class="mt-5 max-h-48 overflow-auto rounded-lg bg-slate-950 p-4 text-xs text-slate-100">{JSON.stringify({ limits: JSON.parse(plan.limits), features: JSON.parse(plan.features) }, null, 2)}</pre>
+        </div>
+      ))}
+    </div>
+  )}
+</AppLayout>

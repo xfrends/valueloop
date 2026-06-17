@@ -1,0 +1,71 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { canManageOrganizationSettings } from '../../lib/permissions';
+import { getOrganizationSettings } from '../../lib/services/shared';
+
+const organization = Astro.locals.organization;
+const membership = Astro.locals.membership;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = canManageOrganizationSettings(membership?.role);
+const settings = organization && runtime?.env?.DB ? await getOrganizationSettings(runtime.env.DB, organization.id) : null;
+---
+
+<AppLayout title="Settings - ValueLoop" currentPath="/settings">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Organization Settings</h1>
+    <p class="text-slate-500 mt-1">Manage organization profile and challenge rules.</p>
+  </div>
+
+  {!allowed ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin untuk mengubah settings organisasi.</div>
+  ) : (
+    <form method="post" action="/api/settings/organization" class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <h2 class="font-bold text-slate-900">Profile</h2>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700">Organization Name</label>
+          <input name="name" value={organization?.name} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700">Slug</label>
+          <input name="slug" value={organization?.slug} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+        </div>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Timezone</label>
+            <input name="timezone" value={organization?.timezone ?? 'Asia/Jakarta'} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Default Locale</label>
+            <input name="defaultLocale" value={organization?.default_locale ?? 'id'} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <h2 class="font-bold text-slate-900">Challenge Rules</h2>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700">Frequency</label>
+          <select name="challengeFrequency" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+            <option value="daily" selected={settings?.challengeFrequency === 'daily'}>Daily</option>
+            <option value="weekly" selected={settings?.challengeFrequency === 'weekly'}>Weekly</option>
+          </select>
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700">Question Cooldown Days</label>
+          <input name="questionCooldownDays" type="number" min="0" max="365" value={settings?.questionCooldownDays ?? 14} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+        </div>
+        <label class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
+          <input type="checkbox" name="allowMultipleChallengesPerDay" value="1" checked={settings?.allowMultipleChallengesPerDay} class="h-4 w-4 rounded border-slate-300 text-emerald-600" />
+          <span class="text-sm font-medium text-slate-700">Allow multiple challenges per day</span>
+        </label>
+        <label class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
+          <input type="checkbox" name="allowSelfScoring" value="1" checked={settings?.allowSelfScoring} class="h-4 w-4 rounded border-slate-300 text-emerald-600" />
+          <span class="text-sm font-medium text-slate-700">Allow self-scoring</span>
+        </label>
+        <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Save Settings</button>
+      </div>
+    </form>
+  )}
+</AppLayout>

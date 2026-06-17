@@ -1,0 +1,98 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
+import { canViewInsights } from '../lib/permissions';
+import { getInsightsSummary } from '../lib/services/analytics';
+
+const organization = Astro.locals.organization;
+const membership = Astro.locals.membership;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = canViewInsights(membership?.role);
+const insights = allowed && organization && runtime?.env?.DB ? await getInsightsSummary(runtime.env.DB, organization.id) : null;
+---
+
+<AppLayout title="Insights - ValueLoop" currentPath="/insights">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Insights</h1>
+    <p class="text-slate-500 mt-1">Basic query-based culture metrics for this organization.</p>
+  </div>
+
+  {!allowed ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin untuk melihat insights.</div>
+  ) : (
+    <>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <p class="text-sm text-slate-500">Participation Rate</p>
+          <p class="mt-2 text-3xl font-bold text-slate-900">{insights?.monthStats.participationRate ?? 0}%</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <p class="text-sm text-slate-500">Active Members</p>
+          <p class="mt-2 text-3xl font-bold text-slate-900">{insights?.monthStats.activeMembers ?? 0}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <p class="text-sm text-slate-500">Challenges This Month</p>
+          <p class="mt-2 text-3xl font-bold text-slate-900">{insights?.monthStats.totalChallenges ?? 0}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <p class="text-sm text-slate-500">Average Score</p>
+          <p class="mt-2 text-3xl font-bold text-slate-900">{insights?.monthStats.averageScore ?? '-'}</p>
+        </div>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-2">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100">
+            <h2 class="font-bold text-slate-900">Average Score by Value</h2>
+          </div>
+          <div class="divide-y divide-slate-100">
+            {insights?.valueScores.map((row) => (
+              <div class="px-6 py-4 flex items-center justify-between gap-4">
+                <div>
+                  <p class="font-medium text-slate-900">{row.value_name}</p>
+                  <p class="text-xs text-slate-500">{row.total_asked} asked</p>
+                </div>
+                <span class="font-bold text-slate-900">{row.average_score ?? '-'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100">
+            <h2 class="font-bold text-slate-900">Average Score by Team</h2>
+          </div>
+          <div class="divide-y divide-slate-100">
+            {insights?.teamScores.length ? insights.teamScores.map((row) => (
+              <div class="px-6 py-4 flex items-center justify-between gap-4">
+                <div>
+                  <p class="font-medium text-slate-900">{row.team_name}</p>
+                  <p class="text-xs text-slate-500">{row.total_answered} scored answers</p>
+                </div>
+                <span class="font-bold text-slate-900">{row.average_score ?? '-'}</span>
+              </div>
+            )) : (
+              <p class="px-6 py-10 text-center text-slate-500">Belum ada tim.</p>
+            )}
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100">
+            <h2 class="font-bold text-slate-900">Members Not Selected in Round {insights?.currentRound ?? 1}</h2>
+          </div>
+          <div class="grid gap-3 p-6 md:grid-cols-2 lg:grid-cols-3">
+            {insights?.notSelectedThisRound.length ? insights.notSelectedThisRound.map((member) => (
+              <div class="rounded-lg border border-slate-200 px-4 py-3">
+                <p class="font-medium text-slate-900">{member.full_name}</p>
+                <p class="text-xs text-slate-500">{member.email}</p>
+              </div>
+            )) : (
+              <p class="text-slate-500">Semua member aktif sudah terpilih di round ini.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )}
+</AppLayout>

@@ -1,18 +1,31 @@
 ---
 import AppLayout from '../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
+import { getDashboardSummary } from '../lib/services/analytics';
+import { formatOrgDateTime } from '../lib/utils/date';
 
-const stats = [
-  { label: 'Active Members', value: '42', trend: '+3 this week' },
-  { label: 'Challenges Completed', value: '128', trend: '+12 this month' },
-  { label: 'Avg Organization Score', value: '8.4', trend: '+0.2 from last month' },
-];
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const dashboard = organization && runtime?.env?.DB ? await getDashboardSummary(runtime.env.DB, organization.id) : null;
+const todayChallenge = dashboard?.todayChallenge as { sequence_no: number; member_name: string; created_at: string } | null;
+const todayChallengeHeadline = todayChallenge ? `Challenge #${todayChallenge.sequence_no}` : 'Time for a culture check-in!';
+const todayChallengeSubtitle = todayChallenge
+  ? `Selected member: ${todayChallenge.member_name} • ${formatOrgDateTime(new Date(todayChallenge.created_at), organization?.timezone || 'Asia/Jakarta')}`
+  : 'Gather your team, it\'s time to review our core values.';
+const stats = dashboard
+  ? [
+      { label: 'Active Members', value: String(dashboard.stats?.active_members ?? 0), trend: 'Aktif bulan ini' },
+      { label: 'Challenges Completed', value: String(dashboard.stats?.challenges_this_month ?? 0), trend: 'Bulan berjalan' },
+      {
+        label: 'Avg Organization Score',
+        value: String(dashboard.stats?.average_score_this_month ?? 0),
+        trend: 'Rata-rata bulan ini',
+      },
+    ]
+  : [];
 
-const topMembers = [
-  { name: 'Sarah Jenkins', team: 'Engineering', score: 142, avg: 9.2 },
-  { name: 'Budi Santoso', team: 'Product', score: 135, avg: 8.9 },
-  { name: 'Michael Chen', team: 'Sales', score: 120, avg: 8.5 },
-  { name: 'Rina Wijaya', team: 'Marketing', score: 118, avg: 8.7 },
-];
+const topMembers = (dashboard?.leaderboard ?? []) as Array<{ full_name: string; role: string; total_points: number; average_score: number | null }>;
+const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: string; total: number | string }>;
 ---
 
 <AppLayout title="Dashboard - ValueLoop" currentPath="/dashboard">
@@ -29,8 +42,8 @@ const topMembers = [
         <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
         Today's Challenge is Ready
       </div>
-      <h2 class="text-xl md:text-2xl font-bold mb-1">Time for a culture check-in!</h2>
-      <p class="text-emerald-50">Gather your team, it's time to review our core values.</p>
+      <h2 class="text-xl md:text-2xl font-bold mb-1">{todayChallengeHeadline}</h2>
+      <p class="text-emerald-50">{todayChallengeSubtitle}</p>
     </div>
     <a href="/challenge" class="shrink-0 bg-white text-emerald-700 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-emerald-50 transition-colors active:scale-95">
       Start Challenge &rarr;
@@ -39,7 +52,7 @@ const topMembers = [
 
   <!-- Stats Grid -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    {stats.map(stat => (
+    {stats.map((stat) => (
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
         <p class="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
         <div class="flex items-end gap-3">
@@ -83,11 +96,11 @@ const topMembers = [
                   </span>
                 </td>
                 <td class="px-6 py-4">
-                  <div class="font-medium text-slate-900">{member.name}</div>
-                  <div class="text-slate-500 text-xs">{member.team}</div>
+                  <div class="font-medium text-slate-900">{member.full_name}</div>
+                  <div class="text-slate-500 text-xs">{member.role}</div>
                 </td>
-                <td class="px-6 py-4 font-semibold text-slate-700">{member.score}</td>
-                <td class="px-6 py-4 text-right font-medium text-slate-900">{member.avg}</td>
+                <td class="px-6 py-4 font-semibold text-slate-700">{member.total_points}</td>
+                <td class="px-6 py-4 text-right font-medium text-slate-900">{member.average_score ?? '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -100,45 +113,19 @@ const topMembers = [
       <h3 class="font-bold text-slate-900 mb-6">Value Focus (Last 30 Days)</h3>
       
       <div class="flex-1 flex flex-col justify-center gap-5">
-        <div>
-          <div class="flex justify-between text-sm mb-1.5">
-            <span class="font-medium text-slate-700">Ownership</span>
-            <span class="text-slate-500">45%</span>
+        {valueDistribution.length ? valueDistribution.map((value) => (
+          <div>
+            <div class="flex justify-between text-sm mb-1.5">
+              <span class="font-medium text-slate-700">{value.name}</span>
+              <span class="text-slate-500">{value.total}</span>
+            </div>
+            <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-500 rounded-full" style={`width: ${Math.max(10, Number(value.total) * 10)}%`}></div>
+            </div>
           </div>
-          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full bg-blue-500 rounded-full" style="width: 45%"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-sm mb-1.5">
-            <span class="font-medium text-slate-700">Customer Obsession</span>
-            <span class="text-slate-500">30%</span>
-          </div>
-          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full bg-emerald-500 rounded-full" style="width: 30%"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-sm mb-1.5">
-            <span class="font-medium text-slate-700">Innovation</span>
-            <span class="text-slate-500">15%</span>
-          </div>
-          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full bg-amber-500 rounded-full" style="width: 15%"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-sm mb-1.5">
-            <span class="font-medium text-slate-700">Integrity</span>
-            <span class="text-slate-500">10%</span>
-          </div>
-          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full bg-purple-500 rounded-full" style="width: 10%"></div>
-          </div>
-        </div>
+        )) : (
+          <p class="text-sm text-slate-500">Belum ada data challenge bulan ini.</p>
+        )}
       </div>
     </div>
   </div>

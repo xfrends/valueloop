@@ -1,0 +1,84 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { listAllArticles } from '../../lib/services/articles';
+
+const user = Astro.locals.user;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = user?.platform_role === 'platform_admin';
+const articles = allowed && runtime?.env?.DB ? await listAllArticles(runtime.env.DB) : [];
+---
+
+<AppLayout title="Platform Articles - ValueLoop" currentPath="/platform/articles">
+  <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Articles</h1>
+      <p class="text-slate-500 mt-1">Kelola artikel blog dan generate draft otomatis sesuai niche dan target market.</p>
+    </div>
+    <a href="/platform/articles/new" class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800">New Article</a>
+  </div>
+
+  {!allowed ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin platform admin.</div>
+  ) : (
+    <div class="grid gap-6 lg:grid-cols-3">
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-slate-500">
+            <tr>
+              <th class="px-6 py-3 font-medium">Title</th>
+              <th class="px-6 py-3 font-medium">Category</th>
+              <th class="px-6 py-3 font-medium">Status</th>
+              <th class="px-6 py-3 font-medium text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {articles.map((article) => (
+              <tr>
+                <td class="px-6 py-4">
+                  <div class="font-medium text-slate-900">{article.title}</div>
+                  <div class="text-xs text-slate-500">/blog/{article.slug}</div>
+                </td>
+                <td class="px-6 py-4">{article.category}</td>
+                <td class="px-6 py-4">{article.status}</td>
+                <td class="px-6 py-4 text-right">
+                  <a href={`/platform/articles/${article.id}`} class="font-medium text-emerald-700 hover:text-emerald-800">Edit</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h2 class="font-bold text-slate-900 mb-4">AI Article Generator</h2>
+        <form method="post" action="/api/platform/articles/generate" class="space-y-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Niche</label>
+            <input name="niche" value="Budaya kerja, core values, HR tech" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Target Market</label>
+            <textarea name="targetMarket" rows="3" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required>Founder, HR manager, People Ops, dan leader perusahaan kecil-menengah di Indonesia</textarea>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Keyword Utama</label>
+            <input name="mainKeyword" value="core value perusahaan" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Topic</label>
+            <input name="topic" placeholder="Opsional" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Status</label>
+            <select name="status" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5">
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-white font-medium hover:bg-emerald-700">Generate Article + Thumbnail</button>
+        </form>
+      </div>
+    </div>
+  )}
+</AppLayout>

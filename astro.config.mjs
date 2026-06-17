@@ -11,7 +11,11 @@ export default defineConfig({
 
   adapter: cloudflare({
     imageService: 'compile',
-    sessionKVBindingName: 'KV'
+    sessionKVBindingName: 'KV',
+    configPath: 'wrangler.jsonc',
+    persistState: {
+      path: './.wrangler/state',
+    },
   }),
 
   vite: {

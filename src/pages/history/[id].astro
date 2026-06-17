@@ -1,139 +1,147 @@
 ---
 import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { dbFirst } from '../../lib/db/client';
+import { formatOrgDateTime } from '../../lib/utils/date';
 
-// Mock data for prototype
-const historyDetail = {
-  id: '#128',
-  date: 'Today, 10:00 AM',
-  status: 'Scored',
-  
-  member: {
-    name: 'Sarah Jenkins',
-    team: 'Engineering',
-    avatar: 'SJ'
-  },
-  
-  coreValue: {
-    name: 'Customer Obsession',
-    color: 'blue',
-    shortDesc: 'Working vigorously to earn and keep customer trust.'
-  },
-  
-  question: {
-    text: 'Ceritakan satu situasi di mana kamu menerima keluhan atau feedback negatif dari user, dan apa langkah konkrit yang kamu ambil untuk menyelesaikannya?',
-    difficulty: 'Medium'
-  },
-  
-  answer: 'Minggu lalu, beberapa user komplain tentang lambatnya loading halaman dashboard. Walaupun itu bukan tugas utama sprint saya, saya mengambil waktu 2 jam untuk melakukan profiling dan menemukan bottleneck pada query database. Saya berkolaborasi dengan tim backend untuk menambahkan index, dan mempercepat loading hingga 40%.',
-  
-  evaluation: {
-    score: 9,
-    evaluatorNote: 'Sangat sesuai dengan core value. Sarah tidak hanya menerima feedback, tetapi langsung melakukan tindakan konkrit dan berkolaborasi lintas tim.',
-    evaluatorName: 'Admin Acme'
-  }
+type HistoryDetailRow = {
+  id: string;
+  created_at: string;
+  sequence_no: number;
+  status: string;
+  member_name: string;
+  member_team: string | null;
+  value_name: string;
+  value_short_desc: string;
+  question_text: string;
+  difficulty: string;
+  answer_text: string | null;
+  score: number | null;
+  evaluator_note: string | null;
+  evaluator_name: string | null;
 };
+
+const organization = Astro.locals.organization;
+const historyId = Astro.params.id;
+const runtime = getCloudflareRuntime(Astro);
+const historyDetail = organization
+  && runtime?.env?.DB
+  ? await dbFirst<HistoryDetailRow>(
+      runtime.env.DB,
+      `select
+         cs.*,
+         u.full_name as member_name,
+         (
+           select group_concat(t.name, ', ')
+           from team_members tm
+           join teams t on t.id = tm.team_id
+           where tm.organization_member_id = cs.selected_member_id and tm.organization_id = cs.organization_id
+         ) as member_team,
+         cv.name as value_name,
+         cv.short_description as value_short_desc,
+         cv.color as value_color,
+         q.question_text,
+         q.difficulty,
+         eu.full_name as evaluator_name
+       from challenge_sessions cs
+       join organization_members om on om.id = cs.selected_member_id
+       join users u on u.id = om.user_id
+       join core_values cv on cv.id = cs.core_value_id
+       join questions q on q.id = cs.question_id
+       left join organization_members eom on eom.id = cs.evaluator_member_id
+       left join users eu on eu.id = eom.user_id
+       where cs.organization_id = ? and cs.id = ?
+       limit 1`,
+      [organization.id, historyId]
+    )
+  : null;
 ---
 
-<AppLayout title={`Challenge ${historyDetail.id} - ValueLoop`} currentPath="/history">
+<AppLayout title={`Challenge ${historyDetail?.sequence_no || historyId} - ValueLoop`} currentPath="/history">
   <div class="max-w-3xl mx-auto space-y-8">
-    
-    <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
         <a href="/history" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-600 mb-4 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           Back to History
         </a>
-        <h1 class="text-2xl font-bold text-slate-900">Challenge Record {historyDetail.id}</h1>
-        <p class="text-slate-500 mt-1">Conducted on {historyDetail.date}</p>
+        <h1 class="text-2xl font-bold text-slate-900">Challenge Record {historyDetail?.sequence_no}</h1>
+        <p class="text-slate-500 mt-1">Conducted on {historyDetail ? formatOrgDateTime(new Date(historyDetail.created_at), organization?.timezone || 'Asia/Jakarta') : '-'}</p>
       </div>
 
       <div class="flex items-center gap-3">
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-green-100 text-green-800">
           <span class="w-2 h-2 rounded-full bg-green-500"></span>
-          {historyDetail.status}
+          {historyDetail?.status || '-'}
         </span>
       </div>
     </div>
 
-    <!-- Main Content -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      
-      <!-- Challenge Context -->
       <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 border-b border-slate-100">
         <div class="p-6 md:p-8 flex gap-5 items-start">
           <div class="w-14 h-14 shrink-0 rounded-2xl bg-slate-100 text-slate-600 font-bold text-xl flex items-center justify-center border border-slate-200 shadow-sm">
-            {historyDetail.member.avatar}
+            {String(historyDetail?.member_name || 'U').slice(0, 2).toUpperCase()}
           </div>
           <div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Participant</h3>
-            <p class="text-lg font-bold text-slate-900">{historyDetail.member.name}</p>
-            <p class="text-sm text-slate-500">{historyDetail.member.team}</p>
+            <p class="text-lg font-bold text-slate-900">{historyDetail?.member_name}</p>
+            <p class="text-sm text-slate-500">{historyDetail?.member_team}</p>
           </div>
         </div>
 
         <div class="p-6 md:p-8 flex gap-5 items-start">
-          <div class={`w-14 h-14 shrink-0 rounded-2xl bg-${historyDetail.coreValue.color}-100 text-${historyDetail.coreValue.color}-600 flex items-center justify-center border border-${historyDetail.coreValue.color}-200 shadow-sm`}>
+          <div class="w-14 h-14 shrink-0 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-sm">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           </div>
           <div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Core Value Evaluated</h3>
-            <p class="text-lg font-bold text-slate-900">{historyDetail.coreValue.name}</p>
-            <p class="text-sm text-slate-500 line-clamp-2">{historyDetail.coreValue.shortDesc}</p>
+            <p class="text-lg font-bold text-slate-900">{historyDetail?.value_name}</p>
+            <p class="text-sm text-slate-500 line-clamp-2">{historyDetail?.value_short_desc}</p>
           </div>
         </div>
       </div>
 
-      <!-- Question and Answer -->
       <div class="p-6 md:p-8 space-y-8 border-b border-slate-100">
         <div>
           <div class="flex items-center gap-3 mb-3">
             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Question Asked</h3>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">{historyDetail.question.difficulty}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">{historyDetail?.difficulty}</span>
           </div>
-          <p class="text-xl font-medium leading-relaxed text-slate-900">
-            "{historyDetail.question.text}"
-          </p>
+          <p class="text-xl font-medium leading-relaxed text-slate-900">"{historyDetail?.question_text}"</p>
         </div>
 
         <div class="bg-slate-50 rounded-xl p-6 border border-slate-100 relative">
           <div class="absolute -top-3 left-6 bg-white px-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Member's Answer</div>
-          <p class="text-slate-700 leading-relaxed">
-            {historyDetail.answer}
-          </p>
+          <p class="text-slate-700 leading-relaxed">{historyDetail?.answer_text || 'Belum ada jawaban.'}</p>
         </div>
       </div>
 
-      <!-- Evaluation / Score -->
       <div class="p-6 md:p-8 bg-slate-900 text-white relative overflow-hidden">
         <div class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 opacity-5">
           <svg class="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
         </div>
-        
+
         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Evaluation</h3>
-        
+
         <div class="flex flex-col md:flex-row gap-8 relative z-10">
           <div class="shrink-0 flex flex-col items-center justify-center p-6 bg-slate-800 rounded-2xl border border-slate-700">
-            <span class="text-5xl font-extrabold text-white mb-1">{historyDetail.evaluation.score}</span>
+            <span class="text-5xl font-extrabold text-white mb-1">{historyDetail?.score ?? '-'}</span>
             <span class="text-sm font-medium text-slate-400">out of 10</span>
           </div>
 
           <div class="flex-1 space-y-4">
             <div>
               <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Evaluator Note</p>
-              <p class="text-slate-200 italic leading-relaxed">
-                "{historyDetail.evaluation.evaluatorNote}"
-              </p>
+              <p class="text-slate-200 italic leading-relaxed">"{historyDetail?.evaluator_note || '-'}"</p>
             </div>
             <div>
               <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Evaluated By</p>
-              <p class="text-sm font-medium text-emerald-400">{historyDetail.evaluation.evaluatorName}</p>
+              <p class="text-sm font-medium text-emerald-400">{historyDetail?.evaluator_name || '-'}</p>
             </div>
           </div>
         </div>
       </div>
-
     </div>
-
   </div>
 </AppLayout>

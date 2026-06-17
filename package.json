@@ -11,6 +11,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "setup": "node scripts/bootstrap.mjs --local",
+    "setup:remote": "node scripts/bootstrap.mjs --remote",
     "astro": "astro",
     "generate-types": "wrangler types",
     "db:migrate:local": "wrangler d1 migrations apply valueloop --local",

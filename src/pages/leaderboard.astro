@@ -1,15 +1,11 @@
 ---
 import AppLayout from '../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
+import { getLeaderboardRows } from '../lib/services/analytics';
 
-const leaderboardData = [
-  { rank: 1, name: 'Sarah Jenkins', team: 'Engineering', score: 142, avg: 9.2, totalAnswered: 15, trend: 'up' },
-  { rank: 2, name: 'Budi Santoso', team: 'Product', score: 135, avg: 8.9, totalAnswered: 14, trend: 'same' },
-  { rank: 3, name: 'Michael Chen', team: 'Sales', score: 120, avg: 8.5, totalAnswered: 13, trend: 'up' },
-  { rank: 4, name: 'Rina Wijaya', team: 'Marketing', score: 118, avg: 8.7, totalAnswered: 12, trend: 'down' },
-  { rank: 5, name: 'David Lee', team: 'Engineering', score: 105, avg: 8.1, totalAnswered: 13, trend: 'same' },
-  { rank: 6, name: 'Siti Aminah', team: 'Customer Support', score: 98, avg: 7.9, totalAnswered: 11, trend: 'up' },
-  { rank: 7, name: 'John Doe', team: 'Sales', score: 85, avg: 7.5, totalAnswered: 10, trend: 'down' },
-];
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const leaderboardData = organization && runtime?.env?.DB ? await getLeaderboardRows(runtime.env.DB, organization.id, { includeInactive: true }) : [];
 ---
 
 <AppLayout title="Leaderboard - ValueLoop" currentPath="/leaderboard">
@@ -48,36 +44,33 @@ const leaderboardData = [
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 text-sm">
-          {leaderboardData.map((row) => (
+          {leaderboardData.map((row, index) => (
             <tr class="hover:bg-slate-50/70 transition-colors group">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <span class={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold shadow-sm ${
-                    row.rank === 1 ? 'bg-gradient-to-br from-amber-200 to-amber-400 text-amber-900' : 
-                    row.rank === 2 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900' : 
-                    row.rank === 3 ? 'bg-gradient-to-br from-orange-200 to-orange-400 text-orange-900' : 
+                    index === 0 ? 'bg-gradient-to-br from-amber-200 to-amber-400 text-amber-900' : 
+                    index === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900' : 
+                    index === 2 ? 'bg-gradient-to-br from-orange-200 to-orange-400 text-orange-900' : 
                     'bg-slate-100 text-slate-500'
                   }`}>
-                    {row.rank}
+                    {index + 1}
                   </span>
-                  {row.trend === 'up' && <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>}
-                  {row.trend === 'down' && <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>}
-                  {row.trend === 'same' && <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg>}
                 </div>
               </td>
               <td class="px-6 py-4">
-                <div class="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">{row.name}</div>
-                <div class="text-slate-500 text-xs mt-0.5">{row.team}</div>
+                <div class="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">{row.full_name}</div>
+                <div class="text-slate-500 text-xs mt-0.5">{row.role}</div>
               </td>
               <td class="px-6 py-4">
                 <div class="flex justify-center">
                   <span class="inline-flex px-3 py-1 bg-slate-100 text-slate-800 rounded-md font-bold text-base">
-                    {row.score}
+                    {row.total_points}
                   </span>
                 </div>
               </td>
-              <td class="px-6 py-4 text-center font-medium text-slate-700">{row.avg}</td>
-              <td class="px-6 py-4 text-center text-slate-500">{row.totalAnswered}</td>
+              <td class="px-6 py-4 text-center font-medium text-slate-700">{row.average_score ?? '-'}</td>
+              <td class="px-6 py-4 text-center text-slate-500">{row.total_answered}</td>
             </tr>
           ))}
         </tbody>

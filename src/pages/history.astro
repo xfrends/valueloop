@@ -1,13 +1,12 @@
 ---
 import AppLayout from '../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
+import { listChallengeSessions } from '../lib/services/challenge';
+import { formatOrgDateTime } from '../lib/utils/date';
 
-const historyData = [
-  { id: '#128', date: 'Today, 10:00 AM', member: 'Sarah Jenkins', team: 'Engineering', value: 'Customer Obsession', status: 'Scored', score: 9 },
-  { id: '#127', date: 'Yesterday, 09:30 AM', member: 'Budi Santoso', team: 'Product', value: 'Ownership', status: 'Scored', score: 8 },
-  { id: '#126', date: 'Jun 14, 10:15 AM', member: 'Rina Wijaya', team: 'Marketing', value: 'Innovation', status: 'Draft', score: null },
-  { id: '#125', date: 'Jun 13, 09:00 AM', member: 'Michael Chen', team: 'Sales', value: 'Integrity', status: 'Scored', score: 9 },
-  { id: '#124', date: 'Jun 12, 14:00 PM', member: 'David Lee', team: 'Engineering', value: 'Ownership', status: 'Cancelled', score: null },
-];
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const historyData = organization && runtime?.env?.DB ? await listChallengeSessions(runtime.env.DB, organization.id, { limit: 25 }) : [];
 ---
 
 <AppLayout title="Challenge History - ValueLoop" currentPath="/history">
@@ -47,27 +46,27 @@ const historyData = [
           {historyData.map((row) => (
             <tr class="hover:bg-slate-50 transition-colors group cursor-pointer">
               <td class="px-6 py-4">
-                <div class="font-medium text-slate-900">{row.date}</div>
-                <div class="text-slate-400 text-xs mt-0.5">{row.id}</div>
+                <div class="font-medium text-slate-900">{formatOrgDateTime(new Date(row.created_at), organization?.timezone || 'Asia/Jakarta')}</div>
+                <div class="text-slate-400 text-xs mt-0.5">#{row.sequence_no}</div>
               </td>
               <td class="px-6 py-4">
-                <div class="font-medium text-slate-900">{row.member}</div>
-                <div class="text-slate-500 text-xs mt-0.5">{row.team}</div>
+                <div class="font-medium text-slate-900">{row.member_name}</div>
+                <div class="text-slate-500 text-xs mt-0.5">{row.member_team || '-'}</div>
               </td>
               <td class="px-6 py-4">
                 <span class="inline-flex px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-md border border-emerald-100">
-                  {row.value}
+                  {row.value_name}
                 </span>
               </td>
               <td class="px-6 py-4">
                 <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
-                  row.status === 'Scored' ? 'bg-green-100 text-green-800' :
-                  row.status === 'Draft' ? 'bg-amber-100 text-amber-800' :
+                  row.status === 'scored' ? 'bg-green-100 text-green-800' :
+                  row.status === 'answered' ? 'bg-amber-100 text-amber-800' :
                   'bg-slate-100 text-slate-600'
                 }`}>
-                  {row.status === 'Scored' && <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>}
-                  {row.status === 'Draft' && <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
-                  {row.status === 'Cancelled' && <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>}
+                  {row.status === 'scored' && <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>}
+                  {row.status === 'answered' && <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
+                  {row.status === 'cancelled' && <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>}
                   {row.status}
                 </span>
               </td>
@@ -79,7 +78,7 @@ const historyData = [
                 )}
               </td>
               <td class="px-6 py-4 text-right">
-                <a href="/history/128" class="text-emerald-600 font-medium hover:text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a href={`/history/${row.id}`} class="text-emerald-600 font-medium hover:text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity">
                   View
                 </a>
               </td>

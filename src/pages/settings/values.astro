@@ -1,48 +1,23 @@
 ---
 import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { dbAll } from '../../lib/db/client';
 
-const coreValues = [
-  { 
-    id: 'val_1',
-    name: 'Ownership', 
-    shortDesc: 'Taking initiative beyond core duties.',
-    questionsCount: 12,
-    status: 'Active',
-    color: 'emerald'
-  },
-  { 
-    id: 'val_2',
-    name: 'Customer Obsession', 
-    shortDesc: 'Working vigorously to earn and keep customer trust.',
-    questionsCount: 8,
-    status: 'Active',
-    color: 'blue'
-  },
-  { 
-    id: 'val_3',
-    name: 'Innovation', 
-    shortDesc: 'Expect and require innovation and invention from teams.',
-    questionsCount: 5,
-    status: 'Active',
-    color: 'amber'
-  },
-  { 
-    id: 'val_4',
-    name: 'Integrity', 
-    shortDesc: 'Doing the right thing even when no one is looking.',
-    questionsCount: 10,
-    status: 'Active',
-    color: 'purple'
-  },
-  { 
-    id: 'val_5',
-    name: 'Speed', 
-    shortDesc: 'Moving fast in business matters.',
-    questionsCount: 0,
-    status: 'Inactive',
-    color: 'slate'
-  }
-];
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const coreValues = organization
+  && runtime?.env?.DB
+  ? await dbAll(
+      runtime.env.DB,
+      `select cv.*, count(q.id) as questions_count
+       from core_values cv
+       left join questions q on q.core_value_id = cv.id and q.organization_id = cv.organization_id
+       where cv.organization_id = ?
+       group by cv.id
+       order by cv.is_active desc, cv.sort_order asc, cv.name asc`,
+      [organization.id]
+    )
+  : [];
 ---
 
 <AppLayout title="Manage Core Values - ValueLoop" currentPath="/settings/values">
@@ -66,17 +41,17 @@ const coreValues = [
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {coreValues.map(value => (
-      <div class={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible flex flex-col hover:border-${value.color}-300 hover:shadow-md transition-all group relative`}>
-        {value.status === 'Inactive' && (
+    {coreValues.map((value) => (
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible flex flex-col hover:shadow-md transition-all group relative">
+        {value.is_active === 0 && (
           <div class="absolute inset-0 bg-slate-50/50 backdrop-blur-[1px] z-10 rounded-2xl pointer-events-none"></div>
         )}
         
-        <div class={`h-2 w-full bg-${value.color}-500 rounded-t-2xl relative z-20`}></div>
+        <div class="h-2 w-full bg-emerald-500 rounded-t-2xl relative z-20"></div>
         
         <div class="p-6 flex-1 flex flex-col relative z-20">
           <div class="flex justify-between items-start mb-4">
-            <div class={`w-12 h-12 rounded-xl bg-${value.color}-100 text-${value.color}-600 flex items-center justify-center shadow-sm`}>
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
             </div>
             
@@ -102,15 +77,15 @@ const coreValues = [
               {value.name}
             </a>
           </h3>
-          <p class="text-sm text-slate-600 mb-6 flex-1 relative z-20 pointer-events-none">{value.shortDesc}</p>
+          <p class="text-sm text-slate-600 mb-6 flex-1 relative z-20 pointer-events-none">{value.short_description}</p>
           
           <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto relative z-20">
             <span class="text-sm font-medium text-slate-500 flex items-center gap-1.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-              {value.questionsCount} Questions
+              {value.questions_count} Questions
             </span>
-            <span class={`text-xs font-bold uppercase tracking-wider ${value.status === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>
-              {value.status}
+            <span class={`text-xs font-bold uppercase tracking-wider ${value.is_active === 1 ? 'text-emerald-600' : 'text-slate-500'}`}>
+              {value.is_active === 1 ? 'Active' : 'Inactive'}
             </span>
           </div>
         </div>

@@ -1,0 +1,122 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
+import { listInvitations, listOrganizationMembers, listTeams } from '../../lib/services/members';
+
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const members = organization && runtime?.env?.DB ? await listOrganizationMembers(runtime.env.DB, organization.id) : [];
+const teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
+const invitations = organization && runtime?.env?.DB ? await listInvitations(runtime.env.DB, organization.id) : [];
+const error = Astro.url.searchParams.get('error') || '';
+---
+
+<AppLayout title="Members - ValueLoop" currentPath="/settings/members">
+  <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Members</h1>
+      <p class="text-slate-500 mt-1">Manage member access, roles, and invitation status.</p>
+    </div>
+  </div>
+
+  {error && (
+    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {error}
+    </div>
+  )}
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h2 class="font-bold text-slate-900">Organization Members</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500">
+              <tr>
+                <th class="px-6 py-3 font-medium">Name</th>
+                <th class="px-6 py-3 font-medium">Role</th>
+                <th class="px-6 py-3 font-medium">Teams</th>
+                <th class="px-6 py-3 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {members.map((member) => (
+                <tr>
+                  <td class="px-6 py-4">
+                    <div class="font-medium text-slate-900">{member.full_name}</div>
+                    <div class="text-xs text-slate-500">{member.email}</div>
+                  </td>
+                  <td class="px-6 py-4">{member.role}</td>
+                  <td class="px-6 py-4">{member.team_names || '-'}</td>
+                  <td class="px-6 py-4">{member.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h2 class="font-bold text-slate-900">Pending Invitations</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500">
+              <tr>
+                <th class="px-6 py-3 font-medium">Email</th>
+                <th class="px-6 py-3 font-medium">Role</th>
+                <th class="px-6 py-3 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {invitations.map((invite) => (
+                <tr>
+                  <td class="px-6 py-4">{invite.email}</td>
+                  <td class="px-6 py-4">{invite.role}</td>
+                  <td class="px-6 py-4">{invite.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h2 class="font-bold text-slate-900 mb-4">Invite Member</h2>
+        <form method="post" action="/api/settings/members/invite" class="space-y-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Email</label>
+            <input name="email" type="email" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700">Role</label>
+            <select name="role" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white">
+              <option value="member">Member</option>
+              <option value="viewer">Viewer</option>
+              <option value="facilitator">Facilitator</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Send Invite</button>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h2 class="font-bold text-slate-900 mb-4">Teams Summary</h2>
+        <div class="space-y-3">
+          {teams.map((team) => (
+            <div class="rounded-lg border border-slate-200 p-3">
+              <div class="font-medium text-slate-900">{team.name}</div>
+              <div class="text-xs text-slate-500">{team.member_count} members</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</AppLayout>

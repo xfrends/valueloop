@@ -1,0 +1,65 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
+import { canManageBilling } from '../lib/permissions';
+import { getActiveMemberCount, getOrganizationPlanSummary } from '../lib/services/shared';
+
+const organization = Astro.locals.organization;
+const membership = Astro.locals.membership;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = canManageBilling(membership?.role);
+const plan = organization && runtime?.env?.DB ? await getOrganizationPlanSummary(runtime.env.DB, organization.id) : null;
+const activeMembers = organization && runtime?.env?.DB ? await getActiveMemberCount(runtime.env.DB, organization.id) : 0;
+const maxMembers = Number(plan?.limits.maxMembers ?? 0);
+---
+
+<AppLayout title="Billing - ValueLoop" currentPath="/billing">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Plan</h1>
+    <p class="text-slate-500 mt-1">ValueLoop is currently free. Payment gateway integration is intentionally disabled.</p>
+  </div>
+
+  {!allowed ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin untuk melihat plan organisasi.</div>
+  ) : (
+    <div class="grid gap-6 lg:grid-cols-3">
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium text-slate-500">Current Plan</p>
+            <h2 class="mt-1 text-3xl font-bold text-slate-900">{plan?.plan_name ?? 'Free'}</h2>
+            <p class="mt-2 text-slate-500">Status: {plan?.subscription_status ?? 'active'}</p>
+          </div>
+          <span class="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">Free SaaS</span>
+        </div>
+
+        <div class="mt-8 grid gap-4 md:grid-cols-3">
+          <div class="rounded-xl border border-slate-200 p-4">
+            <p class="text-sm text-slate-500">Members</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900">{activeMembers}{maxMembers ? ` / ${maxMembers}` : ''}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 p-4">
+            <p class="text-sm text-slate-500">Active Values</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900">{plan?.limits.maxActiveValues ?? '-'}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 p-4">
+            <p class="text-sm text-slate-500">Monthly Challenges</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900">{plan?.limits.maxChallengesPerMonth ?? '-'}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h2 class="font-bold text-slate-900 mb-4">Enabled Features</h2>
+        <div class="space-y-3 text-sm">
+          {Object.entries(plan?.features ?? {}).map(([key, value]) => (
+            <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+              <span class="text-slate-700">{key}</span>
+              <span class={value ? 'font-medium text-emerald-700' : 'font-medium text-slate-400'}>{value ? 'Enabled' : 'Disabled'}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+</AppLayout>
