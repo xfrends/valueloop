@@ -1,0 +1,35 @@
+{
+  "name": "valueloop",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro",
+    "generate-types": "wrangler types",
+    "db:migrate:local": "wrangler d1 migrations apply valueloop --local",
+    "db:migrate:remote": "wrangler d1 migrations apply valueloop --remote",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^13.7.0",
+    "@tailwindcss/vite": "^4.3.1",
+    "astro": "^6.4.7",
+    "tailwindcss": "^4.3.1",
+    "wrangler": "^4.101.0",
+    "zod": "^4.4.3"
+  },
+  "overrides": {
+    "vite": "^7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^6.0.3"
+  }
+}

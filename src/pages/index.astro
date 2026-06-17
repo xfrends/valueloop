@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="ValueLoop"
+  description="SaaS multi-tenant untuk mengubah core values menjadi kebiasaan kerja harian."
+>
+  <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-10">
+    <header class="flex items-center justify-between gap-6">
+      <a class="text-lg font-semibold tracking-tight" href="/">ValueLoop</a>
+      <nav class="flex items-center gap-3 text-sm">
+        <a class="rounded-md px-3 py-2 text-slate-600 hover:text-slate-950" href="/login">Masuk</a>
+        <a class="rounded-md bg-slate-950 px-4 py-2 font-medium text-white hover:bg-slate-800" href="/signup">
+          Buat organisasi
+        </a>
+      </nav>
+    </header>
+
+    <section class="grid flex-1 items-center gap-12 py-16 md:grid-cols-[1.08fr_0.92fr]">
+      <div class="max-w-2xl">
+        <p class="mb-4 text-sm font-medium uppercase tracking-[0.18em] text-emerald-700">
+          Astro + Cloudflare
+        </p>
+        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          Aktifkan core values lewat challenge harian yang terukur.
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-8 text-slate-600">
+          ValueLoop membantu organisasi menjalankan ritual budaya kerja dengan pertanyaan,
+          jawaban member, scoring manual, leaderboard, history, dan insights.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a class="rounded-md bg-emerald-700 px-5 py-3 font-medium text-white hover:bg-emerald-800" href="/signup">
+            Mulai MVP
+          </a>
+          <a class="rounded-md border border-slate-300 px-5 py-3 font-medium text-slate-700 hover:border-slate-500" href="/onboarding">
+            Lihat onboarding
+          </a>
+        </div>
+      </div>
+
+      <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-5 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-slate-900">Runtime stack</h2>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Ready</span>
+        </div>
+        <dl class="grid gap-3 text-sm">
+          <div class="flex justify-between rounded-md bg-slate-50 p-3">
+            <dt class="text-slate-500">Framework</dt>
+            <dd class="font-medium text-slate-900">Astro</dd>
+          </div>
+          <div class="flex justify-between rounded-md bg-slate-50 p-3">
+            <dt class="text-slate-500">Runtime</dt>
+            <dd class="font-medium text-slate-900">Cloudflare Workers</dd>
+          </div>
+          <div class="flex justify-between rounded-md bg-slate-50 p-3">
+            <dt class="text-slate-500">Database</dt>
+            <dd class="font-medium text-slate-900">D1</dd>
+          </div>
+          <div class="flex justify-between rounded-md bg-slate-50 p-3">
+            <dt class="text-slate-500">Cache/session</dt>
+            <dd class="font-medium text-slate-900">KV</dd>
+          </div>
+          <div class="flex justify-between rounded-md bg-slate-50 p-3">
+            <dt class="text-slate-500">Files</dt>
+            <dd class="font-medium text-slate-900">R2</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
