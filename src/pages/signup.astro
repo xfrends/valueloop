@@ -12,7 +12,7 @@ const fullName = Astro.url.searchParams.get('fullName') || '';
 const email = Astro.url.searchParams.get('email') || '';
 
 const inputClass = (field: string) =>
-  `w-full rounded-lg px-4 py-2.5 outline-none focus:ring-1 ${fieldErrors[field] ? 'border border-red-300 focus:border-red-500 focus:ring-red-500' : 'border border-slate-300 focus:border-emerald-500 focus:ring-emerald-500'}`;
+  `w-full rounded-lg px-4 py-2.5 outline-none focus:ring-1 ${fieldErrors[field] ? 'border border-red-300 focus:border-red-500 focus:ring-red-500' : 'border border-slate-300 focus:border-blue-500 focus:ring-blue-500'}`;
 ---
 
 <BaseLayout title="Buat Akun | ValueLoop">
@@ -81,10 +81,10 @@ const inputClass = (field: string) =>
               value="on"
               required
               aria-invalid={fieldErrors.termsAccepted ? 'true' : 'false'}
-              class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500"
             />
             <span>
-              Saya setuju dengan <a href="/terms" class="font-medium text-emerald-700 hover:text-emerald-800">Syarat & Ketentuan</a> dan <a href="/privacy" class="font-medium text-emerald-700 hover:text-emerald-800">Kebijakan Privasi</a>.
+              Saya setuju dengan <a href="/terms" class="font-medium text-blue-800 hover:text-blue-900">Syarat & Ketentuan</a> dan <a href="/privacy" class="font-medium text-blue-800 hover:text-blue-900">Kebijakan Privasi</a>.
             </span>
           </label>
           {fieldErrors.termsAccepted && <p class="text-sm text-red-600">{fieldErrors.termsAccepted}</p>}
@@ -94,7 +94,7 @@ const inputClass = (field: string) =>
       <p class="mt-6 text-center text-xs text-slate-500">
         Dengan mendaftar, Anda menyetujui <a href="/terms" class="underline hover:text-slate-800">Syarat & Ketentuan</a> dan <a href="/privacy" class="underline hover:text-slate-800">Kebijakan Privasi</a> kami.
       </p>
-      <p class="mt-4 text-center text-sm text-slate-500">Sudah punya akun? <a href="/login" class="font-medium text-emerald-700 hover:text-emerald-800">Masuk</a></p>
+      <p class="mt-4 text-center text-sm text-slate-500">Sudah punya akun? <a href="/login" class="font-medium text-blue-800 hover:text-blue-900">Masuk</a></p>
     </section>
   </main>
 </BaseLayout>

@@ -69,12 +69,12 @@ const valueData = valueRow
   <div class="max-w-4xl mx-auto space-y-8">
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
-        <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-600 mb-4 transition-colors">
+        <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-700 mb-4 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           Back to Core Values
         </a>
         <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
+          <div class="w-14 h-14 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-sm">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
           </div>
           <div>
@@ -85,8 +85,8 @@ const valueData = valueRow
       </div>
 
       <div class="flex items-center gap-3">
-        <span class={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border ${valueData?.status === 'Active' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
-          <span class={`w-2 h-2 rounded-full ${valueData?.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+        <span class={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border ${valueData?.status === 'Active' ? 'bg-blue-50 text-blue-900 border-blue-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+          <span class={`w-2 h-2 rounded-full ${valueData?.status === 'Active' ? 'bg-blue-500 animate-pulse' : 'bg-slate-400'}`}></span>
           {valueData?.status}
         </span>
         <a href={`/settings/values/${valueId}/edit`} class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
@@ -147,7 +147,7 @@ const valueData = valueRow
                   </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                  <button onclick="document.getElementById('modal-question').showModal()" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Edit Question">
+                  <button onclick="document.getElementById('modal-question').showModal()" class="p-2 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Question">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                   </button>
                   <button onclick="document.getElementById('modal-delete').showModal()" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Question">
@@ -161,15 +161,15 @@ const valueData = valueRow
       </div>
 
       <div class="space-y-6">
-        <div class="bg-emerald-50 rounded-2xl border border-emerald-100 shadow-sm p-6">
-          <h3 class="font-bold text-emerald-800 mb-4 flex items-center gap-2">
+        <div class="bg-blue-50 rounded-2xl border border-blue-100 shadow-sm p-6">
+          <h3 class="font-bold text-blue-900 mb-4 flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             Expected Behaviors
           </h3>
           <ul class="space-y-3">
             {valueData?.expectedBehaviors.map((behavior) => (
-              <li class="flex items-start gap-2 text-sm text-emerald-900">
-                <span class="text-emerald-500 mt-0.5">•</span>
+              <li class="flex items-start gap-2 text-sm text-slate-900">
+                <span class="text-blue-500 mt-0.5">•</span>
                 {behavior}
               </li>
             ))}
@@ -202,7 +202,7 @@ const valueData = valueRow
               <p class="text-sm text-slate-500 mb-1">Average Organization Score</p>
               <div class="flex items-center gap-2">
                 <p class="text-2xl font-bold text-slate-900">-<span class="text-sm font-medium text-slate-500">/10</span></p>
-                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Live</span>
+                <span class="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded">Live</span>
               </div>
             </div>
           </div>
@@ -223,12 +223,12 @@ const valueData = valueRow
         <input type="hidden" name="coreValueId" value={valueId} />
         <div class="space-y-2">
           <label class="block text-sm font-bold text-slate-900">Question Text <span class="text-red-500">*</span></label>
-          <textarea name="questionText" rows="3" placeholder="e.g. Ceritakan saat kamu..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow" required></textarea>
+          <textarea name="questionText" rows="3" placeholder="e.g. Ceritakan saat kamu..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" required></textarea>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
             <label class="block text-sm font-bold text-slate-900">Difficulty</label>
-            <select name="difficulty" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none bg-white">
+            <select name="difficulty" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
@@ -236,7 +236,7 @@ const valueData = valueRow
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-bold text-slate-900">Status</label>
-            <select name="isActive" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none bg-white">
+            <select name="isActive" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
               <option value="1">Active</option>
               <option value="0">Inactive</option>
             </select>
@@ -244,13 +244,13 @@ const valueData = valueRow
         </div>
         <div class="space-y-2">
           <label class="block text-sm font-bold text-slate-900">Suggested Rubric / Note</label>
-          <input name="suggestedRubricNote" type="text" placeholder="Guidance for the facilitator scoring this..." class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-shadow" />
+          <input name="suggestedRubricNote" type="text" placeholder="Guidance for the facilitator scoring this..." class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
         </div>
         <div class="pt-4 flex justify-end gap-3">
           <button type="button" onclick="document.getElementById('modal-question').close()" class="px-5 py-2.5 rounded-lg font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
             Cancel
           </button>
-          <button type="submit" class="px-5 py-2.5 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm">
+          <button type="submit" class="px-5 py-2.5 rounded-lg font-medium text-white bg-blue-700 hover:bg-blue-800 transition-colors shadow-sm">
             Save Question
           </button>
         </div>

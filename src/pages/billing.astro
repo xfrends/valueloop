@@ -30,7 +30,7 @@ const maxMembers = Number(plan?.limits.maxMembers ?? 0);
             <h2 class="mt-1 text-3xl font-bold text-slate-900">{plan?.plan_name ?? 'Free'}</h2>
             <p class="mt-2 text-slate-500">Status: {plan?.subscription_status ?? 'active'}</p>
           </div>
-          <span class="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">Free SaaS</span>
+          <span class="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">Free SaaS</span>
         </div>
 
         <div class="mt-8 grid gap-4 md:grid-cols-3">
@@ -55,7 +55,7 @@ const maxMembers = Number(plan?.limits.maxMembers ?? 0);
           {Object.entries(plan?.features ?? {}).map(([key, value]) => (
             <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
               <span class="text-slate-700">{key}</span>
-              <span class={value ? 'font-medium text-emerald-700' : 'font-medium text-slate-400'}>{value ? 'Enabled' : 'Disabled'}</span>
+              <span class={value ? 'font-medium text-blue-800' : 'font-medium text-slate-400'}>{value ? 'Enabled' : 'Disabled'}</span>
             </div>
           ))}
         </div>

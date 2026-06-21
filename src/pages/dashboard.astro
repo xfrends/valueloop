@@ -38,16 +38,16 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
   </div>
 
   <!-- Today's Challenge Banner -->
-  <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 md:p-8 text-white shadow-lg shadow-emerald-600/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+  <div class="bg-gradient-to-r from-blue-700 to-teal-700 rounded-2xl p-6 md:p-8 text-white shadow-lg shadow-blue-700/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
     <div>
       <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-xs font-medium mb-3 backdrop-blur-sm">
-        <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+        <span class="w-2 h-2 rounded-full bg-blue-300 animate-pulse"></span>
         Today's Challenge is Ready
       </div>
       <h2 class="text-xl md:text-2xl font-bold mb-1">{todayChallengeHeadline}</h2>
-      <p class="text-emerald-50">{todayChallengeSubtitle}</p>
+      <p class="text-blue-50">{todayChallengeSubtitle}</p>
     </div>
-    <a href="/challenge" class="shrink-0 bg-white text-emerald-700 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-emerald-50 transition-colors active:scale-95">
+    <a href="/challenge" class="shrink-0 bg-white text-blue-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-blue-50 transition-colors active:scale-95">
       Start Challenge &rarr;
     </a>
   </div>
@@ -59,7 +59,7 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
         <p class="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
         <div class="flex items-end gap-3">
           <p class="text-3xl font-bold text-slate-900">{stat.value}</p>
-          <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded mb-1">
+          <span class="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded mb-1">
             {stat.trend}
           </span>
         </div>
@@ -72,7 +72,7 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
     <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
         <h3 class="font-bold text-slate-900">Top Members This Month</h3>
-        <a href="/leaderboard" class="text-sm font-medium text-emerald-600 hover:text-emerald-700">View all &rarr;</a>
+        <a href="/leaderboard" class="text-sm font-medium text-blue-700 hover:text-blue-800">View all &rarr;</a>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
@@ -122,7 +122,7 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
               <span class="text-slate-500">{value.total}</span>
             </div>
             <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div class="h-full bg-emerald-500 rounded-full" style={`width: ${Math.max(10, Number(value.total) * 10)}%`}></div>
+              <div class="h-full bg-blue-500 rounded-full" style={`width: ${Math.max(10, Number(value.total) * 10)}%`}></div>
             </div>
           </div>
         )) : (
@@ -135,7 +135,7 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
   ) : (
     <section class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 shadow-sm">
       <div class="max-w-xl">
-        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Dashboard</p>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-800">Dashboard</p>
         <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900">Belum ada organisasi</h1>
         <p class="mt-3 text-slate-600">
           Dashboard tetap bisa dibuka. Buat organisasi pertama untuk mulai menambahkan core values, anggota, dan challenge.

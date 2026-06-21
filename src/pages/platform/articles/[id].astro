@@ -14,7 +14,7 @@ const article = allowed && runtime?.env?.DB ? await getArticleById(runtime.env.D
       <h1 class="text-2xl font-bold text-slate-900">Edit Article</h1>
       <p class="text-slate-500 mt-1">{article?.title ?? 'Artikel tidak ditemukan.'}</p>
     </div>
-    {article && <a href={`/blog/${article.slug}`} class="text-sm font-medium text-emerald-700 hover:text-emerald-800">View public</a>}
+    {article && <a href={`/blog/${article.slug}`} class="text-sm font-medium text-blue-800 hover:text-blue-900">View public</a>}
   </div>
 
   {!allowed ? (

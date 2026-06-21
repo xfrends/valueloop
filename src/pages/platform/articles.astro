@@ -42,7 +42,7 @@ const articles = allowed && runtime?.env?.DB ? await listAllArticles(runtime.env
                 <td class="px-6 py-4">{article.category}</td>
                 <td class="px-6 py-4">{article.status}</td>
                 <td class="px-6 py-4 text-right">
-                  <a href={`/platform/articles/${article.id}`} class="font-medium text-emerald-700 hover:text-emerald-800">Edit</a>
+                  <a href={`/platform/articles/${article.id}`} class="font-medium text-blue-800 hover:text-blue-900">Edit</a>
                 </td>
               </tr>
             ))}
@@ -55,19 +55,19 @@ const articles = allowed && runtime?.env?.DB ? await listAllArticles(runtime.env
         <form method="post" action="/api/platform/articles/generate" class="space-y-4">
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700">Niche</label>
-            <input name="niche" value="Budaya kerja, core values, HR tech" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+            <input name="niche" value="Budaya kerja, core values, HR tech" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
           </div>
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700">Target Market</label>
-            <textarea name="targetMarket" rows="3" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required>Founder, HR manager, People Ops, dan leader perusahaan kecil-menengah di Indonesia</textarea>
+            <textarea name="targetMarket" rows="3" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>Founder, HR manager, People Ops, dan leader perusahaan kecil-menengah di Indonesia</textarea>
           </div>
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700">Keyword Utama</label>
-            <input name="mainKeyword" value="core value perusahaan" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+            <input name="mainKeyword" value="core value perusahaan" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
           </div>
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700">Topic</label>
-            <input name="topic" placeholder="Opsional" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+            <input name="topic" placeholder="Opsional" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
           </div>
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700">Status</label>
@@ -76,7 +76,7 @@ const articles = allowed && runtime?.env?.DB ? await listAllArticles(runtime.env
               <option value="published">Published</option>
             </select>
           </div>
-          <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-white font-medium hover:bg-emerald-700">Generate Article + Thumbnail</button>
+          <button type="submit" class="w-full rounded-lg bg-blue-700 px-4 py-2.5 text-white font-medium hover:bg-blue-800">Generate Article + Thumbnail</button>
         </form>
       </div>
     </div>

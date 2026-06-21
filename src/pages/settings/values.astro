@@ -47,11 +47,11 @@ const coreValues = organization
           <div class="absolute inset-0 bg-slate-50/50 backdrop-blur-[1px] z-10 rounded-2xl pointer-events-none"></div>
         )}
         
-        <div class="h-2 w-full bg-emerald-500 rounded-t-2xl relative z-20"></div>
+        <div class="h-2 w-full bg-blue-500 rounded-t-2xl relative z-20"></div>
         
         <div class="p-6 flex-1 flex flex-col relative z-20">
           <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-sm">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
             </div>
             
@@ -64,7 +64,7 @@ const coreValues = organization
               <!-- Dropdown Options (Visible on Hover for Prototype) -->
               <div class="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border border-slate-200 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50">
                 <div class="p-1 flex flex-col">
-                  <a href={`/settings/values/${value.id}/edit`} class="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-emerald-600 rounded-md text-left">Edit Value</a>
+                  <a href={`/settings/values/${value.id}/edit`} class="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-700 rounded-md text-left">Edit Value</a>
                   <div class="h-px bg-slate-100 my-1"></div>
                   <button class="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md text-left">Deactivate</button>
                 </div>
@@ -84,7 +84,7 @@ const coreValues = organization
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
               {value.questions_count} Questions
             </span>
-            <span class={`text-xs font-bold uppercase tracking-wider ${value.is_active === 1 ? 'text-emerald-600' : 'text-slate-500'}`}>
+            <span class={`text-xs font-bold uppercase tracking-wider ${value.is_active === 1 ? 'text-blue-700' : 'text-slate-500'}`}>
               {value.is_active === 1 ? 'Active' : 'Inactive'}
             </span>
           </div>
@@ -93,8 +93,8 @@ const coreValues = organization
     ))}
 
     <!-- Add New Placeholder Card -->
-    <a href="/settings/values/new" class="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6 flex flex-col items-center justify-center text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 transition-colors min-h-[280px]">
-      <svg class="w-10 h-10 mb-4 text-slate-400 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+    <a href="/settings/values/new" class="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6 flex flex-col items-center justify-center text-slate-500 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 transition-colors min-h-[280px]">
+      <svg class="w-10 h-10 mb-4 text-slate-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
       <span class="font-bold">Create New Value</span>
       <span class="text-sm mt-1 text-center">Add custom core values for your org</span>
     </a>

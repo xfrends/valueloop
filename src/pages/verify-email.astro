@@ -28,11 +28,11 @@ const devOtp = Astro.url.searchParams.get('devOtp') || '';
       <form method="post" action="/api/auth/verify-email" class="mt-6 space-y-4">
         <div class="space-y-2">
           <label class="text-sm font-medium text-slate-700">Email</label>
-          <input name="email" type="email" value={email} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+          <input name="email" type="email" value={email} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
         </div>
         <div class="space-y-2">
           <label class="text-sm font-medium text-slate-700">Kode OTP</label>
-          <input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-center text-xl tracking-[0.4em] outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" required />
+          <input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-center text-xl tracking-[0.4em] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
         </div>
         <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Verifikasi dan masuk</button>
       </form>

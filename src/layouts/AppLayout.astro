@@ -64,7 +64,7 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
     <aside class="w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 z-10 transition-transform">
       <div class="h-16 flex items-center px-6 border-b border-slate-200">
         <a href="/" class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-teal-700 flex items-center justify-center text-white font-bold text-lg shadow-sm">
             V
           </div>
           <span class="font-bold text-lg tracking-tight text-slate-900">ValueLoop</span>
@@ -80,11 +80,11 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
               href={item.path}
               class={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive 
-                  ? 'bg-emerald-50 text-emerald-700' 
+                  ? 'bg-blue-50 text-blue-800' 
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <svg class={`w-5 h-5 ${isActive ? 'text-emerald-600' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class={`w-5 h-5 ${isActive ? 'text-blue-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon}></path>
               </svg>
               {item.name}
@@ -101,11 +101,11 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
               href={item.path}
               class={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-emerald-50 text-emerald-700'
+                  ? 'bg-blue-50 text-blue-800'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <svg class={`w-5 h-5 ${isActive ? 'text-emerald-600' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class={`w-5 h-5 ${isActive ? 'text-blue-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon}></path>
               </svg>
               {item.name}
@@ -133,14 +133,14 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
       <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 flex items-center justify-between px-8">
         <div class="flex items-center gap-4">
           <!-- Org Switcher Mock -->
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200 bg-white shadow-sm cursor-pointer hover:border-emerald-300 transition-colors">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200 bg-white shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
             <div class="w-5 h-5 rounded bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
               {(organization?.name || 'O').slice(0, 1).toUpperCase()}
             </div>
             <span class="text-sm font-medium text-slate-700">{organization?.name ?? 'Belum ada organisasi'}</span>
             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium border border-emerald-200">
+          <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 text-xs font-medium border border-blue-200">
             {settings ? 'Plan Aktif' : 'Plan Default'}
           </span>
         </div>
