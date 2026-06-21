@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCloudflareRuntime } from '../../../../lib/cloudflare/bindings';
-import { clearGoogleOAuthStateCookie, currentOrgCookie, sessionCookie } from '../../../../lib/auth/cookies';
+import { clearCurrentOrgCookie, clearGoogleOAuthStateCookie, currentOrgCookie, sessionCookie } from '../../../../lib/auth/cookies';
 import { GOOGLE_OAUTH_STATE_COOKIE_NAME } from '../../../../lib/auth/constants';
 import { parseCookieHeader } from '../../../../lib/http/cookies';
 import { createAuthSession, upsertGoogleUser } from '../../../../lib/services/auth';
@@ -84,13 +84,15 @@ export const GET: APIRoute = async ({ request, locals }) => {
   });
   const session = await createAuthSession(runtime.env.DB, runtime.env.KV, user.id);
   const orgs = await listUserOrganizations(runtime.env.DB, user.id);
-  const target = orgs.length ? '/dashboard' : '/onboarding';
+  const target = '/dashboard';
 
   const headers = new Headers({ Location: target });
   headers.append('Set-Cookie', clearGoogleOAuthStateCookie());
   headers.append('Set-Cookie', sessionCookie(session.token, session.expiresAt));
   if (orgs[0]) {
     headers.append('Set-Cookie', currentOrgCookie(orgs[0].id));
+  } else {
+    headers.append('Set-Cookie', clearCurrentOrgCookie());
   }
 
   return new Response(null, { status: 302, headers });

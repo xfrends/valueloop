@@ -1,10 +1,16 @@
 import { dbAll, dbFirst, dbRun } from '../db/client';
 import { isoNow } from '../utils/date';
 import { randomId } from '../utils/crypto';
-import { slugify } from '../utils/slug';
-import { ensureSubscription, getOrganizationSettings, upsertOrganizationSettings, writeAuditLog } from './shared';
+import {
+  assertOrganizationOwnerSlotAvailable,
+  assertOrganizationSlugAvailable,
+  ensureSubscription,
+  getOrganizationSettings,
+  normalizeOrganizationSlug,
+  upsertOrganizationSettings,
+  writeAuditLog,
+} from './shared';
 import type { OrganizationRole } from '../permissions';
-import { assertNoOtherActiveOwnerForEmailDomain } from './auth';
 
 export type OrganizationRow = {
   id: string;
@@ -43,7 +49,8 @@ export async function createOrganization(
   payload: { name: string; slug?: string; timezone?: string; defaultLocale?: string }
 ): Promise<OrganizationRow> {
   const id = randomId();
-  const slug = payload.slug?.trim() || slugify(payload.name);
+  const slug = normalizeOrganizationSlug({ name: payload.name, slug: payload.slug });
+  await assertOrganizationSlugAvailable(db, slug);
   await dbRun(
     db,
     `insert into organizations (id, name, slug, timezone, default_locale, status, created_at, updated_at)
@@ -90,7 +97,12 @@ export async function updateOrganization(
     throw new Error('Organisasi tidak ditemukan.');
   }
 
-  const nextSlug = payload.slug?.trim() || before.slug;
+  const nextSlug = payload.slug === undefined
+    ? before.slug
+    : normalizeOrganizationSlug({ name: payload.name ?? before.name, slug: payload.slug });
+  if (nextSlug !== before.slug) {
+    await assertOrganizationSlugAvailable(db, nextSlug, payload.organizationId);
+  }
   await dbRun(
     db,
     `update organizations
@@ -191,11 +203,10 @@ export async function changeOrganizationMemberRole(
     actorMemberId: string | null;
   }
 ): Promise<void> {
-  const before = await dbFirst<{ id: string; status: string; role: string; user_id: string; email: string }>(
+  const before = await dbFirst<{ id: string; status: string; role: string; user_id: string }>(
     db,
-    `select om.id, om.status, om.role, om.user_id, u.email
+    `select om.id, om.status, om.role, om.user_id
      from organization_members om
-     join users u on u.id = om.user_id
      where om.id = ? and om.organization_id = ?`,
     [payload.memberId, payload.organizationId]
   );
@@ -205,7 +216,7 @@ export async function changeOrganizationMemberRole(
   }
 
   if (payload.role === 'owner') {
-    await assertNoOtherActiveOwnerForEmailDomain(db, before.email, before.user_id);
+    await assertOrganizationOwnerSlotAvailable(db, payload.organizationId, payload.memberId);
   }
 
   await dbRun(

@@ -1,3 +1,15 @@
+const formDataCache = new WeakMap<Request, Promise<FormData>>();
+
+async function getCachedFormData(request: Request): Promise<FormData> {
+  let cached = formDataCache.get(request);
+  if (!cached) {
+    cached = request.formData();
+    formDataCache.set(request, cached);
+  }
+
+  return cached;
+}
+
 export async function readFormDataValue(request: Request, key: string): Promise<string> {
   try {
     const contentType = request.headers.get('content-type') || '';
@@ -15,7 +27,7 @@ export async function readFormDataValue(request: Request, key: string): Promise<
       return '';
     }
 
-    const formData = await request.formData();
+    const formData = await getCachedFormData(request);
     return String(formData.get(key) ?? '').trim();
   } catch {
     return '';

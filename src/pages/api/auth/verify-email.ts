@@ -3,7 +3,7 @@ import { getCloudflareRuntime } from '../../../lib/cloudflare/bindings';
 import { verifyEmailOtp } from '../../../lib/auth/email-verification';
 import { markEmailVerified, createAuthSession } from '../../../lib/services/auth';
 import { listUserOrganizations } from '../../../lib/services/organization';
-import { currentOrgCookie, sessionCookie } from '../../../lib/auth/cookies';
+import { clearCurrentOrgCookie, currentOrgCookie, sessionCookie } from '../../../lib/auth/cookies';
 import { json } from '../../../lib/http/response';
 import { readFormDataValue, readJsonBody } from '../../../lib/http/forms';
 
@@ -37,12 +37,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const user = await markEmailVerified(runtime.env.DB, verified.userId);
   const session = await createAuthSession(runtime.env.DB, runtime.env.KV, user.id);
   const orgs = await listUserOrganizations(runtime.env.DB, user.id);
-  const target = orgs.length ? '/dashboard' : '/onboarding';
+  const target = '/dashboard';
 
   const headers = new Headers({ Location: target });
   headers.append('Set-Cookie', sessionCookie(session.token, session.expiresAt));
   if (orgs[0]) {
     headers.append('Set-Cookie', currentOrgCookie(orgs[0].id));
+  } else {
+    headers.append('Set-Cookie', clearCurrentOrgCookie());
   }
 
   if (contentType.includes('application/json')) {

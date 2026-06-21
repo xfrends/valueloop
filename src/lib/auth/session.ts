@@ -12,10 +12,15 @@ export type SessionRecord = {
   created_at: string;
 };
 
-export async function createSession(db: D1Database, kv: KVNamespace, userId: string): Promise<{ token: string; expiresAt: string }> {
+export async function createSession(
+  db: D1Database,
+  kv: KVNamespace,
+  userId: string,
+  ttlSeconds: number = SESSION_TTL_SECONDS
+): Promise<{ token: string; expiresAt: string }> {
   const token = randomToken(32);
   const tokenHash = await sha256Hex(token);
-  const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
 
   await db.prepare(
     `insert into auth_sessions (id, user_id, token_hash, expires_at, created_at)

@@ -37,6 +37,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname === '/verify-email' ||
     pathname === '/privacy' ||
     pathname === '/terms' ||
+    pathname === '/panduan' ||
+    pathname === '/studi-kasus' ||
+    pathname === '/bantuan' ||
     pathname.startsWith('/blog') ||
     pathname.startsWith('/invite/') ||
     pathname === '/api/health' ||
@@ -45,16 +48,34 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith('/assets');
 
   if (context.locals.user && (pathname === '/' || pathname === '/login' || pathname === '/signup')) {
-    const target = context.locals.organization ? '/dashboard' : '/onboarding';
-    return context.redirect(target);
+    return context.redirect('/dashboard');
+  }
+
+  if (context.locals.user && context.locals.organization && pathname === '/onboarding') {
+    return context.redirect('/dashboard');
   }
 
   if (!context.locals.user && !isPublicRoute && !pathname.startsWith('/api/')) {
     return context.redirect('/login');
   }
 
-  if (context.locals.user && !context.locals.organization && !['/onboarding', '/logout'].includes(pathname) && !pathname.startsWith('/api/')) {
-    return context.redirect('/onboarding');
+  const isPlatformAdminRoute = pathname.startsWith('/platform') && context.locals.user?.platform_role === 'platform_admin';
+  if (pathname.startsWith('/platform') && !isPlatformAdminRoute) {
+    return context.redirect('/dashboard');
+  }
+
+  if (
+    context.locals.user
+    && !context.locals.organization
+    && pathname !== '/dashboard'
+    && pathname !== '/onboarding'
+    && pathname !== '/logout'
+    && !pathname.startsWith('/api/')
+    && !pathname.startsWith('/_astro')
+    && !pathname.startsWith('/favicon')
+    && !pathname.startsWith('/assets')
+  ) {
+    return context.redirect('/dashboard');
   }
 
   return next();

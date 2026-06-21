@@ -2,6 +2,7 @@ import { dbFirst, dbRun } from '../db/client';
 import { isoNow } from '../utils/date';
 import { stringifyJson } from '../utils/json';
 import type { OrganizationRole } from '../permissions';
+import { slugify } from '../utils/slug';
 
 export type OrganizationSettings = {
   challengeFrequency: string;
@@ -24,6 +25,53 @@ export const DEFAULT_ORG_SETTINGS: OrganizationSettings = {
     { min: 9, max: 10, label: 'Sangat baik' },
   ],
 };
+
+export function normalizeOrganizationSlug(payload: { name: string; slug?: string | null }): string {
+  const slug = slugify(payload.slug?.trim() || payload.name);
+  if (!slug) {
+    throw new Error('Slug organisasi tidak valid.');
+  }
+  return slug;
+}
+
+export async function assertOrganizationSlugAvailable(
+  db: D1Database,
+  slug: string,
+  excludeOrganizationId?: string
+): Promise<void> {
+  const existing = await dbFirst<{ id: string }>(
+    db,
+    `select id from organizations
+     where slug = ?
+       and (? is null or id <> ?)
+     limit 1`,
+    [slug, excludeOrganizationId ?? null, excludeOrganizationId ?? null]
+  );
+
+  if (existing) {
+    throw new Error('Slug organisasi sudah digunakan.');
+  }
+}
+
+export async function assertOrganizationOwnerSlotAvailable(
+  db: D1Database,
+  organizationId: string,
+  excludeMemberId?: string
+): Promise<void> {
+  const existing = await dbFirst<{ id: string }>(
+    db,
+    `select id from organization_members
+     where organization_id = ?
+       and role = 'owner'
+       and (? is null or id <> ?)
+     limit 1`,
+    [organizationId, excludeMemberId ?? null, excludeMemberId ?? null]
+  );
+
+  if (existing) {
+    throw new Error('Setiap organisasi hanya boleh memiliki satu owner aktif.');
+  }
+}
 
 export async function getOrganizationSettings(db: D1Database, organizationId: string): Promise<OrganizationSettings> {
   const row = await dbFirst<{ settings: string }>(

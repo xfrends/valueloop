@@ -1,16 +1,29 @@
 import { z } from 'zod';
 
-const trimmedEmail = z.preprocess((value) => (typeof value === 'string' ? value.trim() : value), z.email());
+const trimmedEmail = z.preprocess(
+  (value) => (typeof value === 'string' ? value.trim() : value),
+  z.string({ error: 'Email wajib diisi.' }).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email tidak valid.')
+);
+const termsAccepted = z.preprocess(
+  (value) => value === true || value === 'true' || value === 'on' || value === '1' || value === 1,
+  z.boolean().refine((value) => value, 'Anda harus menyetujui Syarat & Ketentuan dan Kebijakan Privasi.')
+);
+const checkboxValue = z.preprocess(
+  (value) => value === true || value === 'true' || value === 'on' || value === '1' || value === 1,
+  z.boolean().default(false)
+);
 
 export const authSignupSchema = z.object({
-  fullName: z.string().trim().min(2).max(120),
+  fullName: z.string({ error: 'Nama lengkap wajib diisi.' }).trim().min(2, 'Nama lengkap minimal 2 karakter.').max(120, 'Nama lengkap maksimal 120 karakter.'),
   email: trimmedEmail,
-  password: z.string().min(8).max(200),
+  password: z.string({ error: 'Kata sandi wajib diisi.' }).min(8, 'Kata sandi minimal 8 karakter.').max(200, 'Kata sandi maksimal 200 karakter.'),
+  termsAccepted,
 });
 
 export const authLoginSchema = z.object({
   email: trimmedEmail,
   password: z.string().min(1).max(200),
+  rememberMe: checkboxValue,
 });
 
 export const organizationCreateSchema = z.object({

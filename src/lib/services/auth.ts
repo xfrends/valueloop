@@ -2,8 +2,7 @@ import { dbFirst, dbRun } from '../db/client';
 import { hashPassword, verifyPassword } from '../utils/password';
 import { randomId } from '../utils/crypto';
 import { createSession, revokeSession } from '../auth/session';
-import { ensureSubscription, writeAuditLog } from './shared';
-import { slugify } from '../utils/slug';
+import { assertOrganizationSlugAvailable, ensureSubscription, normalizeOrganizationSlug, writeAuditLog } from './shared';
 import { isoNow } from '../utils/date';
 
 export type AuthUser = {
@@ -13,45 +12,6 @@ export type AuthUser = {
   platform_role: 'none' | 'platform_admin';
   email_verified_at: string | null;
 };
-
-export function getEmailDomain(email: string): string {
-  const domain = email.trim().toLowerCase().split('@')[1] || '';
-  if (!domain) {
-    throw new Error('Domain email tidak valid.');
-  }
-  return domain;
-}
-
-export async function findOtherActiveOwnerByEmailDomain(
-  db: D1Database,
-  email: string,
-  excludeUserId?: string
-): Promise<{ id: string; email: string } | null> {
-  const domain = getEmailDomain(email);
-  return dbFirst<{ id: string; email: string }>(
-    db,
-    `select distinct u.id, u.email
-     from organization_members om
-     join users u on u.id = om.user_id
-     where om.role = 'owner'
-       and om.status = 'active'
-       and lower(substr(u.email, instr(u.email, '@') + 1)) = ?
-       and (? is null or u.id <> ?)
-     limit 1`,
-    [domain, excludeUserId ?? null, excludeUserId ?? null]
-  );
-}
-
-export async function assertNoOtherActiveOwnerForEmailDomain(
-  db: D1Database,
-  email: string,
-  excludeUserId?: string
-): Promise<void> {
-  const existingOwner = await findOtherActiveOwnerByEmailDomain(db, email, excludeUserId);
-  if (existingOwner) {
-    throw new Error('Domain email ini sudah memiliki owner organisasi. Gunakan undangan member atau hubungi owner domain tersebut.');
-  }
-}
 
 export async function signupUser(db: D1Database, payload: { fullName: string; email: string; password: string }): Promise<AuthUser> {
   const existing = await dbFirst<{ id: string }>(db, `select id from users where lower(email) = lower(?)`, [payload.email]);
@@ -94,8 +54,8 @@ export async function loginUser(db: D1Database, payload: { email: string; passwo
   return { id: user.id, full_name: user.full_name, email: user.email, platform_role: user.platform_role, email_verified_at: user.email_verified_at };
 }
 
-export async function createAuthSession(db: D1Database, kv: KVNamespace, userId: string) {
-  return createSession(db, kv, userId);
+export async function createAuthSession(db: D1Database, kv: KVNamespace, userId: string, ttlSeconds?: number) {
+  return createSession(db, kv, userId, ttlSeconds);
 }
 
 export async function logoutSession(db: D1Database, kv: KVNamespace, token: string): Promise<void> {
@@ -194,18 +154,18 @@ export async function createOrganizationWithOwner(
     ownerFullName: string;
   }
 ): Promise<{ organizationId: string; organizationSlug: string }> {
-  const owner = await dbFirst<{ id: string; email: string }>(
+  const owner = await dbFirst<{ id: string }>(
     db,
-    `select id, email from users where id = ? limit 1`,
+    `select id from users where id = ? limit 1`,
     [payload.ownerUserId]
   );
   if (!owner) {
     throw new Error('User owner tidak ditemukan.');
   }
-  await assertNoOtherActiveOwnerForEmailDomain(db, owner.email, payload.ownerUserId);
 
   const organizationId = randomId();
-  const organizationSlug = payload.slug?.trim() || slugify(payload.name);
+  const organizationSlug = normalizeOrganizationSlug({ name: payload.name, slug: payload.slug });
+  await assertOrganizationSlugAvailable(db, organizationSlug);
 
   await dbRun(
     db,

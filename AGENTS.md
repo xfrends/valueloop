@@ -4,8 +4,8 @@ Panduan kerja agent untuk project ValueLoop.
 
 ## Source of Truth
 
-- Brief utama ada di `app-spec.md`.
-- Jika ada konflik antara dokumen ini dan `app-spec.md`, ikuti `app-spec.md` kecuali user memberi instruksi terbaru.
+- Brief utama dan acuan development dipecah ke dalam folder `docs/` (`prd.md`, `erd.md`, `schema.md`, `permissions.md`, `tdd.md`, `design-system.md`).
+- Jika ada konflik antara dokumen ini dan dokumen di `docs/`, ikuti dokumen di `docs/` kecuali user memberi instruksi terbaru.
 - Jangan menambah scope di luar MVP tanpa instruksi eksplisit.
 
 ## Project Context
@@ -109,7 +109,7 @@ Agy tidak boleh mengubah logic backend, permission rules, schema D1, auth, atau 
 
 ## Expected Project Shape
 
-Ikuti struktur dari `app-spec.md`, dengan pola utama:
+Ikuti struktur dari `docs/tdd.md` (Technical Design Document), dengan pola utama:
 
 ```text
 astro.config.mjs
@@ -137,7 +137,7 @@ src/
 
 ## Development Flow
 
-1. Baca `app-spec.md` sebelum mengubah behavior.
+1. Baca dokumen acuan di `docs/` (`prd.md`, `tdd.md`, atau `schema.md`) sebelum mengubah behavior.
 2. Implementasikan backend contract dan data flow dengan Codex CLI.
 3. Serahkan tampilan visual ke Agy setelah contract halaman/action jelas.
 4. Jalankan formatting, typecheck, dan test yang tersedia.
@@ -147,7 +147,7 @@ src/
 
 Sebelum menyelesaikan perubahan:
 
-- Apakah perubahan sesuai `app-spec.md`?
+- Apakah perubahan sesuai dengan spesifikasi di `docs/`?
 - Apakah query tenant-owned sudah memakai `organization_id`?
 - Apakah mutation punya permission check server-side?
 - Apakah D1/KV/R2 dipakai sesuai tanggung jawabnya?

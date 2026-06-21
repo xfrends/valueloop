@@ -1,9 +1,8 @@
 import { dbAll, dbFirst, dbRun } from '../db/client';
 import { isoNow } from '../utils/date';
 import { randomId, randomToken, sha256Hex } from '../utils/crypto';
-import { getActiveMemberCount, getPlanLimits, writeAuditLog } from './shared';
+import { assertOrganizationOwnerSlotAvailable, getActiveMemberCount, getPlanLimits, writeAuditLog } from './shared';
 import type { OrganizationRole } from '../permissions';
-import { assertNoOtherActiveOwnerForEmailDomain } from './auth';
 
 export type OrganizationMemberRow = {
   id: string;
@@ -205,6 +204,28 @@ export async function updateTeam(
   return after as TeamRow;
 }
 
+async function assertTeamInOrganization(db: D1Database, organizationId: string, teamId: string): Promise<void> {
+  const team = await dbFirst<{ id: string }>(
+    db,
+    `select id from teams where id = ? and organization_id = ? limit 1`,
+    [teamId, organizationId]
+  );
+  if (!team) {
+    throw new Error('Tim tidak ditemukan.');
+  }
+}
+
+async function assertActiveMemberInOrganization(db: D1Database, organizationId: string, organizationMemberId: string): Promise<void> {
+  const member = await dbFirst<{ id: string }>(
+    db,
+    `select id from organization_members where id = ? and organization_id = ? and status = 'active' limit 1`,
+    [organizationMemberId, organizationId]
+  );
+  if (!member) {
+    throw new Error('Anggota tidak ditemukan.');
+  }
+}
+
 export async function addMemberToTeam(
   db: D1Database,
   payload: {
@@ -215,6 +236,9 @@ export async function addMemberToTeam(
     actorMemberId: string | null;
   }
 ): Promise<void> {
+  await assertTeamInOrganization(db, payload.organizationId, payload.teamId);
+  await assertActiveMemberInOrganization(db, payload.organizationId, payload.organizationMemberId);
+
   await dbRun(
     db,
     `insert or ignore into team_members (id, organization_id, team_id, organization_member_id, created_at)
@@ -242,6 +266,9 @@ export async function removeMemberFromTeam(
     actorMemberId: string | null;
   }
 ): Promise<void> {
+  await assertTeamInOrganization(db, payload.organizationId, payload.teamId);
+  await assertActiveMemberInOrganization(db, payload.organizationId, payload.organizationMemberId);
+
   await dbRun(
     db,
     `delete from team_members where organization_id = ? and team_id = ? and organization_member_id = ?`,
@@ -270,7 +297,7 @@ export async function createInvitation(
   }
 ): Promise<{ invitation: InvitationRow; inviteToken: string }> {
   if (payload.role === 'owner') {
-    await assertNoOtherActiveOwnerForEmailDomain(db, payload.email);
+    await assertOrganizationOwnerSlotAvailable(db, payload.organizationId);
   }
 
   const limits = await getPlanLimits(db, payload.organizationId);
@@ -337,7 +364,7 @@ export async function acceptInvitation(
   }
 
   if (invite.role === 'owner') {
-    await assertNoOtherActiveOwnerForEmailDomain(db, payload.userEmail, payload.userId);
+    await assertOrganizationOwnerSlotAvailable(db, invite.organization_id);
   }
 
   const existingMember = await dbFirst<{ id: string; role: OrganizationRole; status: string }>(

@@ -485,6 +485,10 @@ export async function submitScore(
     allowSelfScoring: boolean;
   }
 ): Promise<ChallengeSessionRow> {
+  if (!Number.isInteger(payload.score) || payload.score < 0 || payload.score > 10) {
+    throw new Error('Skor harus berada di antara 0 dan 10.');
+  }
+
   const before = await dbFirst<ChallengeSessionRow>(
     db,
     `select * from challenge_sessions where id = ? and organization_id = ? limit 1`,
