@@ -234,7 +234,7 @@ const success = Astro.url.searchParams.get('success') || '';
     const roleModal = document.getElementById('roleModal') as HTMLDialogElement;
     const roleForm = document.getElementById('roleForm') as HTMLFormElement;
     const roleModalMemberName = document.getElementById('roleModalMemberName');
-    const roleModalSelect = document.getElementById('roleModalSelect') as HTMLSelectElement;
+    const roleModalSelect = document.getElementById('roleModalSelect') as unknown as HTMLSelectElement;
 
     document.querySelectorAll('button[data-action="change-role"]').forEach(btn => {
       btn.addEventListener('click', () => {
