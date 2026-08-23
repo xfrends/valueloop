@@ -30,7 +30,7 @@ export async function generateCoreValueDraft(config: AiProviderConfig, input: Co
     if (!parsed.success) throw new AiProviderError('invalid_response', 'Respons provider AI tidak memenuhi format draft.');
     return parsed.data;
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') throw new AiProviderError('timeout', 'Permintaan ke provider AI melebihi batas waktu.');
+    if (error instanceof Error && error.name === 'AbortError') throw new AiProviderError('timeout', 'Permintaan ke provider AI melebihi batas waktu.');
     throw error;
   } finally {
     clearTimeout(timer);

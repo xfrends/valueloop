@@ -128,6 +128,20 @@ export const organizationSettingsSchema = z.object({
   allowSelfScoring: z.coerce.number().int().min(0).max(1).default(0),
 });
 
+export const organizationProfileSchema = organizationSettingsSchema.pick({
+  name: true,
+  slug: true,
+  timezone: true,
+  defaultLocale: true,
+});
+
+export const organizationChallengeSettingsSchema = organizationSettingsSchema.pick({
+  challengeFrequency: true,
+  questionCooldownDays: true,
+  allowMultipleChallengesPerDay: true,
+  allowSelfScoring: true,
+});
+
 export const articleSchema = z.object({
   title: z.string().trim().min(5).max(180),
   slug: z.string().trim().min(3).max(180).optional().default(''),
