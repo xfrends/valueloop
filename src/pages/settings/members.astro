@@ -127,7 +127,7 @@ const success = Astro.url.searchParams.get('success') || '';
                     </span>
                   </td>
                   <td class="px-6 py-4">
-                    {invite.status === 'pending' && (
+                    {invite.status === 'invited' && (
                     <div class="flex justify-end gap-2">
                       <form method="post" action={`/api/settings/members/invitations/${invite.id}/resend`}>
                         <button type="submit" class="rounded-lg border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">Kirim ulang</button>

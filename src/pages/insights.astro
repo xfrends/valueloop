@@ -12,10 +12,14 @@ const insights = allowed && organization && runtime?.env?.DB ? await getInsights
 ---
 
 <AppLayout title="Insights - ValueLoop" currentPath="/insights">
-  <div class="mb-8">
-    <h1 class="text-2xl font-bold text-slate-900">Insights</h1>
-    <p class="text-slate-500 mt-1">Basic query-based culture metrics for this organization.</p>
-  </div>
+  <div class="mx-auto max-w-5xl">
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Insights</h1>
+        <p class="text-slate-500 mt-1 text-sm leading-relaxed">Basic query-based culture metrics for this organization.</p>
+      </div>
+    </div>
 
   {!allowed ? (
     <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin untuk melihat insights.</div>
@@ -95,4 +99,5 @@ const insights = allowed && organization && runtime?.env?.DB ? await getInsights
       </div>
     </>
   )}
+  </div>
 </AppLayout>

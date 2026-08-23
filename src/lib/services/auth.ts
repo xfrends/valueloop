@@ -29,7 +29,16 @@ export class AuthLoginError extends Error {
 }
 
 export async function signupUser(db: D1Database, payload: { fullName: string; email: string; password: string }): Promise<AuthUser> {
-  const existing = await dbFirst<{ id: string }>(db, `select id from users where lower(email) = lower(?)`, [payload.email]);
+  const existing = await dbFirst<{ id: string; is_placeholder: number }>(db, `select id, is_placeholder from users where lower(email) = lower(?)`, [payload.email]);
+  if (existing?.is_placeholder === 1) {
+    const passwordHash = await hashPassword(payload.password);
+    await dbRun(
+      db,
+      `update users set full_name = ?, password_hash = ?, is_placeholder = 0, email_verified_at = null, updated_at = ? where id = ?`,
+      [payload.fullName, passwordHash, isoNow(), existing.id]
+    );
+    return { id: existing.id, full_name: payload.fullName, email: payload.email.toLowerCase(), platform_role: 'none', email_verified_at: null };
+  }
   if (existing) {
     throw new Error('Email sudah terdaftar.');
   }
@@ -230,7 +239,7 @@ export async function upsertGoogleUser(
     await dbRun(
       db,
       `update users
-       set google_sub = ?, auth_provider = 'google', full_name = ?, avatar_url = ?, email_verified_at = coalesce(email_verified_at, ?), updated_at = ?
+       set google_sub = ?, auth_provider = 'google', is_placeholder = 0, full_name = ?, avatar_url = ?, email_verified_at = coalesce(email_verified_at, ?), updated_at = ?
        where id = ?`,
       [payload.googleSub, payload.fullName, payload.avatarUrl ?? null, isoNow(), isoNow(), existingByEmail.id]
     );

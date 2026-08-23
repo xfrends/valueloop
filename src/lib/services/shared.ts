@@ -78,7 +78,7 @@ export async function getOrganizationReadiness(db: D1Database, organizationId: s
           )) as active_values_without_questions,
        (select count(*) from challenge_sessions where organization_id = ? and status != 'cancelled') as total_challenges,
        (select count(*) from challenge_sessions where organization_id = ? and status = 'scored') as scored_challenges,
-       (select count(*) from invitations where organization_id = ? and status = 'pending' and expires_at > ?) as pending_invitations,
+       (select count(*) from organization_members where organization_id = ? and status = 'invited' and invite_expires_at > ?) as pending_invitations,
        (select count(*) from challenge_sessions
         where organization_id = ?
           and status != 'cancelled'

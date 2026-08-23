@@ -24,9 +24,11 @@ export type InvitationRow = {
   email: string;
   role: OrganizationRole;
   token_hash: string;
-  status: 'pending' | 'accepted' | 'expired' | 'revoked';
-  expires_at: string;
+  status: 'invited' | 'active' | 'inactive';
+  expires_at: string | null;
   invited_by_member_id: string | null;
+  invited_at: string | null;
+  accepted_at: string | null;
   created_at: string;
 };
 
@@ -154,7 +156,8 @@ export async function listInvitations(db: D1Database, organizationId: string): P
     db,
     `select id, organization_id, invite_email as email, role,
             invite_token_hash as token_hash, status,
-            invite_expires_at as expires_at, null as invited_by_member_id, created_at
+            invite_expires_at as expires_at, null as invited_by_member_id,
+            invited_at, accepted_at, created_at
      from organization_members
      where organization_id = ? and status = 'invited'
      order by created_at desc`,
@@ -446,15 +449,24 @@ export async function createInvitation(
     throw new Error(existing.status === 'invited' ? 'Undangan untuk email ini masih pending.' : 'Email ini sudah terdaftar sebagai anggota organisasi.');
   }
   const existingUser = await dbFirst<{ id: string }>(db, `select id from users where lower(email) = lower(?) limit 1`, [payload.email]);
+  const userId = existingUser?.id ?? `pending-user-${id}`;
+  if (!existingUser) {
+    await dbRun(
+      db,
+      `insert into users (id, full_name, email, platform_role, is_placeholder, created_at, updated_at)
+       values (?, ?, ?, 'none', 1, ?, ?)`,
+      [userId, payload.email.toLowerCase(), payload.email.toLowerCase(), isoNow(), isoNow()]
+    );
+  }
   await dbRun(
     db,
     `insert into organization_members
      (id, organization_id, user_id, invite_email, role, status, invite_token_hash, invite_expires_at, invited_at, created_at, updated_at)
      values (?, ?, ?, ?, ?, 'invited', ?, ?, ?, ?, ?)`,
-    [id, payload.organizationId, existingUser?.id ?? null, payload.email.toLowerCase(), payload.role, tokenHash, expiresAt, isoNow(), isoNow(), isoNow()]
+    [id, payload.organizationId, userId, payload.email.toLowerCase(), payload.role, tokenHash, expiresAt, isoNow(), isoNow(), isoNow()]
   );
 
-  const invitation = await dbFirst<InvitationRow>(db, `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash, status, invite_expires_at as expires_at, null as invited_by_member_id, created_at from organization_members where id = ?`, [id]);
+  const invitation = await dbFirst<InvitationRow>(db, `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash, status, invite_expires_at as expires_at, null as invited_by_member_id, invited_at, accepted_at, created_at from organization_members where id = ?`, [id]);
   await writeAuditLog(db, {
     organizationId: payload.organizationId,
     actorUserId: payload.actorUserId,
@@ -480,7 +492,8 @@ export async function acceptInvitation(
   const invite = await dbFirst<InvitationRow>(
     db,
     `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
-            status, invite_expires_at as expires_at, null as invited_by_member_id, created_at
+            status, invite_expires_at as expires_at, null as invited_by_member_id,
+            invited_at, accepted_at, created_at
      from organization_members
      where invite_token_hash = ? and status = 'invited' and invite_expires_at > ? limit 1`,
     [tokenHash, isoNow()]
@@ -504,7 +517,7 @@ export async function acceptInvitation(
     [invite.organization_id, payload.userId]
   );
 
-  if (existingMember) {
+  if (existingMember && !(existingMember.id === invite.id && existingMember.status === 'invited')) {
     throw new Error('Akun ini sudah menjadi anggota organisasi.');
   }
 
@@ -542,7 +555,8 @@ export async function resendInvitation(
   const before = await dbFirst<InvitationRow>(
     db,
     `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
-            status, invite_expires_at as expires_at, null as invited_by_member_id, created_at
+            status, invite_expires_at as expires_at, null as invited_by_member_id,
+            invited_at, accepted_at, created_at
      from organization_members where id = ? and organization_id = ? and status = 'invited' limit 1`,
     [payload.invitationId, payload.organizationId]
   );
@@ -560,7 +574,8 @@ export async function resendInvitation(
      where id = ? and organization_id = ? and status = 'invited'
      returning id, organization_id, invite_email as email, role,
                invite_token_hash as token_hash, status,
-               invite_expires_at as expires_at, null as invited_by_member_id, created_at`,
+               invite_expires_at as expires_at, null as invited_by_member_id,
+               invited_at, accepted_at, created_at`,
     [tokenHash, expiresAt, isoNow(), isoNow(), payload.invitationId, payload.organizationId]
   );
   if (!invitation) {
@@ -593,7 +608,8 @@ export async function cancelInvitation(
   const before = await dbFirst<InvitationRow>(
     db,
     `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
-            status, invite_expires_at as expires_at, null as invited_by_member_id, created_at
+            status, invite_expires_at as expires_at, null as invited_by_member_id,
+            invited_at, accepted_at, created_at
      from organization_members where id = ? and organization_id = ? and status = 'invited' limit 1`,
     [payload.invitationId, payload.organizationId]
   );
@@ -607,7 +623,8 @@ export async function cancelInvitation(
      set status = 'inactive', invite_token_hash = null, invite_expires_at = null, updated_at = ?
      where id = ? and organization_id = ? and status = 'invited'
      returning id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
-               status, invite_expires_at as expires_at, null as invited_by_member_id, created_at`,
+               status, invite_expires_at as expires_at, null as invited_by_member_id,
+               invited_at, accepted_at, created_at`,
     [isoNow(), payload.invitationId, payload.organizationId]
   );
   if (!invitation) {

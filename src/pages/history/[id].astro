@@ -68,20 +68,21 @@ const historyDetail = organization
       tone="danger"
     />
   )}
-  <div class:list={["max-w-3xl mx-auto space-y-8", { hidden: !historyDetail }]}>
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+  <div class:list={["max-w-5xl mx-auto space-y-8", { hidden: !historyDetail }]}>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6 mb-8">
       <div>
-        <a href="/history" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-700 mb-4 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-          Back to History
+        <a href="/history" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-indigo-700 mb-3 transition-colors uppercase tracking-wider">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Kembali
         </a>
-        <h1 class="text-2xl font-bold text-slate-900">Challenge Record {historyDetail?.sequence_no}</h1>
-        <p class="text-slate-500 mt-1">Conducted on {historyDetail ? formatOrgDateTime(new Date(historyDetail.created_at), organization?.timezone || 'Asia/Jakarta') : '-'}</p>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization / History</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Challenge Record #{historyDetail?.sequence_no}</h1>
+        <p class="text-slate-500 mt-1 text-sm leading-relaxed">Conducted on {historyDetail ? formatOrgDateTime(new Date(historyDetail.created_at), organization?.timezone || 'Asia/Jakarta') : '-'}</p>
       </div>
 
-      <div class="flex items-center gap-3">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-green-100 text-green-800">
-          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+      <div class="flex items-center gap-3 shrink-0">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold uppercase tracking-widest rounded-md border bg-emerald-50 text-emerald-700 border-emerald-200/60 shadow-sm">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           {historyDetail?.status || '-'}
         </span>
       </div>

@@ -64,15 +64,16 @@ const error = Astro.url.searchParams.get('error') || '';
 ---
 
 <AppLayout title="Daily Challenge - ValueLoop" currentPath="/challenge">
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-5xl mx-auto">
     {error && <DependencyAlert title="Challenge tidak dapat diproses" message={error} tone="danger" />}
-    <div class="mb-8 flex items-end justify-between">
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Daily Challenge</h1>
-        <p class="text-slate-500 mt-1">Facilitate the core value discussion and record the result.</p>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Daily Challenge</h1>
+        <p class="text-slate-500 mt-1 text-sm leading-relaxed">Facilitate the core value discussion and record the result.</p>
       </div>
-      <div class="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200">
-        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+      <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/60 shadow-sm shrink-0">
+        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
         {challenge ? challenge.status : 'Belum Dimulai'}
       </div>
     </div>
@@ -95,9 +96,9 @@ const error = Astro.url.searchParams.get('error') || '';
               type="submit"
               disabled={!challengeReady || Boolean(challenge && (challenge.status === 'scored' || challenge.answer_text))}
               title={!challengeReady ? 'Lengkapi dependency challenge terlebih dahulu.' : challenge?.status === 'scored' || challenge?.answer_text ? 'Challenge yang sudah dijawab atau dinilai tidak dapat di-reroll.' : undefined}
-              class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-colors flex items-center gap-2 group disabled:cursor-not-allowed disabled:opacity-50"
+              class="btn-interactive px-5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors flex items-center gap-2 group disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-300 disabled:border-slate-300"
             >
-              <svg class="w-4 h-4 text-slate-400 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              <svg class="w-4 h-4 text-slate-300 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
               {challenge ? 'Reroll Challenge' : 'Start Challenge'}
             </button>
           </form>
@@ -163,10 +164,10 @@ const error = Astro.url.searchParams.get('error') || '';
               </div>
 
               <div class="pt-2 flex justify-end gap-3">
-                <button type="button" class="px-6 py-2.5 rounded-lg font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
+                <button type="button" class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-slate-700 bg-white border border-slate-200/80 hover:bg-slate-50 transition-colors shadow-sm">
                   Save as Draft
                 </button>
-                <button type="submit" disabled={challenge.status !== 'open'} class="px-6 py-2.5 rounded-lg font-medium text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300">
+                <button type="submit" disabled={challenge.status !== 'open'} class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300">
                   {challenge.status === 'open' ? 'Submit Answer' : 'Answer Submitted'}
                 </button>
               </div>
@@ -202,11 +203,11 @@ const error = Astro.url.searchParams.get('error') || '';
               </div>
 
               <div class="pt-2 flex justify-end gap-3">
-                <button type="button" class="px-6 py-2.5 rounded-lg font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
+                <button type="button" class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-slate-700 bg-white border border-slate-200/80 hover:bg-slate-50 transition-colors shadow-sm">
                   Save as Draft
                 </button>
                 {canScore && (
-                  <button type="submit" disabled={challenge.status !== 'answered'} class="px-6 py-2.5 rounded-lg font-medium text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300">
+                  <button type="submit" disabled={challenge.status !== 'answered'} class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300">
                     {challenge.status === 'scored' ? 'Score Submitted' : challenge.status === 'open' ? 'Submit Answer First' : 'Submit Score'}
                   </button>
                 )}
