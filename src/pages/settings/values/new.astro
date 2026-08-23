@@ -13,13 +13,16 @@ const shortDescription = Astro.url.searchParams.get('shortDescription') || '';
   <div class="max-w-3xl mx-auto">
     {error && <DependencyAlert title="Core value gagal disimpan" message={error} tone="danger" />}
     
-    <div class="mb-8">
-      <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-700 mb-4 transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        Back to Core Values
-      </a>
-      <h1 class="text-2xl font-bold text-slate-900">Create New Core Value</h1>
-      <p class="text-slate-500 mt-1">Define a new cultural pillar for your organization. Core value baru disimpan sebagai inactive.</p>
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6">
+      <div>
+        <a href="/settings/values" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-indigo-700 mb-3 transition-colors uppercase tracking-wider">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Kembali
+        </a>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Create New Core Value</h1>
+        <p class="text-slate-500 mt-1 text-sm leading-relaxed">Definisikan pilar budaya baru untuk organisasi. Core value akan disimpan sebagai draft (inactive).</p>
+      </div>
     </div>
 
     <form method="post" action="/api/settings/values" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

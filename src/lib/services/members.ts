@@ -73,8 +73,8 @@ export async function listOrganizationMembers(db: D1Database, organizationId: st
     db,
     `select
        om.*,
-       u.full_name,
-       u.email,
+       coalesce(u.full_name, om.invite_email) as full_name,
+       coalesce(u.email, om.invite_email) as email,
        (
          select group_concat(t.name, ', ')
          from team_members tm
@@ -82,7 +82,7 @@ export async function listOrganizationMembers(db: D1Database, organizationId: st
          where tm.organization_member_id = om.id and tm.organization_id = om.organization_id
        ) as team_names
      from organization_members om
-     join users u on u.id = om.user_id
+     left join users u on u.id = om.user_id
      where om.organization_id = ?
      order by om.status asc, om.role asc, u.full_name asc`,
     [organizationId]
@@ -152,7 +152,12 @@ export async function listTeamMemberAssignments(
 export async function listInvitations(db: D1Database, organizationId: string): Promise<InvitationRow[]> {
   return dbAll(
     db,
-    `select * from invitations where organization_id = ? order by created_at desc`,
+    `select id, organization_id, invite_email as email, role,
+            invite_token_hash as token_hash, status,
+            invite_expires_at as expires_at, null as invited_by_member_id, created_at
+     from organization_members
+     where organization_id = ? and status = 'invited'
+     order by created_at desc`,
     [organizationId]
   );
 }
@@ -418,7 +423,7 @@ export async function createInvitation(
     const activeMembers = await getActiveMemberCount(db, payload.organizationId);
     const pendingInvites = await dbFirst<{ count: number }>(
       db,
-      `select count(*) as count from invitations where organization_id = ? and status = 'pending'`,
+      `select count(*) as count from organization_members where organization_id = ? and status = 'invited'`,
       [payload.organizationId]
     );
     if (activeMembers + Number(pendingInvites?.count ?? 0) >= maxMembers) {
@@ -431,14 +436,25 @@ export async function createInvitation(
   const id = randomId();
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString();
 
+  const existing = await dbFirst<{ id: string; status: string }>(
+    db,
+    `select id, status from organization_members
+     where organization_id = ? and lower(invite_email) = lower(?) limit 1`,
+    [payload.organizationId, payload.email]
+  );
+  if (existing) {
+    throw new Error(existing.status === 'invited' ? 'Undangan untuk email ini masih pending.' : 'Email ini sudah terdaftar sebagai anggota organisasi.');
+  }
+  const existingUser = await dbFirst<{ id: string }>(db, `select id from users where lower(email) = lower(?) limit 1`, [payload.email]);
   await dbRun(
     db,
-    `insert into invitations (id, organization_id, email, role, token_hash, status, expires_at, invited_by_member_id, created_at)
-     values (?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
-    [id, payload.organizationId, payload.email.toLowerCase(), payload.role, tokenHash, expiresAt, payload.invitedByMemberId, isoNow()]
+    `insert into organization_members
+     (id, organization_id, user_id, invite_email, role, status, invite_token_hash, invite_expires_at, invited_at, created_at, updated_at)
+     values (?, ?, ?, ?, ?, 'invited', ?, ?, ?, ?, ?)`,
+    [id, payload.organizationId, existingUser?.id ?? null, payload.email.toLowerCase(), payload.role, tokenHash, expiresAt, isoNow(), isoNow(), isoNow()]
   );
 
-  const invitation = await dbFirst<InvitationRow>(db, `select * from invitations where id = ?`, [id]);
+  const invitation = await dbFirst<InvitationRow>(db, `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash, status, invite_expires_at as expires_at, null as invited_by_member_id, created_at from organization_members where id = ?`, [id]);
   await writeAuditLog(db, {
     organizationId: payload.organizationId,
     actorUserId: payload.actorUserId,
@@ -463,7 +479,10 @@ export async function acceptInvitation(
   const tokenHash = await sha256Hex(payload.inviteToken);
   const invite = await dbFirst<InvitationRow>(
     db,
-    `select * from invitations where token_hash = ? and status = 'pending' and expires_at > ? limit 1`,
+    `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
+            status, invite_expires_at as expires_at, null as invited_by_member_id, created_at
+     from organization_members
+     where invite_token_hash = ? and status = 'invited' and invite_expires_at > ? limit 1`,
     [tokenHash, isoNow()]
   );
 
@@ -486,24 +505,15 @@ export async function acceptInvitation(
   );
 
   if (existingMember) {
-    await dbRun(
-      db,
-      `update organization_members set role = ?, status = 'active', joined_at = coalesce(joined_at, ?), updated_at = ? where id = ?`,
-      [invite.role, isoNow(), isoNow(), existingMember.id]
-    );
-  } else {
-    await dbRun(
-      db,
-      `insert into organization_members (id, organization_id, user_id, role, status, joined_at, created_at, updated_at)
-       values (?, ?, ?, ?, 'active', ?, ?, ?)`,
-      [randomId(), invite.organization_id, payload.userId, invite.role, isoNow(), isoNow(), isoNow()]
-    );
+    throw new Error('Akun ini sudah menjadi anggota organisasi.');
   }
 
   await dbRun(
     db,
-    `update invitations set status = 'accepted' where id = ?`,
-    [invite.id]
+    `update organization_members
+     set user_id = ?, status = 'active', accepted_at = ?, joined_at = coalesce(joined_at, ?), updated_at = ?
+     where id = ? and organization_id = ? and status = 'invited'`,
+    [payload.userId, isoNow(), isoNow(), isoNow(), invite.id, invite.organization_id]
   );
 
   await writeAuditLog(db, {
@@ -531,7 +541,9 @@ export async function resendInvitation(
 ): Promise<{ invitation: InvitationRow; inviteToken: string }> {
   const before = await dbFirst<InvitationRow>(
     db,
-    `select * from invitations where id = ? and organization_id = ? and status = 'pending' limit 1`,
+    `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
+            status, invite_expires_at as expires_at, null as invited_by_member_id, created_at
+     from organization_members where id = ? and organization_id = ? and status = 'invited' limit 1`,
     [payload.invitationId, payload.organizationId]
   );
   if (!before) {
@@ -543,11 +555,13 @@ export async function resendInvitation(
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString();
   const invitation = await dbFirst<InvitationRow>(
     db,
-    `update invitations
-     set token_hash = ?, status = 'pending', expires_at = ?
-     where id = ? and organization_id = ? and status = 'pending'
-     returning *`,
-    [tokenHash, expiresAt, payload.invitationId, payload.organizationId]
+    `update organization_members
+     set invite_token_hash = ?, status = 'invited', invite_expires_at = ?, invited_at = ?, updated_at = ?
+     where id = ? and organization_id = ? and status = 'invited'
+     returning id, organization_id, invite_email as email, role,
+               invite_token_hash as token_hash, status,
+               invite_expires_at as expires_at, null as invited_by_member_id, created_at`,
+    [tokenHash, expiresAt, isoNow(), isoNow(), payload.invitationId, payload.organizationId]
   );
   if (!invitation) {
     throw new Error('Undangan gagal dikirim ulang.');
@@ -578,7 +592,9 @@ export async function cancelInvitation(
 ): Promise<InvitationRow> {
   const before = await dbFirst<InvitationRow>(
     db,
-    `select * from invitations where id = ? and organization_id = ? and status = 'pending' limit 1`,
+    `select id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
+            status, invite_expires_at as expires_at, null as invited_by_member_id, created_at
+     from organization_members where id = ? and organization_id = ? and status = 'invited' limit 1`,
     [payload.invitationId, payload.organizationId]
   );
   if (!before) {
@@ -587,8 +603,12 @@ export async function cancelInvitation(
 
   const invitation = await dbFirst<InvitationRow>(
     db,
-    `update invitations set status = 'revoked' where id = ? and organization_id = ? and status = 'pending' returning *`,
-    [payload.invitationId, payload.organizationId]
+    `update organization_members
+     set status = 'inactive', invite_token_hash = null, invite_expires_at = null, updated_at = ?
+     where id = ? and organization_id = ? and status = 'invited'
+     returning id, organization_id, invite_email as email, role, invite_token_hash as token_hash,
+               status, invite_expires_at as expires_at, null as invited_by_member_id, created_at`,
+    [isoNow(), payload.invitationId, payload.organizationId]
   );
   if (!invitation) {
     throw new Error('Undangan gagal dibatalkan.');

@@ -23,11 +23,16 @@ const fieldErrors = parseJsonRecord(Astro.url.searchParams.get('fieldErrors'));
 
 <AppLayout title={`Edit Question - ${coreValue?.name || 'Core Value'}`} currentPath="/settings/values">
   <div class="mx-auto max-w-3xl">
-    <a href={`/settings/values/${valueId}/questions`} class="mb-4 inline-flex text-sm font-medium text-slate-500 hover:text-indigo-700">&larr; Back to Question Bank</a>
-    <div class="mb-8">
-      <p class="text-sm font-semibold uppercase tracking-[0.16em] text-indigo-800">{coreValue?.name || 'Core Value'}</p>
-      <h1 class="mt-2 text-2xl font-bold text-slate-900">Edit Question</h1>
-      <p class="mt-1 text-slate-500">Perbarui pertanyaan, panduan rubrik, difficulty, atau statusnya.</p>
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6">
+      <div>
+        <a href={`/settings/values/${valueId}/questions`} class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-indigo-700 mb-3 transition-colors uppercase tracking-wider">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Kembali ke Bank
+        </a>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">{coreValue?.name || 'Core Value'}</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Edit Question</h1>
+        <p class="text-slate-500 mt-1 text-sm leading-relaxed">Perbarui pertanyaan, panduan rubrik, difficulty, atau statusnya.</p>
+      </div>
     </div>
 
     {error && <DependencyAlert title="Question gagal diperbarui" message={error} tone="danger" />}

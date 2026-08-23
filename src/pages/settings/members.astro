@@ -39,15 +39,15 @@ const success = Astro.url.searchParams.get('success') || '';
       </div>
     )}
 
-    <!-- Tabs Header -->
-    <div class="flex gap-6 border-b border-slate-200 mb-6">
-      <button id="tab-members" class="border-b-2 border-indigo-600 px-1 py-3 text-sm font-bold text-indigo-700 transition-colors">
+    <!-- Member filters -->
+    <div class="mb-6 flex gap-2" role="tablist" aria-label="Filter member">
+      <button id="tab-members" type="button" role="tab" aria-selected="true" class="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
         Organization Members
-        <span class="ml-2 inline-flex items-center justify-center rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700">{members.length}</span>
+        <span class="ml-1 opacity-80">{members.length}</span>
       </button>
-      <button id="tab-invites" class="border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors">
+      <button id="tab-invites" type="button" role="tab" aria-selected="false" class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:text-indigo-700">
         Pending Invites
-        <span class="ml-2 inline-flex items-center justify-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{invitations.length}</span>
+        <span class="ml-1 opacity-70">{invitations.length}</span>
       </button>
     </div>
 
@@ -191,19 +191,23 @@ const success = Astro.url.searchParams.get('success') || '';
     const contentMembers = document.getElementById('content-members');
     const contentInvites = document.getElementById('content-invites');
 
-    const activeClass = "border-b-2 border-indigo-600 px-1 py-3 text-sm font-bold text-indigo-700 transition-colors";
-    const inactiveClass = "border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors";
+    const activeClass = "rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white";
+    const inactiveClass = "rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:text-indigo-700";
 
     tabMembers?.addEventListener('click', () => {
       tabMembers.className = activeClass;
+      tabMembers.setAttribute('aria-selected', 'true');
       if(tabInvites) tabInvites.className = inactiveClass;
+      tabInvites?.setAttribute('aria-selected', 'false');
       contentMembers?.classList.remove('hidden');
       contentInvites?.classList.add('hidden');
     });
 
     tabInvites?.addEventListener('click', () => {
       tabInvites.className = activeClass;
+      tabInvites.setAttribute('aria-selected', 'true');
       if(tabMembers) tabMembers.className = inactiveClass;
+      tabMembers?.setAttribute('aria-selected', 'false');
       contentInvites?.classList.remove('hidden');
       contentMembers?.classList.add('hidden');
     });

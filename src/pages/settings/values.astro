@@ -32,64 +32,71 @@ const success = Astro.url.searchParams.get('success') || '';
 ---
 
 <AppLayout title="Manage Core Values - ValueLoop" currentPath="/settings/values">
-  {error && <DependencyAlert title="Aksi core value gagal" message={error} tone="danger" />}
-  {success && <DependencyAlert title="Berhasil" message={success} tone="info" />}
-
-  <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900">Core Values</h1>
-      <p class="text-slate-500 mt-1">Define the values, behaviors, and question banks for your organization.</p>
+  <div class="mx-auto max-w-5xl">
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Core Values</h1>
+        <p class="text-slate-500 mt-1 text-sm">Tentukan nilai utama, ekspektasi perilaku, dan bank pertanyaan (challenge) organisasi Anda.</p>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <button class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 border border-slate-200/80 shadow-sm hover:bg-slate-50 transition-colors">
+          <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+          Browse Templates
+        </button>
+        <a href="/settings/values/new" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          Buat Core Value
+        </a>
+      </div>
     </div>
-    
-    <div class="flex items-center gap-3">
-      <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
-        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        Browse Templates
-      </button>
-      <a href="/settings/values/new" class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium shadow-sm hover:bg-slate-800 transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        Add Value
+
+    {error && <DependencyAlert title="Aksi core value gagal" message={error} tone="danger" />}
+    {success && <DependencyAlert title="Berhasil" message={success} tone="info" />}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {coreValues.map((value) => (
+        <a href={`/settings/values/${value.id}`} class="group relative flex flex-col min-h-[220px] bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all focus:outline-none">
+          {value.is_active === 0 && (
+            <div class="absolute inset-0 bg-slate-50/40 backdrop-blur-[0.5px] z-10 rounded-2xl pointer-events-none"></div>
+          )}
+          
+          <div class="h-2 w-full bg-indigo-500/90 rounded-t-2xl"></div>
+          
+          <div class="p-6 flex-1 flex flex-col relative z-20">
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="text-lg font-bold text-slate-900 group-hover:text-indigo-700 transition-colors leading-tight line-clamp-2 pr-2">
+                {value.name}
+              </h3>
+            </div>
+            
+            <p class="text-sm text-slate-500 mb-6 flex-1 line-clamp-3 leading-relaxed">{value.short_description}</p>
+            
+            <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200/60 shadow-sm">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                {value.questions_count} Qs
+              </span>
+              <span class:list={[
+                'inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest shadow-sm',
+                value.is_active === 1 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-slate-100 text-slate-500 border border-slate-200/60'
+              ]}>
+                {value.is_active === 1 ? 'Aktif' : 'Draft'}
+              </span>
+            </div>
+          </div>
+        </a>
+      ))}
+
+      <!-- Add New Placeholder Card -->
+      <a href="/settings/values/new" class="group bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-300/80 p-6 flex flex-col items-center justify-center text-slate-500 hover:text-indigo-700 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all min-h-[220px]">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm mb-4 group-hover:scale-110 transition-transform">
+          <svg class="h-6 w-6 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        </div>
+        <span class="font-bold text-slate-700 group-hover:text-indigo-700">Buat Core Value Baru</span>
+        <span class="text-sm mt-1 text-center max-w-[200px]">Rancang fondasi nilai baru untuk organisasi.</span>
       </a>
     </div>
   </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {coreValues.map((value) => (
-      <div class="min-h-[240px] bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all group relative">
-        {value.is_active === 0 && (
-          <div class="absolute inset-0 bg-slate-50/50 backdrop-blur-[1px] z-10 rounded-2xl pointer-events-none"></div>
-        )}
-        
-        <div class="h-2 w-full bg-indigo-500 rounded-t-2xl relative z-20"></div>
-        
-        <div class="p-6 flex-1 flex flex-col relative z-20">
-          <h3 class="text-xl font-bold text-slate-900 mb-2">
-            <a href={`/settings/values/${value.id}`} class="before:absolute before:inset-0 before:z-10 focus:outline-none">
-              {value.name}
-            </a>
-          </h3>
-          <p class="text-sm text-slate-600 mb-6 flex-1 relative z-20 pointer-events-none">{value.short_description}</p>
-          
-          <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto relative z-20">
-            <span class="text-sm font-medium text-slate-500 flex items-center gap-1.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-              {value.questions_count} Questions
-            </span>
-            <span class={`text-xs font-bold uppercase tracking-wider ${value.is_active === 1 ? 'text-indigo-700' : 'text-slate-500'}`}>
-              {value.is_active === 1 ? 'Active' : 'Inactive'}
-            </span>
-          </div>
-        </div>
-
-      </div>
-    ))}
-
-    <!-- Add New Placeholder Card -->
-    <a href="/settings/values/new" class="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6 flex flex-col items-center justify-center text-slate-500 hover:text-indigo-700 hover:border-indigo-300 hover:bg-indigo-50 transition-colors min-h-[240px]">
-      <svg class="w-10 h-10 mb-4 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-      <span class="font-bold">Create New Value</span>
-      <span class="text-sm mt-1 text-center">Add custom core values for your org</span>
-    </a>
-  </div>
-
 </AppLayout>
