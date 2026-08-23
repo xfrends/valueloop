@@ -18,6 +18,7 @@ export type CloudflareBindings = {
   OPENAI_TEXT_MODEL?: string;
   OPENAI_IMAGE_MODEL?: string;
   SESSION_SECRET?: string;
+  AI_GENERATION_TIMEOUT_MS?: string;
   TURNSTILE_SECRET_KEY?: string;
   ORGANIZATION_REALTIME: DurableObjectNamespace<import('../lib/notifications/realtime').OrganizationRealtime>;
 };

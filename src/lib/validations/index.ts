@@ -66,6 +66,21 @@ export const valueSchema = z.object({
   antiPatterns: z.string().trim().optional().default(''),
 });
 
+export const aiGenerationSchema = z.object({
+  basicInformation: z.string({ error: 'Informasi dasar wajib diisi.' }).trim()
+    .min(20, 'Informasi dasar minimal 20 karakter.')
+    .max(4000, 'Informasi dasar maksimal 4000 karakter.'),
+});
+
+export const aiSettingsSchema = z.object({
+  provider: z.enum(['openai', 'openrouter', 'sumopod', 'gemini', 'claude', 'custom']),
+  protocol: z.enum(['openai_compatible', 'gemini', 'claude']),
+  baseUrl: z.preprocess(emptyStringAsUndefined, z.string().trim().url('Base URL harus berupa URL yang valid.').optional()),
+  model: z.string().trim().min(1, 'Model wajib diisi.').max(160, 'Model terlalu panjang.'),
+  apiToken: z.string().trim().max(1000, 'API token terlalu panjang.').optional().default(''),
+  isEnabled: z.preprocess((value) => value === true || value === 'true' || value === '1' || value === 1, z.boolean().default(false)),
+});
+
 export const questionSchema = z.object({
   coreValueId: z.string().trim().min(1),
   questionText: z.string().trim().min(2).max(1000),
