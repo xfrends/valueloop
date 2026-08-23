@@ -3,14 +3,15 @@ import AppLayout from '../layouts/AppLayout.astro';
 import DependencyAlert from '../components/DependencyAlert.astro';
 import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
 import { dbFirst } from '../lib/db/client';
-import { getOrganizationReadiness } from '../lib/services/shared';
+import { getOrganizationReadiness, getOrganizationSettings } from '../lib/services/shared';
+import { canRerollChallenge, canRunChallenge, canScoreChallenge } from '../lib/permissions';
 import { formatOrgDateTime } from '../lib/utils/date';
 
 type ChallengeSessionView = {
   id: string;
   sequence_no: number;
   created_at: string;
-  status: string;
+  status: 'open' | 'answered' | 'scored' | 'cancelled';
   member_name: string;
   member_email: string;
   value_name: string;
@@ -25,6 +26,7 @@ const organization = Astro.locals.organization;
 const membership = Astro.locals.membership;
 const runtime = getCloudflareRuntime(Astro);
 const readiness = organization && runtime?.env?.DB ? await getOrganizationReadiness(runtime.env.DB, organization.id) : null;
+const settings = organization && runtime?.env?.DB ? await getOrganizationSettings(runtime.env.DB, organization.id) : null;
 const challengeReady = Boolean(
   readiness
   && readiness.activeMembers > 0
@@ -51,6 +53,7 @@ const session = organization && runtime?.env?.DB
        join core_values cv on cv.id = cs.core_value_id
        join questions q on q.id = cs.question_id
        where cs.organization_id = ?
+         and cs.status != 'cancelled'
        order by cs.session_date desc, cs.sequence_no desc
        limit 1`,
       [organization.id]
@@ -58,8 +61,19 @@ const session = organization && runtime?.env?.DB
   : null;
 const challenge = session as ChallengeSessionView | null;
 
-const canManage = Boolean(membership && ['owner', 'admin', 'facilitator'].includes(membership.role));
-const canScore = Boolean(membership && ['owner', 'admin', 'facilitator'].includes(membership.role));
+const canRun = canRunChallenge(membership?.role);
+const canReroll = canRerollChallenge(membership?.role);
+const canAnswer = canRun;
+const canScore = canScoreChallenge(membership?.role);
+const canStartNewChallenge = !challenge || challenge.status === 'open' || Boolean(settings?.allowMultipleChallengesPerDay);
+const canRerollCurrentChallenge = Boolean(challenge && challenge.status === 'open' && canReroll);
+const challengeAction = challenge && challenge.status === 'open' ? `/api/challenge/${challenge.id}/reroll` : '/api/challenge/start';
+const challengeStatusLabel = {
+  open: 'Terbuka',
+  answered: 'Menunggu penilaian',
+  scored: 'Selesai',
+  cancelled: 'Dibatalkan',
+} as const;
 const error = Astro.url.searchParams.get('error') || '';
 ---
 
@@ -74,7 +88,7 @@ const error = Astro.url.searchParams.get('error') || '';
       </div>
       <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/60 shadow-sm shrink-0">
         <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
-        {challenge ? challenge.status : 'Belum Dimulai'}
+        {challenge ? challengeStatusLabel[challenge.status] : 'Belum Dimulai'}
       </div>
     </div>
 
@@ -90,16 +104,16 @@ const error = Astro.url.searchParams.get('error') || '';
               : 'Start a challenge to generate a random member, value, and question.'}
           </p>
         </div>
-        {canManage && (
-          <form method="post" action={challenge ? `/api/challenge/${challenge.id}/reroll` : '/api/challenge/start'}>
+        {canRun && (
+          <form method="post" action={challengeAction}>
             <button
               type="submit"
-              disabled={!challengeReady || Boolean(challenge && (challenge.status === 'scored' || challenge.answer_text))}
-              title={!challengeReady ? 'Lengkapi dependency challenge terlebih dahulu.' : challenge?.status === 'scored' || challenge?.answer_text ? 'Challenge yang sudah dijawab atau dinilai tidak dapat di-reroll.' : undefined}
+              disabled={!challengeReady || !canStartNewChallenge || Boolean(challenge && challenge.status === 'open' && !canRerollCurrentChallenge)}
+              title={!challengeReady ? 'Lengkapi dependency challenge terlebih dahulu.' : !canStartNewChallenge ? 'Challenge hari ini sudah selesai.' : challenge?.status === 'open' && !canRerollCurrentChallenge ? 'Anda tidak memiliki izin untuk reroll.' : undefined}
               class="btn-interactive px-5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors flex items-center gap-2 group disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-300 disabled:border-slate-300"
             >
               <svg class="w-4 h-4 text-slate-300 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-              {challenge ? 'Reroll Challenge' : 'Start Challenge'}
+              {challenge?.status === 'open' ? 'Reroll Challenge' : challenge ? 'Start Challenge Berikutnya' : 'Start Challenge'}
             </button>
           </form>
         )}
@@ -142,6 +156,7 @@ const error = Astro.url.searchParams.get('error') || '';
 
             <hr class="border-slate-100 mb-8" />
 
+            {canAnswer ? (
             <form class="space-y-8 mb-6" method="post" action={`/api/challenge/${challenge.id}/answer`}>
               <div class="space-y-3">
                 <label class="block text-sm font-bold text-slate-900">Member's Answer</label>
@@ -164,15 +179,18 @@ const error = Astro.url.searchParams.get('error') || '';
               </div>
 
               <div class="pt-2 flex justify-end gap-3">
-                <button type="button" class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-slate-700 bg-white border border-slate-200/80 hover:bg-slate-50 transition-colors shadow-sm">
-                  Save as Draft
-                </button>
                 <button type="submit" disabled={challenge.status !== 'open'} class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300">
                   {challenge.status === 'open' ? 'Submit Answer' : 'Answer Submitted'}
                 </button>
               </div>
             </form>
+            ) : (
+              <div class="mb-6 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+                Anda dapat melihat challenge ini, tetapi hanya facilitator, admin, atau owner yang dapat mencatat jawaban.
+              </div>
+            )}
 
+            {canScore ? (
             <form class="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-5" method="post" action={`/api/challenge/${challenge.id}/score`}>
               <input type="hidden" name="score" id="score-input" value={challenge.score ?? ''} />
               <div class="space-y-3">
@@ -203,16 +221,16 @@ const error = Astro.url.searchParams.get('error') || '';
               </div>
 
               <div class="pt-2 flex justify-end gap-3">
-                <button type="button" class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-slate-700 bg-white border border-slate-200/80 hover:bg-slate-50 transition-colors shadow-sm">
-                  Save as Draft
+                <button type="submit" disabled={challenge.status !== 'answered'} class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300">
+                  {challenge.status === 'scored' ? 'Score Submitted' : challenge.status === 'open' ? 'Submit Answer First' : 'Submit Score'}
                 </button>
-                {canScore && (
-                  <button type="submit" disabled={challenge.status !== 'answered'} class="btn-interactive px-6 py-2.5 rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300">
-                    {challenge.status === 'scored' ? 'Score Submitted' : challenge.status === 'open' ? 'Submit Answer First' : 'Submit Score'}
-                  </button>
-                )}
               </div>
             </form>
+            ) : (
+              <div class="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+                Penilaian hanya dapat dilakukan oleh facilitator, admin, atau owner.
+              </div>
+            )}
           </>
         ) : (
           <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">

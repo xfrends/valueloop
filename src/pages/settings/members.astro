@@ -51,98 +51,85 @@ const success = Astro.url.searchParams.get('success') || '';
       </button>
     </div>
 
-    <!-- Tab 1: Organization Members -->
-    <div id="content-members" class="space-y-6 animate-in fade-in duration-300">
-      <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50/50 text-slate-500 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider">
-              <tr>
-                <th class="px-6 py-4">Name</th>
-                <th class="px-6 py-4">Role</th>
-                <th class="px-6 py-4">Teams</th>
-                <th class="px-6 py-4">Status</th>
+    <!-- Tab 1 & Tab 2: Merged Single Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden animate-in fade-in duration-300">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50/50 text-slate-500 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider">
+            <tr>
+              <th class="px-6 py-4">Name</th>
+              <th class="px-6 py-4">Role</th>
+              <th class="px-6 py-4">Teams</th>
+              <th class="px-6 py-4">Status</th>
+              <th class="px-6 py-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="merged-table-body" class="divide-y divide-slate-50">
+            {/* Render Organization Members */}
+            {members.length === 0 && invitations.length === 0 ? (
+              <tr data-empty-row>
+                <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-500">Belum ada anggota atau undangan.</td>
               </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50">
-              {members.length === 0 ? (
-                <tr>
-                  <td colspan="4" class="px-6 py-12 text-center text-sm text-slate-500">Belum ada anggota.</td>
-                </tr>
-              ) : members.map((member) => (
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                  <td class="px-6 py-4">
-                    <div class="font-bold text-slate-900">{member.full_name}</div>
-                    <div class="text-xs text-slate-500">{member.email}</div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60 shadow-sm">
-                      {member.role}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 text-slate-600 font-medium">{member.team_names || '-'}</td>
-                  <td class="px-6 py-4">
-                    <span class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${member.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                      {member.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+            ) : null}
+            
+            {members.map((member) => (
+              <tr data-type="member" class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="font-bold text-slate-900">{member.full_name}</div>
+                  <div class="text-xs text-slate-500">{member.email}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60 shadow-sm">
+                    {member.role}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-slate-600 font-medium">{member.team_names || '-'}</td>
+                <td class="px-6 py-4">
+                  <span class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${member.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                    {member.status}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  {/* Future edit action for members */}
+                </td>
+              </tr>
+            ))}
 
-    <!-- Tab 2: Pending Invitations -->
-    <div id="content-invites" class="hidden space-y-6 animate-in fade-in duration-300">
-      <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50/50 text-slate-500 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider">
-              <tr>
-                <th class="px-6 py-4">Email</th>
-                <th class="px-6 py-4">Role</th>
-                <th class="px-6 py-4">Status</th>
-                <th class="px-6 py-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50">
-              {invitations.length === 0 ? (
-                <tr>
-                  <td colspan="4" class="px-6 py-12 text-center text-sm text-slate-500">Tidak ada undangan yang menunggu.</td>
-                </tr>
-              ) : invitations.map((invite) => (
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                  <td class="px-6 py-4 font-medium text-slate-700">{invite.email}</td>
-                  <td class="px-6 py-4">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60 shadow-sm">
-                      {invite.role}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold capitalize">
-                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                      {invite.status}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4">
-                    {invite.status === 'invited' && (
+            {/* Render Pending Invitations */}
+            {invitations.map((invite) => (
+              <tr data-type="invite" class="hidden hover:bg-slate-50/50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="font-medium text-slate-700 italic">Pending Invite</div>
+                  <div class="text-xs text-slate-500">{invite.email}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60 shadow-sm">
+                    {invite.role}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-slate-400 font-medium">-</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold capitalize">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    {invite.status}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  {invite.status === 'invited' && (
                     <div class="flex justify-end gap-2">
                       <form method="post" action={`/api/settings/members/invitations/${invite.id}/resend`}>
-                        <button type="submit" class="rounded-lg border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">Kirim ulang</button>
+                        <button type="submit" class="rounded-lg border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors">Kirim ulang</button>
                       </form>
                       <form method="post" action={`/api/settings/members/invitations/${invite.id}/cancel`} data-confirm-cancel-invite>
-                        <button type="submit" class="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50">Batalkan</button>
+                        <button type="submit" class="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 transition-colors">Batalkan</button>
                       </form>
                     </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -188,19 +175,36 @@ const success = Astro.url.searchParams.get('success') || '';
 
     const tabMembers = document.getElementById('tab-members');
     const tabInvites = document.getElementById('tab-invites');
-    const contentMembers = document.getElementById('content-members');
-    const contentInvites = document.getElementById('content-invites');
-
+    
     const activeClass = "rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white";
     const inactiveClass = "rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:text-indigo-700";
+
+    const filterRows = (type: string) => {
+      document.querySelectorAll('#merged-table-body tr[data-type]').forEach((row) => {
+        if (row.getAttribute('data-type') === type) {
+          row.classList.remove('hidden');
+        } else {
+          row.classList.add('hidden');
+        }
+      });
+      // Handle empty state gracefully
+      const emptyRow = document.querySelector('#merged-table-body tr[data-empty-row]');
+      const visibleRows = document.querySelectorAll(`#merged-table-body tr[data-type="${type}"]`);
+      if (emptyRow) {
+        if (visibleRows.length === 0) {
+          emptyRow.classList.remove('hidden');
+        } else {
+          emptyRow.classList.add('hidden');
+        }
+      }
+    };
 
     tabMembers?.addEventListener('click', () => {
       tabMembers.className = activeClass;
       tabMembers.setAttribute('aria-selected', 'true');
       if(tabInvites) tabInvites.className = inactiveClass;
       tabInvites?.setAttribute('aria-selected', 'false');
-      contentMembers?.classList.remove('hidden');
-      contentInvites?.classList.add('hidden');
+      filterRows('member');
     });
 
     tabInvites?.addEventListener('click', () => {
@@ -208,8 +212,7 @@ const success = Astro.url.searchParams.get('success') || '';
       tabInvites.setAttribute('aria-selected', 'true');
       if(tabMembers) tabMembers.className = inactiveClass;
       tabMembers?.setAttribute('aria-selected', 'false');
-      contentInvites?.classList.remove('hidden');
-      contentMembers?.classList.add('hidden');
+      filterRows('invite');
     });
   </script>
 </AppLayout>

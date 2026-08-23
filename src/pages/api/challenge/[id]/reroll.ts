@@ -3,6 +3,9 @@ import { getCloudflareRuntime } from '../../../../lib/cloudflare/bindings';
 import { json } from '../../../../lib/http/response';
 import { rerollChallenge } from '../../../../lib/services/challenge';
 import { readJsonBody } from '../../../../lib/http/forms';
+import { challengeRerollSchema } from '../../../../lib/validations';
+import { canRerollChallenge } from '../../../../lib/permissions';
+import { zodFieldErrors } from '../../../../lib/utils/form-errors';
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
   const runtime = getCloudflareRuntime(locals);
@@ -14,11 +17,19 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     return new Response('Organisasi tidak tersedia.', { status: 403 });
   }
 
-  if (!['owner', 'admin', 'facilitator'].includes(locals.membership.role)) {
+  if (!canRerollChallenge(locals.membership.role)) {
     return new Response('Anda tidak memiliki izin untuk aksi ini.', { status: 403 });
   }
   const contentType = request.headers.get('content-type') || '';
-  const body: { reason?: string } = contentType.includes('application/json') ? await readJsonBody<{ reason?: string }>(request) : {};
+  const input = contentType.includes('application/json') ? await readJsonBody(request) : {};
+  const parsed = challengeRerollSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message || 'Alasan reroll tidak valid.';
+    if (contentType.includes('application/json')) {
+      return json({ ok: false, message, fieldErrors: zodFieldErrors(parsed.error) }, { status: 400 });
+    }
+    return new Response(null, { status: 302, headers: { Location: `/challenge?error=${encodeURIComponent(message)}` } });
+  }
   let session;
   try {
     session = await rerollChallenge(runtime.env.DB, {
@@ -27,7 +38,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       actorUserId: locals.user?.id ?? null,
       actorMemberId: locals.membership?.id ?? null,
       realtime: runtime.env.ORGANIZATION_REALTIME,
-      reason: body.reason,
+      reason: parsed.data.reason,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Challenge gagal diacak ulang.';

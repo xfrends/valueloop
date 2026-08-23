@@ -93,6 +93,10 @@ export function canRunChallenge(role: OrganizationRole | null | undefined): bool
   return hasPermission(role, PERMISSIONS.CHALLENGE_START);
 }
 
+export function canRerollChallenge(role: OrganizationRole | null | undefined): boolean {
+  return hasPermission(role, PERMISSIONS.CHALLENGE_REROLL);
+}
+
 export function canScoreChallenge(role: OrganizationRole | null | undefined): boolean {
   return hasPermission(role, PERMISSIONS.CHALLENGE_SCORE);
 }

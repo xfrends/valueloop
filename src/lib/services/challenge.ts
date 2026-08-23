@@ -173,7 +173,17 @@ export async function startChallenge(
   );
   const activeValues = await dbAll<{ id: string }>(
     db,
-    `select id from core_values where organization_id = ? and is_active = 1 order by sort_order asc, created_at asc`,
+    `select cv.id
+     from core_values cv
+     where cv.organization_id = ?
+       and cv.is_active = 1
+       and exists (
+         select 1 from questions q
+         where q.organization_id = cv.organization_id
+           and q.core_value_id = cv.id
+           and q.is_active = 1
+       )
+     order by cv.sort_order asc, cv.created_at asc`,
     [payload.organizationId]
   );
 
@@ -319,10 +329,13 @@ export async function rerollChallenge(
   if (!before) {
     throw new Error('Challenge tidak ditemukan.');
   }
+  if (before.status === 'cancelled') {
+    throw new Error('Challenge yang dibatalkan tidak dapat di-reroll.');
+  }
   if (before.status === 'scored') {
     throw new Error('Challenge yang sudah dinilai tidak dapat di-reroll.');
   }
-  if (before.answer_text) {
+  if (before.status !== 'open' || before.answer_text) {
     throw new Error('Challenge yang sudah dijawab tidak dapat di-reroll.');
   }
 
@@ -334,7 +347,17 @@ export async function rerollChallenge(
   );
   const activeValues = await dbAll<{ id: string }>(
     db,
-    `select id from core_values where organization_id = ? and is_active = 1 order by sort_order asc, created_at asc`,
+    `select cv.id
+     from core_values cv
+     where cv.organization_id = ?
+       and cv.is_active = 1
+       and exists (
+         select 1 from questions q
+         where q.organization_id = cv.organization_id
+           and q.core_value_id = cv.id
+           and q.is_active = 1
+       )
+     order by cv.sort_order asc, cv.created_at asc`,
     [payload.organizationId]
   );
 
@@ -443,6 +466,14 @@ export async function submitAnswer(
     realtime?: DurableObjectNamespace<OrganizationRealtime>;
   }
 ): Promise<ChallengeSessionRow> {
+  const answerText = payload.answerText.trim();
+  if (answerText.length < 3) {
+    throw new Error('Jawaban minimal 3 karakter.');
+  }
+  if (answerText.length > 5000) {
+    throw new Error('Jawaban maksimal 5000 karakter.');
+  }
+
   const before = await dbFirst<ChallengeSessionRow>(
     db,
     `select * from challenge_sessions where id = ? and organization_id = ? limit 1`,
@@ -461,7 +492,7 @@ export async function submitAnswer(
      set answer_text = ?, answered_at = ?, status = 'answered', updated_at = ?
      where id = ? and organization_id = ? and status = 'open'
      returning *`,
-    [payload.answerText.trim(), isoNow(), isoNow(), payload.sessionId, payload.organizationId]
+    [answerText, isoNow(), isoNow(), payload.sessionId, payload.organizationId]
   );
   if (!after) {
     throw new Error('Jawaban hanya bisa dikirim untuk challenge yang masih terbuka.');
@@ -498,6 +529,10 @@ export async function submitScore(
   if (!Number.isInteger(payload.score) || payload.score < 0 || payload.score > 10) {
     throw new Error('Skor harus berada di antara 0 dan 10.');
   }
+  const evaluatorNote = (payload.evaluatorNote || '').trim();
+  if (evaluatorNote.length > 2000) {
+    throw new Error('Catatan evaluator maksimal 2000 karakter.');
+  }
 
   const before = await dbFirst<ChallengeSessionRow>(
     db,
@@ -523,7 +558,7 @@ export async function submitScore(
      set score = ?, evaluator_note = ?, evaluator_member_id = ?, status = 'scored', updated_at = ?
      where id = ? and organization_id = ?
      returning *`,
-    [payload.score, payload.evaluatorNote || '', payload.actorMemberId, isoNow(), payload.sessionId, payload.organizationId]
+    [payload.score, evaluatorNote, payload.actorMemberId, isoNow(), payload.sessionId, payload.organizationId]
   );
 
   await writeAuditLog(db, {

@@ -78,9 +78,13 @@ export const challengeAnswerSchema = z.object({
   answerText: z.string({ error: 'Jawaban wajib diisi.' }).trim().min(3, 'Jawaban minimal 3 karakter.').max(5000, 'Jawaban maksimal 5000 karakter.'),
 });
 
+export const challengeRerollSchema = z.object({
+  reason: z.string().trim().max(500, 'Alasan reroll maksimal 500 karakter.').optional().default(''),
+});
+
 export const challengeScoreSchema = z.object({
   score: z.coerce.number({ error: 'Skor wajib dipilih.' }).int('Skor harus berupa angka bulat.').min(0, 'Skor minimal 0.').max(10, 'Skor maksimal 10.'),
-  evaluatorNote: z.string().trim().optional().default(''),
+  evaluatorNote: z.string().trim().max(2000, 'Catatan evaluator maksimal 2000 karakter.').optional().default(''),
 });
 
 export const memberInviteSchema = z.object({

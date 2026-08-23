@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCloudflareRuntime } from '../../../lib/cloudflare/bindings';
 import { startChallenge } from '../../../lib/services/challenge';
+import { canRunChallenge } from '../../../lib/permissions';
 
 export const POST: APIRoute = async ({ locals }) => {
   const runtime = getCloudflareRuntime(locals);
@@ -12,7 +13,7 @@ export const POST: APIRoute = async ({ locals }) => {
     return new Response('Organisasi tidak tersedia.', { status: 403 });
   }
 
-  if (!['owner', 'admin', 'facilitator'].includes(locals.membership.role)) {
+  if (!canRunChallenge(locals.membership.role)) {
     return new Response('Anda tidak memiliki izin untuk aksi ini.', { status: 403 });
   }
   try {
