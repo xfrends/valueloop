@@ -43,7 +43,7 @@ const historyData = organization && runtime?.env?.DB ? await listChallengeSessio
       </div>
       
       <div class="flex items-center gap-3">
-        <TableToolbar action="/history" searchValue={query} searchPlaceholder="Search member or value..." submitLabel="Cari">
+        <TableToolbar action="/history" searchValue={query} searchPlaceholder="Search member or value..." submitLabel={null} compact>
           <Fragment slot="filters">
             <input type="hidden" name="memberId" value={memberId} /><input type="hidden" name="valueId" value={valueId} /><input type="hidden" name="status" value={status} /><input type="hidden" name="fromDate" value={fromDate} /><input type="hidden" name="toDate" value={toDate} />
           </Fragment>
@@ -133,14 +133,17 @@ const historyData = organization && runtime?.env?.DB ? await listChallengeSessio
 
   </div>
 
-  <TableFilterDialog id="filterModal" title="Filter History">
+  <TableFilterDialog id="filterModal" bare>
     <form method="get" class="bg-white p-6">
       <input type="hidden" name="query" value={query} />
       <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
-        <h2 class="sr-only">Filter History</h2>
+        <h2 class="font-bold text-slate-900 text-lg">Filter History</h2>
         <div class="flex items-center gap-2">
           <a href="/history" title="Reset Filters" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">Reset</a>
           <button type="submit" title="Terapkan Filter" class="btn-interactive px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">Filter</button>
+          <button type="button" onclick="document.getElementById('filterModal').close()" title="Tutup" class="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors ml-1">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
       </div>
       

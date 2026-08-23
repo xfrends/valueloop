@@ -8,6 +8,7 @@ import { getCoreValue } from '../../../../../lib/services/values';
 import { formatOrgDateTime } from '../../../../../lib/utils/date';
 import DataTable from '../../../../../components/DataTable.astro';
 import TableToolbar from '../../../../../components/TableToolbar.astro';
+import TableFilterDialog from '../../../../../components/TableFilterDialog.astro';
 
 const valueId = Astro.params.id || '';
 const organization = Astro.locals.organization;
@@ -65,12 +66,50 @@ const success = Astro.url.searchParams.get('success') || '';
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <TableToolbar searchId="question-search" searchPlaceholder="Cari question atau rubric..." submitLabel={null}>
-            <Fragment slot="filters">
-              <label><span class="sr-only">Filter difficulty</span><select id="question-difficulty" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"><option value="all">Semua difficulty</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label>
-              <label><span class="sr-only">Filter status</span><select id="question-status" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"><option value="all">Semua status</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
-            </Fragment>
-          </TableToolbar>
+          <div class="flex items-center gap-3 p-4 bg-white border-b border-slate-100">
+            <div class="flex-grow">
+              <TableToolbar searchId="question-search" searchPlaceholder="Cari question atau rubric..." submitLabel={null} compact />
+            </div>
+            <button onclick="document.getElementById('questionFilterModal').showModal()" class="btn-interactive flex items-center gap-2 px-4 py-2 bg-white border border-slate-200/80 rounded-xl text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+              Filters
+            </button>
+          </div>
+
+          <!-- Filter Modal -->
+          <dialog id="questionFilterModal" class="m-auto backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm rounded-2xl shadow-2xl border-0 p-0 w-full max-w-md open:animate-in open:fade-in-90 open:zoom-in-95">
+            <div class="bg-white p-6">
+              <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
+                <h2 class="font-bold text-slate-900 text-lg">Filter Questions</h2>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="document.getElementById('question-difficulty').value='all'; document.getElementById('question-status').value='all'; document.getElementById('question-difficulty').dispatchEvent(new Event('change')); document.getElementById('questionFilterModal').close();" title="Reset Filters" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">Reset</button>
+                  <button type="button" onclick="document.getElementById('questionFilterModal').close()" title="Tutup" class="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors ml-1">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="space-y-4">
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-slate-700">Difficulty</label>
+                  <select id="question-difficulty" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
+                    <option value="all">Semua difficulty</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-slate-700">Status</label>
+                  <select id="question-status" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
+                    <option value="all">Semua status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </dialog>
 
           {questions.length > 0 ? (
             <>

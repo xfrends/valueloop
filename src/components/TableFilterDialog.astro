@@ -2,12 +2,14 @@
 interface Props {
   id: string;
   title?: string;
+  bare?: boolean;
 }
 
-const { id, title = 'Filter' } = Astro.props;
+const { id, title = 'Filter', bare = false } = Astro.props;
 ---
 
 <dialog id={id} class="m-auto w-full max-w-lg rounded-2xl border-0 p-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm">
+  {bare ? <slot /> : (
   <div class="bg-white p-6">
     <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
       <h2 class="text-lg font-bold text-slate-900">{title}</h2>
@@ -15,4 +17,5 @@ const { id, title = 'Filter' } = Astro.props;
     </div>
     <slot />
   </div>
+  )}
 </dialog>

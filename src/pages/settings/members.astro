@@ -1,9 +1,11 @@
 ---
 import AppLayout from '../../layouts/AppLayout.astro';
 import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
-import { listInvitations, listOrganizationMembers } from '../../lib/services/members';
+import { listInvitations, listOrganizationMembers, listTeams } from '../../lib/services/members';
 import { hasPermission, PERMISSIONS, ROLE_PERMISSIONS, type OrganizationRole } from '../../lib/permissions';
 import DataTable from '../../components/DataTable.astro';
+import TableToolbar from '../../components/TableToolbar.astro';
+import TableFilterDialog from '../../components/TableFilterDialog.astro';
 
 const organization = Astro.locals.organization;
 const membership = Astro.locals.membership;
@@ -13,10 +15,32 @@ const roles = (Object.keys(ROLE_PERMISSIONS) as OrganizationRole[]).map((role) =
   id: role,
   name: role.charAt(0).toUpperCase() + role.slice(1),
 }));
-const members = organization && runtime?.env?.DB ? await listOrganizationMembers(runtime.env.DB, organization.id) : [];
+
+const query = Astro.url.searchParams.get('query') || '';
+const roleFilter = Astro.url.searchParams.get('role') || '';
+const teamFilter = Astro.url.searchParams.get('team') || '';
+
+let members = organization && runtime?.env?.DB ? await listOrganizationMembers(runtime.env.DB, organization.id) : [];
 const invitations = organization && runtime?.env?.DB ? await listInvitations(runtime.env.DB, organization.id) : [];
+const teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
+
 const error = Astro.url.searchParams.get('error') || '';
 const success = Astro.url.searchParams.get('success') || '';
+
+// Client-side filtering simulation since we fetch all members
+if (query) {
+  const q = query.toLowerCase();
+  members = members.filter(m => m.full_name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+}
+if (roleFilter) {
+  members = members.filter(m => m.role === roleFilter);
+}
+if (teamFilter) {
+  const team = teams.find(t => t.id === teamFilter);
+  if (team) {
+    members = members.filter(m => m.team_names?.includes(team.name));
+  }
+}
 ---
 
 <AppLayout title="Members - ValueLoop" currentPath="/settings/members">
@@ -27,8 +51,18 @@ const success = Astro.url.searchParams.get('success') || '';
         <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Members</h1>
         <p class="text-slate-500 mt-1 text-sm">Kelola akses anggota, role (RBAC), dan status undangan.</p>
       </div>
-      <div class="flex items-center gap-3">
-        <button onclick="document.getElementById('inviteModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+      <div class="flex flex-col md:flex-row md:items-center gap-3">
+        <TableToolbar action="/settings/members" searchValue={query} searchPlaceholder="Search member..." submitLabel={null} compact>
+          <Fragment slot="filters">
+            <input type="hidden" name="role" value={roleFilter} />
+            <input type="hidden" name="team" value={teamFilter} />
+          </Fragment>
+        </TableToolbar>
+        <button onclick="document.getElementById('memberFilterModal').showModal()" class="btn-interactive flex items-center gap-2 px-4 py-2 bg-white border border-slate-200/80 rounded-xl text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+          Filters
+        </button>
+        <button onclick="document.getElementById('inviteModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
           Undang Member
         </button>
@@ -164,7 +198,54 @@ const success = Astro.url.searchParams.get('success') || '';
         </table>
         </DataTable>
       </div>
+      
+      <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <p class="text-sm text-slate-500">Showing {members.length} members</p>
+        <div class="flex gap-2">
+          <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-500 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Prev</button>
+          <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Next</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Filter Modal -->
+    <TableFilterDialog id="memberFilterModal" bare>
+      <form method="get" class="bg-white p-6">
+        <input type="hidden" name="query" value={query} />
+        <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
+          <h2 class="font-bold text-slate-900 text-lg">Filter Members</h2>
+          <div class="flex items-center gap-2">
+            <a href="/settings/members" title="Reset Filters" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">Reset</a>
+            <button type="submit" title="Terapkan Filter" class="btn-interactive px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">Filter</button>
+            <button type="button" onclick="document.getElementById('memberFilterModal').close()" title="Tutup" class="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors ml-1">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700">Role</label>
+            <select name="role" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
+              <option value="">Semua Role</option>
+              {roles.map((r) => (
+                <option value={r.id} selected={r.id === roleFilter}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700">Team</label>
+            <select name="team" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
+              <option value="">Semua Team</option>
+              {teams.map((t) => (
+                <option value={t.id} selected={t.id === teamFilter}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </form>
+    </TableFilterDialog>
 
     <!-- Change Role Modal -->
     <dialog id="roleModal" class="m-auto backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm rounded-2xl shadow-2xl border-0 p-0 w-full max-w-md open:animate-in open:fade-in-90 open:zoom-in-95">

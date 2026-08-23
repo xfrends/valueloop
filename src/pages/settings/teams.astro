@@ -4,30 +4,53 @@ import DependencyAlert from '../../components/DependencyAlert.astro';
 import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
 import { listTeams } from '../../lib/services/members';
 import { hasPermission, PERMISSIONS } from '../../lib/permissions';
+import TableToolbar from '../../components/TableToolbar.astro';
+import TableFilterDialog from '../../components/TableFilterDialog.astro';
 
 const organization = Astro.locals.organization;
 const membership = Astro.locals.membership;
 const runtime = getCloudflareRuntime(Astro);
-const teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
 const canManageTeams = hasPermission(membership?.role, PERMISSIONS.TEAMS_MANAGE);
+
+const query = Astro.url.searchParams.get('query') || '';
+const statusFilter = Astro.url.searchParams.get('status') || '';
+
+let teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
+
+if (query) {
+  const q = query.toLowerCase();
+  teams = teams.filter(t => t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q));
+}
+if (statusFilter === 'active') {
+  teams = teams.filter(t => t.is_active);
+} else if (statusFilter === 'inactive') {
+  teams = teams.filter(t => !t.is_active);
+}
+
 const error = Astro.url.searchParams.get('error') || '';
 const success = Astro.url.searchParams.get('success') || '';
 ---
 
 <AppLayout title="Teams - ValueLoop" currentPath="/settings/teams">
   <div class="mx-auto max-w-5xl">
-    <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-slate-200/60 pb-6">
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6">
       <div>
         <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization</p>
         <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Teams</h1>
         <p class="mt-1 text-slate-500 text-sm">Daftar tim dalam organisasi. Buka detail tim untuk mengelola anggotanya.</p>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm">
-          {teams.length} Tim
-        </span>
+      <div class="flex flex-col md:flex-row md:items-center gap-3">
+        <TableToolbar action="/settings/teams" searchValue={query} searchPlaceholder="Search team..." submitLabel={null} compact>
+          <Fragment slot="filters">
+            <input type="hidden" name="status" value={statusFilter} />
+          </Fragment>
+        </TableToolbar>
+        <button onclick="document.getElementById('teamFilterModal').showModal()" class="btn-interactive flex items-center gap-2 px-4 py-2 bg-white border border-slate-200/80 rounded-xl text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+          Filters
+        </button>
         {canManageTeams && (
-          <button onclick="document.getElementById('createTeamModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+          <button onclick="document.getElementById('createTeamModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Buat Tim Baru
           </button>
@@ -39,7 +62,7 @@ const success = Astro.url.searchParams.get('success') || '';
     {success && <DependencyAlert title="Berhasil" message={success} tone="info" />}
 
     <div class="mt-8">
-      {teams.length ? (
+      {teams.length > 0 || query || statusFilter ? (
         <div class="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
           <div class="hidden grid-cols-[minmax(0,1fr)_130px_130px] gap-4 border-b border-slate-100 bg-slate-50/50 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 md:grid">
             <span>Tim</span>
@@ -123,5 +146,33 @@ const success = Astro.url.searchParams.get('success') || '';
         </div>
       </dialog>
     )}
+
+    <!-- Filter Modal -->
+    <TableFilterDialog id="teamFilterModal" bare>
+      <form method="get" class="bg-white p-6">
+        <input type="hidden" name="query" value={query} />
+        <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
+          <h2 class="font-bold text-slate-900 text-lg">Filter Teams</h2>
+          <div class="flex items-center gap-2">
+            <a href="/settings/teams" title="Reset Filters" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">Reset</a>
+            <button type="submit" title="Terapkan Filter" class="btn-interactive px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">Filter</button>
+            <button type="button" onclick="document.getElementById('teamFilterModal').close()" title="Tutup" class="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors ml-1">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700">Status</label>
+            <select name="status" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
+              <option value="">Semua Status</option>
+              <option value="active" selected={statusFilter === 'active'}>Aktif</option>
+              <option value="inactive" selected={statusFilter === 'inactive'}>Nonaktif</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </TableFilterDialog>
   </div>
 </AppLayout>
