@@ -42,8 +42,10 @@ const aiConfigured = Boolean(runtime?.env?.OPENAI_API_KEY && runtime.env.R2);
                 </td>
                 <td class="px-6 py-4">{article.category}</td>
                 <td class="px-6 py-4">{article.status}</td>
-                <td class="px-6 py-4 text-right">
-                  <a href={`/platform/articles/${article.id}`} class="font-medium text-indigo-800 hover:text-indigo-900">Edit</a>
+                <td class="px-6 py-4 flex justify-end">
+                  <a href={`/platform/articles/${article.id}`} title="Edit Article" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                  </a>
                 </td>
               </tr>
             ))}

@@ -107,7 +107,13 @@ const success = Astro.url.searchParams.get('success') || '';
                         <td class="px-6 py-4"><span class={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${question.difficulty === 'easy' ? 'bg-green-50 text-green-700' : question.difficulty === 'medium' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'}`}>{question.difficulty}</span></td>
                         <td class="px-6 py-4"><span class={`inline-flex items-center gap-1.5 text-xs font-semibold ${question.is_active === 1 ? 'text-green-700' : 'text-slate-500'}`}><span class={`h-1.5 w-1.5 rounded-full ${question.is_active === 1 ? 'bg-green-500' : 'bg-slate-400'}`}></span>{question.is_active === 1 ? 'Active' : 'Inactive'}</span></td>
                         <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-500">{formatOrgDateTime(new Date(question.updated_at), organization?.timezone || 'Asia/Jakarta')}</td>
-                        {allowed && <td class="px-6 py-4 text-right"><a href={`/settings/values/${valueId}/questions/${question.id}/edit`} class="inline-flex rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800">Edit</a></td>}
+                        {allowed && (
+                          <td class="px-6 py-4 flex justify-end">
+                            <a href={`/settings/values/${valueId}/questions/${question.id}/edit`} title="Edit Question" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-100 hover:text-indigo-800 transition-colors">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </a>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

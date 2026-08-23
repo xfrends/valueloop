@@ -175,7 +175,7 @@ const permissionGroups: Array<{ name: string; permissions: Array<{ id: Organizat
             <tr>
               <th class="px-6 py-4">Member</th>
               <th class="px-6 py-4">Status</th>
-              <th class="px-6 py-4 text-right">Assignment</th>
+              <th class="px-6 py-4 text-right">Action</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
@@ -198,7 +198,9 @@ const permissionGroups: Array<{ name: string; permissions: Array<{ id: Organizat
                         <select name="role" aria-label={`Role untuk ${member.full_name}`} class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none hover:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer">
                           {roles.filter((role) => role.id !== 'owner').map((role) => <option value={role.id} selected={member.role === role.id}>{role.name}</option>)}
                         </select>
-                        <button type="submit" class="btn-interactive rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">Save</button>
+                        <button type="submit" title="Simpan Role" class="btn-interactive flex items-center justify-center w-9 h-9 rounded-lg bg-slate-900 text-white shadow-sm hover:bg-slate-800 transition-colors">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
                       </form>
                     ) : (
                       <div class="text-right">
