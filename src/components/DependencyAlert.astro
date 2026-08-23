@@ -1,0 +1,39 @@
+---
+type Props = {
+  title: string;
+  message: string;
+  actionHref?: string;
+  actionLabel?: string;
+  tone?: 'warning' | 'info' | 'danger';
+};
+
+const {
+  title,
+  message,
+  actionHref,
+  actionLabel,
+  tone = 'warning',
+} = Astro.props;
+const styles = {
+  warning: 'border-amber-200 bg-amber-50 text-amber-950',
+  info: 'border-indigo-200 bg-indigo-50 text-indigo-950',
+  danger: 'border-red-200 bg-red-50 text-red-950',
+};
+const buttonStyles = {
+  warning: 'bg-amber-900 hover:bg-amber-800',
+  info: 'bg-indigo-800 hover:bg-indigo-700',
+  danger: 'bg-red-800 hover:bg-red-700',
+};
+---
+
+<div role="alert" class={`mb-6 flex flex-col gap-4 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${styles[tone]}`}>
+  <div class="min-w-0">
+    <p class="font-semibold">{title}</p>
+    <p class="mt-1 text-sm opacity-90">{message}</p>
+  </div>
+  {actionHref && actionLabel && (
+    <a href={actionHref} class={`inline-flex shrink-0 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-white ${buttonStyles[tone]}`}>
+      {actionLabel}
+    </a>
+  )}
+</div>

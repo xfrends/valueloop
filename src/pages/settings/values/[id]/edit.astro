@@ -1,7 +1,9 @@
 ---
 import AppLayout from '../../../../layouts/AppLayout.astro';
+import DependencyAlert from '../../../../components/DependencyAlert.astro';
 import { getCloudflareRuntime } from '../../../../lib/cloudflare/bindings';
 import { dbFirst } from '../../../../lib/db/client';
+import { getCoreValueActivationReadiness } from '../../../../lib/services/values';
 import { parseJsonArray } from '../../../../lib/utils/json';
 
 type CoreValueEditRow = {
@@ -13,6 +15,7 @@ type CoreValueEditRow = {
   anti_patterns: string;
   example: string | null;
   color: string;
+  icon_name: string;
   sort_order: number;
   is_active: number;
 };
@@ -38,17 +41,35 @@ const valueData = valueRow
       antiPatterns: parseJsonArray(valueRow.anti_patterns as string).join('\n'),
       example: valueRow.example || '',
       color: valueRow.color || 'emerald',
+      iconName: valueRow.icon_name || 'star',
+      isActive: valueRow.is_active,
       sortOrder: valueRow.sort_order,
       status: valueRow.is_active === 1 ? 'Active' : 'Inactive',
     }
   : null;
+const activationReadiness = organization && valueRow && runtime?.env?.DB
+  ? await getCoreValueActivationReadiness(runtime.env.DB, organization.id, valueId || '')
+  : null;
+const error = Astro.url.searchParams.get('error') || '';
+const success = Astro.url.searchParams.get('success') || '';
 ---
 
 <AppLayout title={`Edit ${valueData?.name || 'Core Value'} - ValueLoop`} currentPath="/settings/values">
-  <div class="max-w-3xl mx-auto">
+  {error && <DependencyAlert title="Aksi core value gagal" message={error} tone="danger" />}
+  {success && <DependencyAlert title="Berhasil" message={success} tone="info" />}
+  {!valueData && (
+    <DependencyAlert
+      title="Core value tidak ditemukan"
+      message="Form edit tidak dapat dibuka karena core value tidak tersedia atau berasal dari organisasi lain."
+      actionHref="/settings/values"
+      actionLabel="Kembali ke core values"
+      tone="danger"
+    />
+  )}
+  <div class:list={["max-w-3xl mx-auto", { hidden: !valueData }]}>
     <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
-        <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-700 mb-4 transition-colors">
+        <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-700 mb-4 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           Back to Core Values
         </a>
@@ -57,29 +78,31 @@ const valueData = valueRow
       </div>
 
       <div class="flex items-center gap-2">
-        <span class={`inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full ${valueData?.status === 'Active' ? 'bg-blue-100 text-blue-900' : 'bg-slate-200 text-slate-700'}`}>
-          <span class={`w-2 h-2 rounded-full ${valueData?.status === 'Active' ? 'bg-blue-500 animate-pulse' : 'bg-slate-500'}`}></span>
+        <span class={`inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full ${valueData?.status === 'Active' ? 'bg-indigo-100 text-indigo-900' : 'bg-slate-200 text-slate-700'}`}>
+          <span class={`w-2 h-2 rounded-full ${valueData?.status === 'Active' ? 'bg-indigo-500 animate-pulse' : 'bg-slate-500'}`}></span>
           {valueData?.status}
         </span>
       </div>
     </div>
 
     <form method="post" action={`/api/settings/values/${valueId}`} class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+      <input type="hidden" name="iconName" value={valueData?.iconName ?? 'star'} />
+      <input type="hidden" name="isActive" value={valueData?.isActive ?? 1} />
       <div class="p-8 space-y-8">
         <section class="space-y-6">
           <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2">1. Basic Information</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2 md:col-span-2">
               <label class="block text-sm font-bold text-slate-900">Value Name <span class="text-red-500">*</span></label>
-              <input name="name" type="text" value={String(valueData?.name ?? '')} class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+              <input name="name" type="text" value={String(valueData?.name ?? '')} placeholder="e.g., Customer Obsession" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow" />
             </div>
             <div class="space-y-2 md:col-span-2">
               <label class="block text-sm font-bold text-slate-900">Short Description <span class="text-red-500">*</span></label>
-              <input name="shortDescription" type="text" value={String(valueData?.shortDesc ?? '')} class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+              <input name="shortDescription" type="text" value={String(valueData?.shortDesc ?? '')} placeholder="A single sentence explaining the value." class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow" />
             </div>
             <div class="space-y-2 md:col-span-2">
               <label class="block text-sm font-bold text-slate-900">Full Description</label>
-              <textarea name="description" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow">{valueData?.fullDesc ?? ''}</textarea>
+              <textarea name="description" rows="3" placeholder="Detailed explanation of what this value means to the company..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow">{valueData?.fullDesc ?? ''}</textarea>
             </div>
           </div>
         </section>
@@ -88,16 +111,16 @@ const valueData = valueRow
           <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2">2. Behaviors in Practice</h2>
           <div class="space-y-6">
             <div class="space-y-2">
-              <label class="block text-sm font-bold text-blue-800">Expected Behaviors</label>
-              <textarea name="expectedBehaviors" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow">{valueData?.expectedBehaviors ?? ''}</textarea>
+              <label class="block text-sm font-bold text-indigo-800">Expected Behaviors</label>
+              <textarea name="expectedBehaviors" rows="3" placeholder="e.g., We listen to customer feedback. We apologize when we make mistakes." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow">{valueData?.expectedBehaviors ?? ''}</textarea>
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-bold text-red-700">Anti-patterns</label>
-              <textarea name="antiPatterns" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow">{valueData?.antiPatterns ?? ''}</textarea>
+              <textarea name="antiPatterns" rows="3" placeholder="e.g., Ignoring support tickets. Blaming the customer." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow">{valueData?.antiPatterns ?? ''}</textarea>
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-bold text-slate-900">Real-world Example</label>
-              <textarea name="example" rows="2" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow">{valueData?.example ?? ''}</textarea>
+              <textarea name="example" rows="2" placeholder="Give an example of how a team member embodied this value..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow">{valueData?.example ?? ''}</textarea>
             </div>
           </div>
         </section>
@@ -107,18 +130,18 @@ const valueData = valueRow
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="block text-sm font-bold text-slate-900">Theme Color</label>
-              <select name="color" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow bg-white">
-                <option value="#2563EB">Blue</option>
-                <option value="#10B981">Emerald</option>
-                <option value="#F59E0B">Amber</option>
-                <option value="#8B5CF6">Purple</option>
-                <option value="#F43F5E">Rose</option>
-                <option value="#64748B">Slate</option>
+              <select name="color" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow bg-white">
+                <option value="#2563EB" selected={valueData?.color === '#2563EB'}>Blue</option>
+                <option value="#10B981" selected={valueData?.color === '#10B981'}>Emerald</option>
+                <option value="#F59E0B" selected={valueData?.color === '#F59E0B'}>Amber</option>
+                <option value="#8B5CF6" selected={valueData?.color === '#8B5CF6'}>Purple</option>
+                <option value="#F43F5E" selected={valueData?.color === '#F43F5E'}>Rose</option>
+                <option value="#64748B" selected={valueData?.color === '#64748B'}>Slate</option>
               </select>
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-bold text-slate-900">Sort Order</label>
-              <input name="sortOrder" type="number" min="0" value={Number(valueData?.sortOrder ?? 0)} class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+              <input name="sortOrder" type="number" min="0" value={Number(valueData?.sortOrder ?? 0)} class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow" />
             </div>
           </div>
         </section>
@@ -134,22 +157,66 @@ const valueData = valueRow
       </div>
     </form>
 
-    <div class="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden">
+    <div class="overflow-hidden rounded-2xl border border-red-200 bg-white shadow-sm">
       <div class="p-6 md:p-8">
-        <h2 class="text-lg font-bold text-red-700 mb-2">Danger Zone</h2>
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <h2 class="mb-2 text-lg font-bold text-red-700">Danger Zone</h2>
+        <div class="flex flex-col justify-between gap-6 py-4 md:flex-row md:items-center">
           <div>
-            <p class="text-sm font-bold text-slate-900">Deactivate Core Value</p>
+            <p class="text-sm font-bold text-slate-900">{valueData?.isActive === 1 ? 'Deactivate' : 'Activate'} Core Value</p>
             <p class="text-sm text-slate-500 mt-1 max-w-xl">
-              Deactivating this value means it will no longer appear in new daily challenges.
-              However, any existing history and past challenges related to this value will be kept safe.
+              {valueData?.isActive === 1
+                ? 'Core value tidak akan dipilih pada challenge baru. Question dan seluruh history tetap tersimpan.'
+                : 'Aktifkan kembali core value agar dapat digunakan pada challenge baru.'}
             </p>
+            {valueData?.isActive === 0 && activationReadiness && !activationReadiness.ready && (
+              <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+                <p class="font-semibold">Belum dapat diaktifkan</p>
+                <p class="mt-1">Lengkapi: {activationReadiness.missingRequirements.join(', ')}.</p>
+              </div>
+            )}
           </div>
-          <button type="button" class="shrink-0 px-5 py-2.5 rounded-lg font-bold text-red-600 bg-red-50 border border-red-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors shadow-sm">
-            Deactivate Value
+          <form method="post" action={`/api/settings/values/${valueId}/status`}>
+            <input type="hidden" name="isActive" value={valueData?.isActive === 1 ? '0' : '1'} />
+            <input type="hidden" name="source" value="edit" />
+            <button
+              type="submit"
+              disabled={valueData?.isActive === 0 && !activationReadiness?.ready}
+              title={valueData?.isActive === 0 && !activationReadiness?.ready ? 'Lengkapi seluruh field dan minimal satu question aktif terlebih dahulu.' : undefined}
+              class={`shrink-0 rounded-lg border px-5 py-2.5 font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 ${valueData?.isActive === 1 ? 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-600 hover:bg-amber-600 hover:text-white' : 'border-green-200 bg-green-50 text-green-800 hover:border-green-700 hover:bg-green-700 hover:text-white'}`}
+            >
+              {valueData?.isActive === 1 ? 'Deactivate Value' : 'Activate Value'}
+            </button>
+          </form>
+        </div>
+
+        <div class="flex flex-col justify-between gap-6 border-t border-red-100 py-4 md:flex-row md:items-center">
+          <div>
+            <p class="text-sm font-bold text-slate-900">Delete Core Value</p>
+            <p class="mt-1 max-w-xl text-sm text-slate-500">Hanya dapat dilakukan jika value tidak memiliki question maupun riwayat challenge. Aksi ini permanen.</p>
+          </div>
+          <button type="button" onclick="document.getElementById('delete-value-dialog').showModal()" class="shrink-0 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 font-bold text-red-700 shadow-sm transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white">
+            Delete Value
           </button>
         </div>
       </div>
     </div>
   </div>
+
+  <dialog id="delete-value-dialog" class="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl backdrop:bg-slate-950/50 backdrop:backdrop-blur-sm">
+    <div class="p-6">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-700">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 0 0 1.74-3L13.74 4a2 2 0 0 0-3.48 0L3.33 16a2 2 0 0 0 1.74 3Z"></path></svg>
+      </div>
+      <h2 class="text-lg font-bold text-slate-900">Hapus “{valueData?.name}”?</h2>
+      <p class="mt-2 text-sm leading-6 text-slate-600">Server akan memeriksa seluruh question dan riwayat challenge sebelum menghapus. Jika ada dependensi, penghapusan otomatis ditolak.</p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" onclick="document.getElementById('delete-value-dialog').close()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Batal</button>
+        <form method="post" action={`/api/settings/values/${valueId}/delete`}>
+          <input type="hidden" name="confirmValueId" value={valueId} />
+          <input type="hidden" name="source" value="edit" />
+          <button type="submit" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">Ya, Hapus Value</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
 </AppLayout>

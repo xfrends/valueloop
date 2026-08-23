@@ -4,8 +4,9 @@ import { valueSchema } from '../../../../lib/validations';
 import { updateCoreValue } from '../../../../lib/services/values';
 import { json } from '../../../../lib/http/response';
 import { readFormDataValue, readJsonBody } from '../../../../lib/http/forms';
-import { parseJsonArray } from '../../../../lib/utils/json';
+import { parseTextList } from '../../../../lib/utils/json';
 import { canManageValues } from '../../../../lib/permissions';
+import { zodFieldErrors } from '../../../../lib/utils/form-errors';
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
   const runtime = getCloudflareRuntime(locals);
@@ -38,25 +39,44 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
           antiPatterns: await readFormDataValue(request, 'antiPatterns'),
         };
 
-  const parsed = valueSchema.parse(input);
-  const updated = await updateCoreValue(runtime.env.DB, {
-    organizationId: locals.organization.id,
-    valueId,
-    actorUserId: locals.user?.id ?? null,
-    actorMemberId: locals.membership?.id ?? null,
-    patch: {
-      name: parsed.name,
-      shortDescription: parsed.shortDescription,
-      description: parsed.description,
-      example: parsed.example,
-      color: parsed.color,
-      iconName: parsed.iconName,
-      sortOrder: parsed.sortOrder,
-      isActive: parsed.isActive,
-      expectedBehaviors: parseJsonArray(parsed.expectedBehaviors) as string[],
-      antiPatterns: parseJsonArray(parsed.antiPatterns) as string[],
-    },
-  });
+  const parsed = valueSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = 'Periksa kembali data core value yang Anda masukkan.';
+    const fieldErrors = zodFieldErrors(parsed.error);
+    if (contentType.includes('application/json')) {
+      return json({ ok: false, message, fieldErrors }, { status: 400 });
+    }
+    const url = new URL(`/settings/values/${valueId}/edit`, request.url);
+    url.searchParams.set('error', message);
+    url.searchParams.set('fieldErrors', JSON.stringify(fieldErrors));
+    return new Response(null, { status: 302, headers: { Location: url.pathname + url.search } });
+  }
+
+  let updated;
+  try {
+    updated = await updateCoreValue(runtime.env.DB, {
+      organizationId: locals.organization.id,
+      valueId,
+      actorUserId: locals.user?.id ?? null,
+      actorMemberId: locals.membership?.id ?? null,
+      patch: {
+        name: parsed.data.name,
+        shortDescription: parsed.data.shortDescription,
+        description: parsed.data.description,
+        example: parsed.data.example,
+        color: parsed.data.color,
+        iconName: parsed.data.iconName,
+        sortOrder: parsed.data.sortOrder,
+        isActive: parsed.data.isActive,
+        expectedBehaviors: parseTextList(parsed.data.expectedBehaviors),
+        antiPatterns: parseTextList(parsed.data.antiPatterns),
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Core value gagal diperbarui.';
+    if (contentType.includes('application/json')) return json({ ok: false, message }, { status: 400 });
+    return new Response(null, { status: 302, headers: { Location: `/settings/values/${valueId}/edit?error=${encodeURIComponent(message)}` } });
+  }
 
   if (contentType.includes('application/json')) {
     return json({ ok: true, valueId: updated.id });

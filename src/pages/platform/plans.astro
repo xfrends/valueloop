@@ -12,7 +12,7 @@ const plans = allowed && runtime?.env?.DB ? await listPlatformPlans(runtime.env.
 <AppLayout title="Platform Plans - ValueLoop" currentPath="/platform/plans">
   <div class="mb-8">
     <h1 class="text-2xl font-bold text-slate-900">Platform Plans</h1>
-    <p class="text-slate-500 mt-1">Plan limits and feature flags. Payment provider fields remain unused while SaaS is free.</p>
+    <p class="text-slate-500 mt-1">Seluruh plan tetap tersimpan. Hanya Free yang tersedia; plan lainnya berstatus Coming Soon.</p>
   </div>
 
   {!allowed ? (
@@ -26,8 +26,8 @@ const plans = allowed && runtime?.env?.DB ? await listPlatformPlans(runtime.env.
               <h2 class="text-xl font-bold text-slate-900">{plan.name}</h2>
               <p class="text-sm text-slate-500">{plan.code}</p>
             </div>
-            <span class={plan.is_active === 1 ? 'rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800' : 'rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600'}>
-              {plan.is_active === 1 ? 'Active' : 'Inactive'}
+            <span class={plan.code === 'free' && plan.is_active === 1 ? 'rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800' : 'rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800'}>
+              {plan.code === 'free' && plan.is_active === 1 ? 'Available' : 'Coming Soon'}
             </span>
           </div>
           <div class="mt-5 grid gap-4 md:grid-cols-2">

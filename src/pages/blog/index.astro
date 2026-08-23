@@ -29,21 +29,21 @@ function formatDate(value: string | null): string {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {articles.map((article) => (
         <a href={`/blog/${article.slug}`} class="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
-          <div class="aspect-video w-full bg-gradient-to-br from-blue-400 to-teal-500 relative overflow-hidden">
+          <div class="aspect-video w-full bg-indigo-100 border border-indigo-200 relative overflow-hidden">
             {article.thumbnail_r2_key ? (
               <img src={`/api/assets/${article.thumbnail_r2_key}`} alt={article.thumbnail_alt || article.title} class="h-full w-full object-cover" loading="lazy" />
             ) : (
-              <div class="absolute inset-0 bg-gradient-to-br from-blue-400 to-teal-500"></div>
+              <div class="absolute inset-0 bg-indigo-100 border border-indigo-200"></div>
             )}
           </div>
           <div class="p-8 flex flex-col flex-1">
             <div class="flex items-center gap-3 mb-4 text-sm">
-              <span class="px-3 py-1 bg-blue-50 text-blue-800 font-medium rounded-full">{article.category}</span>
+              <span class="px-3 py-1 bg-indigo-50 text-indigo-800 font-medium rounded-full">{article.category}</span>
               <span class="text-slate-500">{formatDate(article.published_at || article.created_at)}</span>
             </div>
-            <h2 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-700 transition-colors line-clamp-2">{article.title}</h2>
+            <h2 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-indigo-700 transition-colors line-clamp-2">{article.title}</h2>
             <p class="text-slate-600 line-clamp-3 mb-6 flex-1">{article.excerpt}</p>
-            <div class="flex items-center text-blue-700 font-medium mt-auto group-hover:translate-x-1 transition-transform">
+            <div class="flex items-center text-indigo-700 font-medium mt-auto group-hover:translate-x-1 transition-transform">
               Baca selengkapnya <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </div>
           </div>

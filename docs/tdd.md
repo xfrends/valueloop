@@ -700,7 +700,7 @@ export const coreValueSchema = z.object({
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   iconName: z.string().min(2),
   sortOrder: z.number().int().default(0),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean().default(false),
 });
 
 export const questionSchema = z.object({
@@ -857,4 +857,3 @@ export async function assertBelongsToOrganization(params: {
 - View history.
 
 ---
-

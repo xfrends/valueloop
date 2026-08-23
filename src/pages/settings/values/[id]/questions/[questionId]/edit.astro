@@ -1,0 +1,51 @@
+---
+import AppLayout from '../../../../../../layouts/AppLayout.astro';
+import DependencyAlert from '../../../../../../components/DependencyAlert.astro';
+import QuestionForm from '../../../../../../components/QuestionForm.astro';
+import { getCloudflareRuntime } from '../../../../../../lib/cloudflare/bindings';
+import { canManageValues } from '../../../../../../lib/permissions';
+import { getQuestion } from '../../../../../../lib/services/questions';
+import { getCoreValue } from '../../../../../../lib/services/values';
+import { parseJsonRecord } from '../../../../../../lib/utils/form-errors';
+
+const valueId = Astro.params.id || '';
+const questionId = Astro.params.questionId || '';
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = canManageValues(Astro.locals.membership?.role);
+const coreValue = organization && runtime?.env?.DB ? await getCoreValue(runtime.env.DB, organization.id, valueId) : null;
+const question = organization && coreValue && runtime?.env?.DB
+  ? await getQuestion(runtime.env.DB, organization.id, valueId, questionId)
+  : null;
+const error = Astro.url.searchParams.get('error') || '';
+const fieldErrors = parseJsonRecord(Astro.url.searchParams.get('fieldErrors'));
+---
+
+<AppLayout title={`Edit Question - ${coreValue?.name || 'Core Value'}`} currentPath="/settings/values">
+  <div class="mx-auto max-w-3xl">
+    <a href={`/settings/values/${valueId}/questions`} class="mb-4 inline-flex text-sm font-medium text-slate-500 hover:text-indigo-700">&larr; Back to Question Bank</a>
+    <div class="mb-8">
+      <p class="text-sm font-semibold uppercase tracking-[0.16em] text-indigo-800">{coreValue?.name || 'Core Value'}</p>
+      <h1 class="mt-2 text-2xl font-bold text-slate-900">Edit Question</h1>
+      <p class="mt-1 text-slate-500">Perbarui pertanyaan, panduan rubrik, difficulty, atau statusnya.</p>
+    </div>
+
+    {error && <DependencyAlert title="Question gagal diperbarui" message={error} tone="danger" />}
+    {!coreValue || !question ? (
+      <DependencyAlert title="Question tidak ditemukan" message="Question tidak tersedia atau bukan bagian dari core value dan organisasi ini." actionHref={`/settings/values/${valueId}/questions`} actionLabel="Kembali ke Question Bank" tone="danger" />
+    ) : !allowed ? (
+      <DependencyAlert title="Akses terbatas" message="Hanya owner atau admin yang dapat mengubah question." tone="danger" />
+    ) : (
+      <QuestionForm
+        action={`/api/settings/questions/${question.id}`}
+        coreValueId={valueId}
+        questionText={question.question_text}
+        difficulty={question.difficulty as 'easy' | 'medium' | 'hard'}
+        suggestedRubricNote={question.suggested_rubric_note || ''}
+        isActive={question.is_active}
+        fieldErrors={fieldErrors}
+        submitLabel="Save Changes"
+      />
+    )}
+  </div>
+</AppLayout>

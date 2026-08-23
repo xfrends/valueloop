@@ -16,6 +16,19 @@ export type QuestionRow = {
   updated_at: string;
 };
 
+export async function getQuestion(
+  db: D1Database,
+  organizationId: string,
+  coreValueId: string,
+  questionId: string
+): Promise<QuestionRow | null> {
+  return dbFirst<QuestionRow>(
+    db,
+    `select * from questions where id = ? and organization_id = ? and core_value_id = ? limit 1`,
+    [questionId, organizationId, coreValueId]
+  );
+}
+
 export async function listQuestions(db: D1Database, organizationId: string): Promise<Array<QuestionRow & { core_value_name: string; core_value_active: number }>> {
   return dbAll(
     db,
@@ -25,6 +38,20 @@ export async function listQuestions(db: D1Database, organizationId: string): Pro
      where q.organization_id = ?
      order by q.is_active desc, cv.sort_order asc, q.created_at desc`,
     [organizationId]
+  );
+}
+
+export async function listQuestionsForCoreValue(
+  db: D1Database,
+  organizationId: string,
+  coreValueId: string
+): Promise<QuestionRow[]> {
+  return dbAll<QuestionRow>(
+    db,
+    `select * from questions
+     where organization_id = ? and core_value_id = ?
+     order by is_active desc, created_at desc`,
+    [organizationId, coreValueId]
   );
 }
 

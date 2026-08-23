@@ -7,40 +7,80 @@ const devOtp = Astro.url.searchParams.get('devOtp') || '';
 ---
 
 <BaseLayout title="Verifikasi Email | ValueLoop">
-  <main class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6">
-    <a class="mb-8 text-lg font-semibold tracking-tight" href="/">ValueLoop</a>
-    <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <h1 class="text-2xl font-semibold tracking-tight">Verifikasi email</h1>
-      <p class="mt-2 text-sm text-slate-500">Masukkan kode OTP 6 digit yang dikirim ke email Anda.</p>
+  <main class="flex min-h-screen w-full bg-white">
+    <!-- Bagian Kiri: Form Area -->
+    <div class="flex flex-1 flex-col justify-center px-6 py-12 lg:flex-none lg:w-[500px] xl:w-[600px] xl:px-20 z-10 bg-white">
+      <div class="mx-auto w-full max-w-sm lg:w-full">
+        <!-- Brand / Back to Home -->
+        <a class="flex items-center gap-3 group mb-10 w-max" href="/">
+          <div class="w-10 h-10 rounded-xl bg-[#0F172A] border border-slate-700 flex items-center justify-center text-white font-bold text-xl shadow-sm transition-transform duration-200 group-active:scale-95">
+            V
+          </div>
+          <span class="text-xl font-bold tracking-tight text-[#0F172A]">ValueLoop</span>
+        </a>
 
-      {error && (
-        <div class="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+        <!-- Header -->
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold tracking-tight text-[#0F172A]">Verifikasi Email</h1>
+          <p class="mt-2 text-[15px] text-[#64748B]">Masukkan kode OTP 6 digit yang dikirim ke email Anda.</p>
         </div>
-      )}
 
-      {devOtp && (
-        <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Mode development: kode OTP adalah <strong>{devOtp}</strong>.
-        </div>
-      )}
+        {error && (
+          <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700 shadow-sm">
+            {error}
+          </div>
+        )}
 
-      <form method="post" action="/api/auth/verify-email" class="mt-6 space-y-4">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Email</label>
-          <input name="email" type="email" value={email} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
-        </div>
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Kode OTP</label>
-          <input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-center text-xl tracking-[0.4em] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
-        </div>
-        <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Verifikasi dan masuk</button>
-      </form>
+        {devOtp && (
+          <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-900 shadow-sm">
+            Mode development: kode OTP adalah <strong class="bg-amber-200/50 px-1.5 py-0.5 rounded tracking-widest">{devOtp}</strong>.
+          </div>
+        )}
 
-      <form method="post" action="/api/auth/resend-otp" class="mt-3">
-        <input type="hidden" name="email" value={email} />
-        <button type="submit" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Kirim ulang kode</button>
-      </form>
-    </section>
+        <form method="post" action="/api/auth/verify-email" class="space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-[14px] font-semibold text-[#0F172A]">Alamat Email</label>
+            <input name="email" type="email" value={email} class="w-full rounded-xl bg-[#F6F8FB] border border-[#DCE4F0] px-4 py-3 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-[#0F172A] focus:ring-2 focus:ring-slate-900/10" required readonly={!!email} />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-[14px] font-semibold text-[#0F172A]">Kode OTP</label>
+            <input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="w-full rounded-xl bg-[#F6F8FB] border border-[#DCE4F0] px-4 py-3 text-center text-2xl tracking-[0.4em] font-medium text-[#0F172A] outline-none transition-all focus:bg-white focus:border-[#0F172A] focus:ring-2 focus:ring-slate-900/10" required />
+          </div>
+          <button type="submit" class="btn-interactive mt-6 w-full rounded-xl bg-[#0F172A] px-4 py-3 text-white font-semibold shadow-xl shadow-slate-900/10 hover:bg-[#1E293B]">Verifikasi & Lanjutkan</button>
+        </form>
+
+        <form method="post" action="/api/auth/resend-otp" class="mt-4">
+          <input type="hidden" name="email" value={email} />
+          <button type="submit" class="btn-interactive w-full rounded-xl border border-[#DCE4F0] bg-white px-4 py-3 text-[14px] font-semibold text-[#0F172A] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-all">Kirim ulang kode OTP</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bagian Kanan: Ilustrasi Visual -->
+    <div class="relative hidden lg:flex lg:flex-1 bg-[#F8FAFC] border-l border-[#DCE4F0] overflow-hidden items-center justify-center">
+      <!-- Pola Titik (Dot Pattern) yang rapi -->
+      <div class="absolute inset-0 pattern-dots opacity-40"></div>
+      
+      <div class="relative z-10 w-full max-w-lg p-10 flex flex-col items-center text-center">
+        <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-slate-200 mb-8 shadow-sm">
+          <svg class="h-8 w-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        
+        <h2 class="text-3xl font-bold tracking-tight text-[#0F172A] mb-4 leading-tight">
+          Satu langkah verifikasi <br />untuk keamanan akun.
+        </h2>
+        <p class="text-[#64748B] text-lg leading-relaxed max-w-sm">
+          Kami telah mengirimkan 6 digit kode unik ke kotak masuk email Anda. Silakan masukkan untuk melanjutkan.
+        </p>
+      </div>
+    </div>
   </main>
+  <style>
+    .pattern-dots {
+      background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+  </style>
 </BaseLayout>

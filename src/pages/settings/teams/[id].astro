@@ -1,0 +1,198 @@
+---
+import AppLayout from '../../../layouts/AppLayout.astro';
+import DependencyAlert from '../../../components/DependencyAlert.astro';
+import { getCloudflareRuntime } from '../../../lib/cloudflare/bindings';
+import { getTeam, listOrganizationMembers, listTeamMemberAssignments } from '../../../lib/services/members';
+import { hasPermission, PERMISSIONS } from '../../../lib/permissions';
+
+const organization = Astro.locals.organization;
+const membership = Astro.locals.membership;
+const runtime = getCloudflareRuntime(Astro);
+const db = runtime?.env?.DB;
+const teamId = Astro.params.id || '';
+const team = organization && db ? await getTeam(db, organization.id, teamId) : null;
+const members = organization && db && team ? await listOrganizationMembers(db, organization.id) : [];
+const assignments = organization && db && team ? await listTeamMemberAssignments(db, organization.id, team.id) : [];
+const canManageTeams = hasPermission(membership?.role, PERMISSIONS.TEAMS_MANAGE);
+const error = Astro.url.searchParams.get('error') || '';
+const success = Astro.url.searchParams.get('success') || '';
+const assignedMemberIds = new Set(assignments.map((assignment) => assignment.organization_member_id));
+const availableMembers = members.filter((member) => member.status === 'active' && !assignedMemberIds.has(member.id));
+---
+
+<AppLayout title={`${team?.name || 'Detail Team'} - ValueLoop`} currentPath="/settings/teams">
+  <div class="mx-auto max-w-7xl">
+    <a href="/settings/teams" class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700">
+      <span aria-hidden="true">←</span> Kembali ke daftar teams
+    </a>
+
+    {error && <DependencyAlert title="Perubahan tim gagal" message={error} tone="danger" />}
+    {success && <DependencyAlert title="Berhasil" message={success} tone="info" />}
+
+    {!team ? (
+      <DependencyAlert
+        title="Tim tidak ditemukan"
+        message="Tim tidak tersedia atau berasal dari organisasi lain."
+        actionHref="/settings/teams"
+        actionLabel="Kembali ke daftar teams"
+        tone="danger"
+      />
+    ) : (
+      <>
+        <header class="mb-8 flex flex-col gap-4 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm md:flex-row md:items-start md:justify-between">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-3 mb-2">
+              <h1 class="text-2xl font-bold text-slate-900">{team.name}</h1>
+              <span class:list={[
+                'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider',
+                team.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500',
+              ]}>
+                {team.is_active ? 'Aktif' : 'Nonaktif'}
+              </span>
+            </div>
+            <p class="text-slate-500 text-sm leading-relaxed">{team.description || 'Belum ada deskripsi tim.'}</p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="inline-flex items-center rounded-xl bg-indigo-50/80 px-4 py-2 text-sm font-bold text-indigo-900 border border-indigo-100 shadow-sm">
+              {assignments.length} Anggota
+            </span>
+            {canManageTeams && (
+              <button onclick="document.getElementById('editTeamModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-200/80 shadow-sm hover:bg-slate-50 transition-colors">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                Edit Tim
+              </button>
+            )}
+          </div>
+        </header>
+
+        <section class="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
+          <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-5 flex items-center justify-between">
+            <div>
+              <h2 class="font-bold text-slate-900">Anggota Tim</h2>
+              <p class="mt-1 text-sm text-slate-500">Daftar anggota yang terhubung dengan grup ini.</p>
+            </div>
+            {canManageTeams && (
+              <button onclick="document.getElementById('addMemberModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tambah Anggota
+              </button>
+            )}
+          </div>
+
+          {assignments.length ? (
+            <div class="divide-y divide-slate-50">
+              {assignments.map((assignment) => (
+                <div class="group flex flex-col gap-3 px-6 py-5 transition-colors hover:bg-slate-50/50 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="min-w-0">
+                    <p class="truncate font-bold text-slate-900 text-base">{assignment.member_name}</p>
+                    <p class="truncate text-sm text-slate-500 mb-2">{assignment.member_email}</p>
+                    <div class="flex flex-wrap gap-2">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60 shadow-sm">{assignment.member_role}</span>
+                      {assignment.member_status !== 'active' && (
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200/60 shadow-sm">{assignment.member_status}</span>
+                      )}
+                    </div>
+                  </div>
+                  {canManageTeams && (
+                    <form method="post" action={`/api/settings/teams/${team.id}/members`}>
+                      <input type="hidden" name="organizationMemberId" value={assignment.organization_member_id} />
+                      <input type="hidden" name="intent" value="remove" />
+                      <button type="submit" class="btn-interactive rounded-xl border border-rose-200/80 bg-white px-4 py-2 text-xs font-semibold text-rose-600 shadow-sm hover:bg-rose-50 transition-colors" data-confirm-remove>
+                        Keluarkan
+                      </button>
+                    </form>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div class="px-6 py-16 text-center">
+              <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 mb-4">
+                <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+              </div>
+              <h3 class="font-bold text-slate-800">Belum ada anggota</h3>
+              <p class="mt-2 text-sm text-slate-500 max-w-sm mx-auto">Tambahkan anggota aktif ke dalam tim ini menggunakan tombol di atas.</p>
+            </div>
+          )}
+        </section>
+
+        {/* Modal: Tambah Anggota */}
+        {canManageTeams && (
+          <dialog id="addMemberModal" class="m-auto backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm rounded-2xl shadow-2xl border-0 p-0 w-full max-w-md open:animate-in open:fade-in-90 open:zoom-in-95">
+            <div class="bg-white p-6">
+              <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
+                <h2 class="font-bold text-slate-900 text-lg">Tambah Anggota</h2>
+                <form method="dialog">
+                  <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </form>
+              </div>
+              <form method="post" action={`/api/settings/teams/${team.id}/members`} class="space-y-5">
+                <p class="text-sm text-slate-500">Pilih anggota aktif untuk ditambahkan ke tim ini.</p>
+                <div class="flex flex-col gap-2">
+                  <label for="organization-member" class="text-sm font-semibold text-slate-700">Anggota aktif <span class="text-rose-500">*</span></label>
+                  <select id="organization-member" name="organizationMemberId" required disabled={!availableMembers.length} class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 disabled:text-slate-400 transition-colors">
+                    <option value="">{availableMembers.length ? 'Pilih anggota...' : 'Semua anggota aktif sudah ada di tim ini'}</option>
+                    {availableMembers.map((member) => (
+                      <option value={member.id}>{member.full_name} · {member.role}</option>
+                    ))}
+                  </select>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end gap-3">
+                  <form method="dialog"><button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Batal</button></form>
+                  <button type="submit" disabled={!availableMembers.length} class="btn-interactive rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 transition-colors">Tambahkan</button>
+                </div>
+              </form>
+            </div>
+          </dialog>
+        )}
+
+        {/* Modal: Edit Tim */}
+        {canManageTeams && (
+          <dialog id="editTeamModal" class="m-auto backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm rounded-2xl shadow-2xl border-0 p-0 w-full max-w-md open:animate-in open:fade-in-90 open:zoom-in-95">
+            <div class="bg-white p-6">
+              <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
+                <h2 class="font-bold text-slate-900 text-lg">Edit Tim</h2>
+                <form method="dialog">
+                  <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </form>
+              </div>
+              <form method="post" action={`/api/settings/teams/${team.id}`} class="space-y-5">
+                <div class="flex flex-col gap-2">
+                  <label for="team-name" class="text-sm font-semibold text-slate-700">Nama tim <span class="text-rose-500">*</span></label>
+                  <input id="team-name" name="name" type="text" value={team.name} required minlength="2" maxlength="120" placeholder="Contoh: Product & Design" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" />
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="team-description" class="text-sm font-semibold text-slate-700">Deskripsi</label>
+                  <textarea id="team-description" name="description" rows="3" placeholder="Jelaskan fungsi tim" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors">{team.description || ''}</textarea>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label for="team-status" class="text-sm font-semibold text-slate-700">Status tim</label>
+                  <select id="team-status" name="isActive" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors">
+                    <option value="1" selected={team.is_active === 1}>Aktif</option>
+                    <option value="0" selected={team.is_active === 0}>Nonaktif</option>
+                  </select>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end gap-3">
+                  <form method="dialog"><button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Batal</button></form>
+                  <button type="submit" class="btn-interactive rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">Simpan Perubahan</button>
+                </div>
+              </form>
+            </div>
+          </dialog>
+        )}
+      </>
+    )}
+  </div>
+
+  <script>
+    document.querySelectorAll<HTMLButtonElement>('[data-confirm-remove]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        if (!window.confirm('Keluarkan anggota ini dari tim?')) event.preventDefault();
+      });
+    });
+  </script>
+</AppLayout>

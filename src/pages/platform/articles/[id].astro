@@ -14,7 +14,7 @@ const article = allowed && runtime?.env?.DB ? await getArticleById(runtime.env.D
       <h1 class="text-2xl font-bold text-slate-900">Edit Article</h1>
       <p class="text-slate-500 mt-1">{article?.title ?? 'Artikel tidak ditemukan.'}</p>
     </div>
-    {article && <a href={`/blog/${article.slug}`} class="text-sm font-medium text-blue-800 hover:text-blue-900">View public</a>}
+    {article && <a href={`/blog/${article.slug}`} class="text-sm font-medium text-indigo-800 hover:text-indigo-900">View public</a>}
   </div>
 
   {!allowed ? (
@@ -25,10 +25,10 @@ const article = allowed && runtime?.env?.DB ? await getArticleById(runtime.env.D
     <form method="post" action={`/api/platform/articles/${article.id}`} class="grid gap-6 lg:grid-cols-3">
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <input name="title" value={article.title} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-lg font-semibold" required />
-          <input name="slug" value={article.slug} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
-          <textarea name="excerpt" rows="3" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required>{article.excerpt}</textarea>
-          <textarea name="contentHtml" rows="20" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 font-mono text-sm" required>{article.content_html}</textarea>
+          <input name="title" value={article.title} placeholder="Title" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-lg font-semibold" required />
+          <input name="slug" value={article.slug} placeholder="Slug optional" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <textarea name="excerpt" rows="3" placeholder="Excerpt" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required>{article.excerpt}</textarea>
+          <textarea name="contentHtml" rows="20" placeholder="<p>Isi artikel...</p>" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 font-mono text-sm" required>{article.content_html}</textarea>
         </div>
       </div>
       <div class="space-y-6">
@@ -36,20 +36,20 @@ const article = allowed && runtime?.env?.DB ? await getArticleById(runtime.env.D
           {article.thumbnail_r2_key && (
             <img src={`/api/assets/${article.thumbnail_r2_key}`} alt={article.thumbnail_alt || article.title} class="aspect-video w-full rounded-lg object-cover" />
           )}
-          <input name="category" value={article.category} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required />
+          <input name="category" value={article.category} placeholder="Category" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required />
           <select name="status" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5">
             <option value="draft" selected={article.status === 'draft'}>Draft</option>
             <option value="published" selected={article.status === 'published'}>Published</option>
             <option value="archived" selected={article.status === 'archived'}>Archived</option>
           </select>
-          <input name="authorName" value={article.author_name} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required />
-          <input name="thumbnailR2Key" value={article.thumbnail_r2_key || ''} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
-          <input name="thumbnailAlt" value={article.thumbnail_alt || ''} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
-          <input name="niche" value={article.niche || ''} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
-          <textarea name="targetMarket" rows="3" class="w-full rounded-lg border border-slate-300 px-4 py-2.5">{article.target_market || ''}</textarea>
-          <input name="seoTitle" value={article.seo_title || ''} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
-          <textarea name="seoDescription" rows="3" class="w-full rounded-lg border border-slate-300 px-4 py-2.5">{article.seo_description || ''}</textarea>
-          <input name="readingMinutes" type="number" value={article.reading_minutes} class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <input name="authorName" value={article.author_name} placeholder="Author name" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" required />
+          <input name="thumbnailR2Key" value={article.thumbnail_r2_key || ''} placeholder="Thumbnail R2 key" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <input name="thumbnailAlt" value={article.thumbnail_alt || ''} placeholder="Thumbnail alt" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <input name="niche" value={article.niche || ''} placeholder="Article niche" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <textarea name="targetMarket" rows="3" placeholder="Target market" class="w-full rounded-lg border border-slate-300 px-4 py-2.5">{article.target_market || ''}</textarea>
+          <input name="seoTitle" value={article.seo_title || ''} placeholder="SEO title" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
+          <textarea name="seoDescription" rows="3" placeholder="SEO description" class="w-full rounded-lg border border-slate-300 px-4 py-2.5">{article.seo_description || ''}</textarea>
+          <input name="readingMinutes" type="number" value={article.reading_minutes} placeholder="Reading time in minutes" class="w-full rounded-lg border border-slate-300 px-4 py-2.5" />
           <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Save Changes</button>
         </div>
       </div>

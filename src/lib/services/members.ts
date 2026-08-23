@@ -41,6 +41,19 @@ export type TeamRow = {
   member_count: number;
 };
 
+export type TeamMemberAssignmentRow = {
+  id: string;
+  organization_id: string;
+  team_id: string;
+  organization_member_id: string;
+  created_at: string;
+  team_name: string;
+  member_name: string;
+  member_email: string;
+  member_role: OrganizationRole;
+  member_status: OrganizationMemberRow['status'];
+};
+
 export type AuditLogRow = {
   id: string;
   organization_id: string;
@@ -91,6 +104,51 @@ export async function listTeams(db: D1Database, organizationId: string): Promise
   );
 }
 
+export async function getTeam(db: D1Database, organizationId: string, teamId: string): Promise<TeamRow | null> {
+  return dbFirst(
+    db,
+    `select
+       t.*,
+       count(tm.id) as member_count
+     from teams t
+     left join team_members tm on tm.team_id = t.id and tm.organization_id = t.organization_id
+     where t.id = ? and t.organization_id = ?
+     group by t.id
+     limit 1`,
+    [teamId, organizationId]
+  );
+}
+
+export async function listTeamMemberAssignments(
+  db: D1Database,
+  organizationId: string,
+  teamId?: string
+): Promise<TeamMemberAssignmentRow[]> {
+  const teamFilter = teamId ? 'and tm.team_id = ?' : '';
+  return dbAll(
+    db,
+    `select
+       tm.id,
+       tm.organization_id,
+       tm.team_id,
+       tm.organization_member_id,
+       tm.created_at,
+       t.name as team_name,
+       u.full_name as member_name,
+       u.email as member_email,
+       om.role as member_role,
+       om.status as member_status
+     from team_members tm
+     join teams t on t.id = tm.team_id and t.organization_id = tm.organization_id
+     join organization_members om on om.id = tm.organization_member_id and om.organization_id = tm.organization_id
+     join users u on u.id = om.user_id
+     where tm.organization_id = ?
+     ${teamFilter}
+     order by t.name asc, u.full_name asc`,
+    teamId ? [organizationId, teamId] : [organizationId]
+  );
+}
+
 export async function listInvitations(db: D1Database, organizationId: string): Promise<InvitationRow[]> {
   return dbAll(
     db,
@@ -99,19 +157,52 @@ export async function listInvitations(db: D1Database, organizationId: string): P
   );
 }
 
-export async function listAuditLogs(db: D1Database, organizationId: string, limit = 50, offset = 0): Promise<AuditLogRow[]> {
-  return dbAll(
-    db,
-    `select
+export async function listAuditLogs(
+  db: D1Database,
+  organizationId: string,
+  limit = 50,
+  offset = 0,
+  filters?: {
+    dateFrom?: string;
+    dateTo?: string;
+    actorUserId?: string;
+    action?: string;
+    entityType?: string;
+  }
+): Promise<AuditLogRow[]> {
+  let query = `select
        al.*,
        u.full_name as actor_name
      from audit_logs al
      left join users u on u.id = al.actor_user_id
-     where al.organization_id = ?
-     order by al.created_at desc
-     limit ? offset ?`,
-    [organizationId, limit, offset]
-  );
+     where al.organization_id = ?`;
+  const params: any[] = [organizationId];
+
+  if (filters?.dateFrom) {
+    query += ` and date(al.created_at) >= date(?)`;
+    params.push(filters.dateFrom);
+  }
+  if (filters?.dateTo) {
+    query += ` and date(al.created_at) <= date(?)`;
+    params.push(filters.dateTo);
+  }
+  if (filters?.actorUserId) {
+    query += ` and al.actor_user_id = ?`;
+    params.push(filters.actorUserId);
+  }
+  if (filters?.action) {
+    query += ` and al.action = ?`;
+    params.push(filters.action);
+  }
+  if (filters?.entityType) {
+    query += ` and al.entity_type = ?`;
+    params.push(filters.entityType);
+  }
+
+  query += ` order by al.created_at desc limit ? offset ?`;
+  params.push(limit, offset);
+
+  return dbAll(db, query, params);
 }
 
 export async function createTeam(
@@ -226,6 +317,17 @@ async function assertActiveMemberInOrganization(db: D1Database, organizationId: 
   }
 }
 
+async function assertMemberInOrganization(db: D1Database, organizationId: string, organizationMemberId: string): Promise<void> {
+  const member = await dbFirst<{ id: string }>(
+    db,
+    `select id from organization_members where id = ? and organization_id = ? limit 1`,
+    [organizationMemberId, organizationId]
+  );
+  if (!member) {
+    throw new Error('Anggota tidak ditemukan.');
+  }
+}
+
 export async function addMemberToTeam(
   db: D1Database,
   payload: {
@@ -239,9 +341,19 @@ export async function addMemberToTeam(
   await assertTeamInOrganization(db, payload.organizationId, payload.teamId);
   await assertActiveMemberInOrganization(db, payload.organizationId, payload.organizationMemberId);
 
+  const existing = await dbFirst<{ id: string }>(
+    db,
+    `select id from team_members
+     where organization_id = ? and team_id = ? and organization_member_id = ? limit 1`,
+    [payload.organizationId, payload.teamId, payload.organizationMemberId]
+  );
+  if (existing) {
+    return;
+  }
+
   await dbRun(
     db,
-    `insert or ignore into team_members (id, organization_id, team_id, organization_member_id, created_at)
+    `insert into team_members (id, organization_id, team_id, organization_member_id, created_at)
      values (?, ?, ?, ?, ?)`,
     [randomId(), payload.organizationId, payload.teamId, payload.organizationMemberId, isoNow()]
   );
@@ -267,7 +379,7 @@ export async function removeMemberFromTeam(
   }
 ): Promise<void> {
   await assertTeamInOrganization(db, payload.organizationId, payload.teamId);
-  await assertActiveMemberInOrganization(db, payload.organizationId, payload.organizationMemberId);
+  await assertMemberInOrganization(db, payload.organizationId, payload.organizationMemberId);
 
   await dbRun(
     db,
@@ -406,4 +518,92 @@ export async function acceptInvitation(
   });
 
   return { organizationId: invite.organization_id, role: invite.role };
+}
+
+export async function resendInvitation(
+  db: D1Database,
+  payload: {
+    organizationId: string;
+    invitationId: string;
+    actorUserId: string | null;
+    actorMemberId: string | null;
+  }
+): Promise<{ invitation: InvitationRow; inviteToken: string }> {
+  const before = await dbFirst<InvitationRow>(
+    db,
+    `select * from invitations where id = ? and organization_id = ? and status = 'pending' limit 1`,
+    [payload.invitationId, payload.organizationId]
+  );
+  if (!before) {
+    throw new Error('Undangan pending tidak ditemukan atau sudah tidak dapat dikirim ulang.');
+  }
+
+  const inviteToken = randomToken(32);
+  const tokenHash = await sha256Hex(inviteToken);
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString();
+  const invitation = await dbFirst<InvitationRow>(
+    db,
+    `update invitations
+     set token_hash = ?, status = 'pending', expires_at = ?
+     where id = ? and organization_id = ? and status = 'pending'
+     returning *`,
+    [tokenHash, expiresAt, payload.invitationId, payload.organizationId]
+  );
+  if (!invitation) {
+    throw new Error('Undangan gagal dikirim ulang.');
+  }
+
+  await writeAuditLog(db, {
+    organizationId: payload.organizationId,
+    actorUserId: payload.actorUserId,
+    actorMemberId: payload.actorMemberId,
+    action: 'invitation.resent',
+    entityType: 'invitation',
+    entityId: invitation.id,
+    beforeValue: before,
+    afterValue: invitation,
+  });
+
+  return { invitation, inviteToken };
+}
+
+export async function cancelInvitation(
+  db: D1Database,
+  payload: {
+    organizationId: string;
+    invitationId: string;
+    actorUserId: string | null;
+    actorMemberId: string | null;
+  }
+): Promise<InvitationRow> {
+  const before = await dbFirst<InvitationRow>(
+    db,
+    `select * from invitations where id = ? and organization_id = ? and status = 'pending' limit 1`,
+    [payload.invitationId, payload.organizationId]
+  );
+  if (!before) {
+    throw new Error('Undangan pending tidak ditemukan atau sudah dibatalkan.');
+  }
+
+  const invitation = await dbFirst<InvitationRow>(
+    db,
+    `update invitations set status = 'revoked' where id = ? and organization_id = ? and status = 'pending' returning *`,
+    [payload.invitationId, payload.organizationId]
+  );
+  if (!invitation) {
+    throw new Error('Undangan gagal dibatalkan.');
+  }
+
+  await writeAuditLog(db, {
+    organizationId: payload.organizationId,
+    actorUserId: payload.actorUserId,
+    actorMemberId: payload.actorMemberId,
+    action: 'invitation.cancelled',
+    entityType: 'invitation',
+    entityId: invitation.id,
+    beforeValue: before,
+    afterValue: invitation,
+  });
+
+  return invitation;
 }

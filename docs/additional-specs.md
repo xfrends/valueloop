@@ -59,14 +59,15 @@ Features:
 - Dynamic color and icon.
 - Behaviors and anti-patterns.
 
-## 7.5 Question Bank Page
+## 7.5 Question Bank per Core Value
 
 Features:
 
-- Table of questions.
-- Filter by core value.
-- Filter by difficulty.
-- Create/edit/deactivate question.
+- Question Bank menggunakan halaman khusus per core value dengan entry point dari tombol pada halaman detail core value.
+- Table of questions dengan ringkasan jumlah active, inactive, dan difficulty hard.
+- Search question dan filter by difficulty/status.
+- Create/edit/deactivate question melalui halaman form terpisah.
+- Tidak ada menu atau halaman Question Bank global di `/settings/questions`.
 - Bulk create in Phase 2.
 
 ## 7.6 Daily Challenge Page

@@ -291,7 +291,7 @@ values
     'Pro',
     json_object('maxMembers', 500, 'maxActiveValues', 100, 'maxChallengesPerMonth', 1000, 'exports', 1, 'insights', 1),
     json_object('exports', 1, 'insights', 1, 'selfScoring', 1),
-    1
+    0
   );
 
 insert or ignore into value_templates (id, code, name, description, is_active)

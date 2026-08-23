@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { SESSION_TTL_ONE_DAY_SECONDS, SESSION_TTL_SECONDS } from '../src/lib/auth/constants';
-import { createAuthSession } from '../src/lib/services/auth';
+import { createAuthSession, loginUser } from '../src/lib/services/auth';
 
 const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -41,6 +41,7 @@ describe('login route', () => {
   beforeEach(() => {
     consoleErrorSpy.mockClear();
     vi.mocked(createAuthSession).mockClear();
+    vi.mocked(loginUser).mockClear();
   });
 
   afterEach(() => {
@@ -97,5 +98,40 @@ describe('login route', () => {
     expect(response.status).toBe(303);
     expect(response.headers.get('location')).toBe('/dashboard');
     expect(vi.mocked(createAuthSession)).toHaveBeenLastCalledWith({}, {}, 'user-1', SESSION_TTL_SECONDS);
+  });
+
+  it('returns a credential alert without revealing which credential is wrong', async () => {
+    const error = Object.assign(new Error('Email atau kata sandi salah.'), { code: 'invalid_credentials' });
+    vi.mocked(loginUser).mockRejectedValueOnce(error);
+    const request = new Request('http://localhost:4321/api/auth/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ email: 'frendi@example.com', password: 'salah' }),
+    });
+
+    const response = await POST({ request, locals: { runtime: {} } } as never);
+    const location = response.headers.get('location') || '';
+
+    expect(response.status).toBe(302);
+    expect(location).toContain('alert=credentials');
+    expect(location).toContain('fieldErrors=');
+  });
+
+  it('returns an email verification alert with the submitted email', async () => {
+    const error = Object.assign(new Error('Email belum diverifikasi.'), { code: 'email_unverified' });
+    vi.mocked(loginUser).mockRejectedValueOnce(error);
+    const request = new Request('http://localhost:4321/api/auth/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ email: 'root@example.com', password: 'password-aman' }),
+    });
+
+    const response = await POST({ request, locals: { runtime: {} } } as never);
+    const location = response.headers.get('location') || '';
+
+    expect(response.status).toBe(302);
+    expect(location).toContain('alert=email_unverified');
+    expect(location).toContain('email=root%40example.com');
+    expect(location).not.toContain('fieldErrors=');
   });
 });

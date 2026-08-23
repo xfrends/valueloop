@@ -215,6 +215,23 @@ export async function changeOrganizationMemberRole(
     throw new Error('Anggota tidak ditemukan.');
   }
 
+  if (payload.actorMemberId) {
+    const actor = await dbFirst<{ role: OrganizationRole }>(
+      db,
+      `select role from organization_members where id = ? and organization_id = ? and status = 'active' limit 1`,
+      [payload.actorMemberId, payload.organizationId]
+    );
+    if (!actor) {
+      throw new Error('Aktor perubahan role tidak ditemukan.');
+    }
+    if ((before.role === 'owner' || payload.role === 'owner') && actor.role !== 'owner') {
+      throw new Error('Hanya owner yang dapat mengubah kepemilikan organisasi.');
+    }
+    if (before.role === 'owner' && payload.role !== 'owner') {
+      throw new Error('Role owner tidak dapat diturunkan langsung. Gunakan alur transfer ownership.');
+    }
+  }
+
   if (payload.role === 'owner') {
     await assertOrganizationOwnerSlotAvailable(db, payload.organizationId, payload.memberId);
   }

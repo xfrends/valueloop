@@ -1,20 +1,30 @@
 ---
 import AppLayout from '../../../layouts/AppLayout.astro';
+import DependencyAlert from '../../../components/DependencyAlert.astro';
+import { parseJsonRecord } from '../../../lib/utils/form-errors';
+
+const error = Astro.url.searchParams.get('error') || '';
+const fieldErrors = parseJsonRecord(Astro.url.searchParams.get('fieldErrors'));
+const name = Astro.url.searchParams.get('name') || '';
+const shortDescription = Astro.url.searchParams.get('shortDescription') || '';
 ---
 
 <AppLayout title="Add Core Value - ValueLoop" currentPath="/settings/values">
   <div class="max-w-3xl mx-auto">
+    {error && <DependencyAlert title="Core value gagal disimpan" message={error} tone="danger" />}
     
     <div class="mb-8">
-      <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-700 mb-4 transition-colors">
+      <a href="/settings/values" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-700 mb-4 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         Back to Core Values
       </a>
       <h1 class="text-2xl font-bold text-slate-900">Create New Core Value</h1>
-      <p class="text-slate-500 mt-1">Define a new cultural pillar for your organization.</p>
+      <p class="text-slate-500 mt-1">Define a new cultural pillar for your organization. Core value baru disimpan sebagai inactive.</p>
     </div>
 
     <form method="post" action="/api/settings/values" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <input type="hidden" name="iconName" value="star" />
+      <input type="hidden" name="isActive" value="0" />
       <div class="p-8 space-y-8">
         
         <!-- Basic Info Section -->
@@ -24,17 +34,19 @@ import AppLayout from '../../../layouts/AppLayout.astro';
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2 md:col-span-2">
               <label class="block text-sm font-bold text-slate-900">Value Name <span class="text-red-500">*</span></label>
-              <input name="name" type="text" placeholder="e.g., Customer Obsession" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+              <input name="name" type="text" value={name} placeholder="e.g., Customer Obsession" aria-invalid={fieldErrors.name ? 'true' : 'false'} class={`w-full rounded-xl border px-4 py-2.5 text-slate-900 focus:ring-1 outline-none transition-shadow ${fieldErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'}`} required />
+              {fieldErrors.name && <p class="text-sm text-red-600">{fieldErrors.name}</p>}
             </div>
 
             <div class="space-y-2 md:col-span-2">
               <label class="block text-sm font-bold text-slate-900">Short Description <span class="text-red-500">*</span></label>
-              <input name="shortDescription" type="text" placeholder="A single sentence explaining the value." class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+              <input name="shortDescription" type="text" value={shortDescription} placeholder="A single sentence explaining the value." aria-invalid={fieldErrors.shortDescription ? 'true' : 'false'} class={`w-full rounded-xl border px-4 py-2.5 text-slate-900 focus:ring-1 outline-none transition-shadow ${fieldErrors.shortDescription ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'}`} required />
+              {fieldErrors.shortDescription && <p class="text-sm text-red-600">{fieldErrors.shortDescription}</p>}
             </div>
 
             <div class="space-y-2 md:col-span-2">
               <label class="block text-sm font-bold text-slate-900">Full Description</label>
-              <textarea name="description" rows="3" placeholder="Detailed explanation of what this value means to the company..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"></textarea>
+              <textarea name="description" rows="3" placeholder="Detailed explanation of what this value means to the company..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow"></textarea>
             </div>
           </div>
         </section>
@@ -45,20 +57,20 @@ import AppLayout from '../../../layouts/AppLayout.astro';
           
           <div class="space-y-6">
             <div class="space-y-2">
-              <label class="block text-sm font-bold text-blue-800">Expected Behaviors</label>
+              <label class="block text-sm font-bold text-indigo-800">Expected Behaviors</label>
               <p class="text-xs text-slate-500 mb-2">What does doing this well look like?</p>
-              <textarea name="expectedBehaviors" rows="3" placeholder="e.g., We listen to customer feedback. We apologize when we make mistakes." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"></textarea>
+              <textarea name="expectedBehaviors" rows="3" placeholder="e.g., We listen to customer feedback. We apologize when we make mistakes." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow"></textarea>
             </div>
 
             <div class="space-y-2">
               <label class="block text-sm font-bold text-red-700">Anti-patterns</label>
               <p class="text-xs text-slate-500 mb-2">What are behaviors that violate this value?</p>
-              <textarea name="antiPatterns" rows="3" placeholder="e.g., Ignoring support tickets. Blaming the customer." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"></textarea>
+              <textarea name="antiPatterns" rows="3" placeholder="e.g., Ignoring support tickets. Blaming the customer." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow"></textarea>
             </div>
 
             <div class="space-y-2">
               <label class="block text-sm font-bold text-slate-900">Real-world Example</label>
-              <textarea name="example" rows="2" placeholder="Give an example of how a team member embodied this value..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow"></textarea>
+              <textarea name="example" rows="2" placeholder="Give an example of how a team member embodied this value..." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow"></textarea>
             </div>
           </div>
         </section>
@@ -70,7 +82,7 @@ import AppLayout from '../../../layouts/AppLayout.astro';
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="block text-sm font-bold text-slate-900">Theme Color</label>
-              <select name="color" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow bg-white">
+              <select name="color" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow bg-white">
                 <option value="emerald">Emerald</option>
                 <option value="blue">Blue</option>
                 <option value="amber">Amber</option>
@@ -82,7 +94,7 @@ import AppLayout from '../../../layouts/AppLayout.astro';
 
             <div class="space-y-2">
               <label class="block text-sm font-bold text-slate-900">Sort Order</label>
-              <input name="sortOrder" type="number" min="0" value="0" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow" />
+              <input name="sortOrder" type="number" min="0" value="0" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-shadow" />
             </div>
           </div>
         </section>

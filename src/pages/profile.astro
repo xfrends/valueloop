@@ -1,0 +1,125 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
+import { getUserProfile } from '../lib/services/auth';
+import { parseJsonRecord } from '../lib/utils/form-errors';
+
+const runtime = getCloudflareRuntime(Astro);
+const profile = Astro.locals.user && runtime?.env?.DB
+  ? await getUserProfile(runtime.env.DB, Astro.locals.user.id)
+  : null;
+const success = Astro.url.searchParams.get('success') || '';
+const error = Astro.url.searchParams.get('error') || '';
+const form = Astro.url.searchParams.get('form') || 'profile';
+const fieldErrors = parseJsonRecord(Astro.url.searchParams.get('fieldErrors'));
+
+const inputClass = (field: string) =>
+  `w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-1 ${fieldErrors[field] && form === 'profile' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'}`;
+const passwordInputClass = (field: string) =>
+  `w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-1 ${fieldErrors[field] && form === 'password' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'}`;
+---
+
+<AppLayout title="Profil - ValueLoop" currentPath="/profile">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Profil</h1>
+    <p class="mt-1 text-slate-500">Kelola data akun dan keamanan kata sandi Anda.</p>
+  </div>
+
+  {success && (
+    <div role="status" class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+      <p class="font-semibold">Perubahan berhasil disimpan</p>
+      <p class="mt-1">{success}</p>
+    </div>
+  )}
+  {error && (
+    <div role="alert" class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <p class="font-semibold">Perubahan gagal</p>
+      <p class="mt-1">{error}</p>
+    </div>
+  )}
+
+  {!profile ? (
+    <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Data pengguna tidak tersedia.</div>
+  ) : (
+    <div class="space-y-10">
+      <!-- Section 1: Profil Pengguna -->
+      <form method="post" action="/api/profile" class="grid gap-x-8 gap-y-6 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-base font-semibold text-slate-900">Data Pengguna</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Informasi identitas pribadi Anda. Nama akan tampil pada Leaderboard dan Audit Log organisasi.
+          </p>
+        </div>
+
+        <div class="md:col-span-2 space-y-6 bg-white shadow-sm border border-slate-200/60 rounded-2xl p-6">
+          <div class="flex flex-col gap-2">
+            <label for="fullName" class="block text-sm font-semibold text-slate-700">Nama lengkap</label>
+            <input id="fullName" name="fullName" value={profile.full_name} placeholder="Contoh: Budi Santoso" autocomplete="name" class={inputClass('fullName') + ' max-w-md transition-colors'} aria-invalid={form === 'profile' && fieldErrors.fullName ? 'true' : 'false'} required />
+            {form === 'profile' && fieldErrors.fullName && <p class="text-sm text-red-600 mt-1">{fieldErrors.fullName}</p>}
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="email" class="block text-sm font-semibold text-slate-700">Email</label>
+            <input id="email" name="email" type="email" value={profile.email} placeholder="nama@perusahaan.com" autocomplete="email" class={inputClass('email') + ' max-w-md transition-colors bg-slate-50/50'} aria-invalid={form === 'profile' && fieldErrors.email ? 'true' : 'false'} required />
+            {form === 'profile' && fieldErrors.email && <p class="text-sm text-red-600 mt-1">{fieldErrors.email}</p>}
+            <p class="text-xs text-slate-500">Perubahan email wajib diverifikasi ulang melalui OTP yang dikirim ke inbox Anda.</p>
+          </div>
+
+          {profile.has_password && (
+            <div class="flex flex-col gap-2 pt-2">
+              <label for="profileCurrentPassword" class="block text-sm font-semibold text-slate-700">Kata sandi saat ini</label>
+              <input id="profileCurrentPassword" name="currentPassword" type="password" placeholder="Wajib diisi jika Anda mengganti email" autocomplete="current-password" class={inputClass('currentPassword') + ' max-w-md transition-colors'} aria-invalid={form === 'profile' && fieldErrors.currentPassword ? 'true' : 'false'} />
+              {form === 'profile' && fieldErrors.currentPassword && <p class="text-sm text-red-600 mt-1">{fieldErrors.currentPassword}</p>}
+            </div>
+          )}
+          
+          <div class="flex justify-end pt-4 border-t border-slate-100">
+            <button type="submit" class="btn-interactive rounded-xl bg-slate-900 px-6 py-2.5 font-semibold text-sm text-white shadow-sm hover:bg-slate-800 transition-colors">
+              Simpan Profil
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <hr class="border-slate-200" />
+
+      <!-- Section 2: Kata Sandi -->
+      <form method="post" action="/api/profile/password" class="grid gap-x-8 gap-y-6 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-base font-semibold text-slate-900">Keamanan & Sandi</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            {profile.has_password ? 'Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan.' : 'Buat kata sandi baru jika Anda ingin login menggunakan email (selain Google OAuth).'}
+          </p>
+        </div>
+        
+        <div class="md:col-span-2 space-y-6 bg-white shadow-sm border border-slate-200/60 rounded-2xl p-6">
+          {profile.has_password && (
+            <div class="flex flex-col gap-2">
+              <label for="passwordCurrentPassword" class="block text-sm font-semibold text-slate-700">Sandi saat ini</label>
+              <input id="passwordCurrentPassword" name="currentPassword" type="password" placeholder="Masukkan kata sandi lama Anda" autocomplete="current-password" class={passwordInputClass('currentPassword') + ' max-w-md transition-colors'} aria-invalid={form === 'password' && fieldErrors.currentPassword ? 'true' : 'false'} required />
+              {form === 'password' && fieldErrors.currentPassword && <p class="text-sm text-red-600 mt-1">{fieldErrors.currentPassword}</p>}
+            </div>
+          )}
+
+          <div class="flex flex-col gap-2">
+            <label for="newPassword" class="block text-sm font-semibold text-slate-700">Sandi baru</label>
+            <input id="newPassword" name="newPassword" type="password" placeholder="Minimal 8 karakter" autocomplete="new-password" class={passwordInputClass('newPassword') + ' max-w-md transition-colors'} aria-invalid={form === 'password' && fieldErrors.newPassword ? 'true' : 'false'} required />
+            {form === 'password' && fieldErrors.newPassword && <p class="text-sm text-red-600 mt-1">{fieldErrors.newPassword}</p>}
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="confirmPassword" class="block text-sm font-semibold text-slate-700">Konfirmasi sandi baru</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Ketik ulang kata sandi baru Anda" autocomplete="new-password" class={passwordInputClass('confirmPassword') + ' max-w-md transition-colors'} aria-invalid={form === 'password' && fieldErrors.confirmPassword ? 'true' : 'false'} required />
+            {form === 'password' && fieldErrors.confirmPassword && <p class="text-sm text-red-600 mt-1">{fieldErrors.confirmPassword}</p>}
+          </div>
+
+          <div class="flex justify-end pt-4 border-t border-slate-100">
+            <button type="submit" class="btn-interactive rounded-xl bg-slate-900 px-6 py-2.5 font-semibold text-sm text-white shadow-sm hover:bg-slate-800 transition-colors">
+              {profile.has_password ? 'Perbarui Sandi' : 'Buat Sandi'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  )}
+</AppLayout>

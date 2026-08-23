@@ -1,25 +1,29 @@
 ---
 const isLoggedIn = !!Astro.locals.user;
 ---
-<header class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 relative z-10">
-  <a class="flex items-center gap-2 group" href="/">
-    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-teal-700 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
-      V
+<header class="sticky top-0 z-50 w-full border-b border-[#DCE4F0]/50 bg-[#F6F8FB]/80 backdrop-blur-md transition-all duration-300">
+  <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
+    <a class="flex items-center gap-2 group" href="/">
+      <div class="w-9 h-9 rounded-lg bg-[#0F172A] border border-slate-700 flex items-center justify-center text-white font-bold text-lg shadow-sm transition-transform duration-200 group-active:scale-90">
+        V
+      </div>
+      <span class="text-[20px] font-bold tracking-tight text-[#0F172A]">ValueLoop</span>
+    </a>
+    <div class="flex items-center gap-4">
+      <nav class="hidden md:flex items-center gap-6 text-[15px] font-medium mr-2">
+        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/#how-it-works">Cara Kerja</a>
+        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/#features">Fitur Utama</a>
+        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/blog">Blog</a>
+      </nav>
+      {isLoggedIn ? (
+        <a class="btn-interactive rounded-full bg-[#1D4ED8] px-4 py-2 md:px-5 md:py-2.5 text-sm font-semibold text-white shadow-md hover:bg-[#1E40AF]" href="/dashboard">
+          Dashboard
+        </a>
+      ) : (
+        <a class="btn-interactive rounded-full bg-[#0F172A] px-4 py-2 md:px-5 md:py-2.5 text-sm font-semibold text-white shadow-md hover:bg-[#1E293B]" href="/signup">
+          Coba Sekarang
+        </a>
+      )}
     </div>
-    <span class="text-xl font-bold tracking-tight text-slate-900">ValueLoop</span>
-  </a>
-  <nav class="flex items-center gap-6 text-sm font-medium">
-    <a class="text-slate-600 hover:text-blue-800 transition-colors" href="/#features">Fitur</a>
-    <a class="text-slate-600 hover:text-blue-800 transition-colors" href="/#how-it-works">Cara Kerja</a>
-    <a class="text-slate-600 hover:text-blue-800 transition-colors" href="/blog">Blog</a>
-    {isLoggedIn ? (
-      <a class="rounded-full bg-blue-700 px-5 py-2.5 text-white shadow-md shadow-blue-700/10 hover:bg-blue-800 hover:shadow-blue-800/20 transition-all active:scale-95" href="/dashboard">
-        Dashboard
-      </a>
-    ) : (
-      <a class="rounded-full bg-slate-900 px-5 py-2.5 text-white shadow-md shadow-slate-900/10 hover:bg-blue-800 hover:shadow-blue-800/20 transition-all active:scale-95" href="/signup">
-        Coba Sekarang
-      </a>
-    )}
-  </nav>
+  </div>
 </header>

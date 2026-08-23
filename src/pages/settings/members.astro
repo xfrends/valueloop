@@ -1,82 +1,91 @@
 ---
 import AppLayout from '../../layouts/AppLayout.astro';
 import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
-import { listInvitations, listOrganizationMembers, listTeams } from '../../lib/services/members';
+import { listInvitations, listOrganizationMembers } from '../../lib/services/members';
 
 const organization = Astro.locals.organization;
 const runtime = getCloudflareRuntime(Astro);
 const members = organization && runtime?.env?.DB ? await listOrganizationMembers(runtime.env.DB, organization.id) : [];
-const teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
 const invitations = organization && runtime?.env?.DB ? await listInvitations(runtime.env.DB, organization.id) : [];
 const error = Astro.url.searchParams.get('error') || '';
+const success = Astro.url.searchParams.get('success') || '';
 ---
 
 <AppLayout title="Members - ValueLoop" currentPath="/settings/members">
-  <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900">Members</h1>
-      <p class="text-slate-500 mt-1">Manage member access, roles, and invitation status.</p>
+  <div class="mx-auto max-w-5xl">
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-6">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Members</h1>
+        <p class="text-slate-500 mt-1 text-sm">Kelola akses anggota, role (RBAC), dan status undangan.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="document.getElementById('inviteModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+          Undang Member
+        </button>
+      </div>
     </div>
-  </div>
 
-  {error && (
-    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-      {error}
+    {error && (
+      <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 shadow-sm flex items-center gap-3">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        {error}
+      </div>
+    )}
+    {success && (
+      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 shadow-sm">
+        {success}
+      </div>
+    )}
+
+    <!-- Tabs Header -->
+    <div class="flex gap-6 border-b border-slate-200 mb-6">
+      <button id="tab-members" class="border-b-2 border-indigo-600 px-1 py-3 text-sm font-bold text-indigo-700 transition-colors">
+        Organization Members
+        <span class="ml-2 inline-flex items-center justify-center rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700">{members.length}</span>
+      </button>
+      <button id="tab-invites" class="border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors">
+        Pending Invites
+        <span class="ml-2 inline-flex items-center justify-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{invitations.length}</span>
+      </button>
     </div>
-  )}
 
-  <div class="grid gap-6 lg:grid-cols-3">
-    <div class="lg:col-span-2 space-y-6">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100">
-          <h2 class="font-bold text-slate-900">Organization Members</h2>
-        </div>
+    <!-- Tab 1: Organization Members -->
+    <div id="content-members" class="space-y-6 animate-in fade-in duration-300">
+      <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50 text-slate-500">
+            <thead class="bg-slate-50/50 text-slate-500 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider">
               <tr>
-                <th class="px-6 py-3 font-medium">Name</th>
-                <th class="px-6 py-3 font-medium">Role</th>
-                <th class="px-6 py-3 font-medium">Teams</th>
-                <th class="px-6 py-3 font-medium">Status</th>
+                <th class="px-6 py-4">Name</th>
+                <th class="px-6 py-4">Role</th>
+                <th class="px-6 py-4">Teams</th>
+                <th class="px-6 py-4">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
-              {members.map((member) => (
+            <tbody class="divide-y divide-slate-50">
+              {members.length === 0 ? (
                 <tr>
+                  <td colspan="4" class="px-6 py-12 text-center text-sm text-slate-500">Belum ada anggota.</td>
+                </tr>
+              ) : members.map((member) => (
+                <tr class="hover:bg-slate-50/50 transition-colors">
                   <td class="px-6 py-4">
-                    <div class="font-medium text-slate-900">{member.full_name}</div>
+                    <div class="font-bold text-slate-900">{member.full_name}</div>
                     <div class="text-xs text-slate-500">{member.email}</div>
                   </td>
-                  <td class="px-6 py-4">{member.role}</td>
-                  <td class="px-6 py-4">{member.team_names || '-'}</td>
-                  <td class="px-6 py-4">{member.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100">
-          <h2 class="font-bold text-slate-900">Pending Invitations</h2>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50 text-slate-500">
-              <tr>
-                <th class="px-6 py-3 font-medium">Email</th>
-                <th class="px-6 py-3 font-medium">Role</th>
-                <th class="px-6 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              {invitations.map((invite) => (
-                <tr>
-                  <td class="px-6 py-4">{invite.email}</td>
-                  <td class="px-6 py-4">{invite.role}</td>
-                  <td class="px-6 py-4">{invite.status}</td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60 shadow-sm">
+                      {member.role}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-slate-600 font-medium">{member.team_names || '-'}</td>
+                  <td class="px-6 py-4">
+                    <span class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${member.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {member.status}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -85,38 +94,118 @@ const error = Astro.url.searchParams.get('error') || '';
       </div>
     </div>
 
-    <div class="space-y-6">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 class="font-bold text-slate-900 mb-4">Invite Member</h2>
-        <form method="post" action="/api/settings/members/invite" class="space-y-4">
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Email</label>
-            <input name="email" type="email" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+    <!-- Tab 2: Pending Invitations -->
+    <div id="content-invites" class="hidden space-y-6 animate-in fade-in duration-300">
+      <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50/50 text-slate-500 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider">
+              <tr>
+                <th class="px-6 py-4">Email</th>
+                <th class="px-6 py-4">Role</th>
+                <th class="px-6 py-4">Status</th>
+                <th class="px-6 py-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+              {invitations.length === 0 ? (
+                <tr>
+                  <td colspan="4" class="px-6 py-12 text-center text-sm text-slate-500">Tidak ada undangan yang menunggu.</td>
+                </tr>
+              ) : invitations.map((invite) => (
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="px-6 py-4 font-medium text-slate-700">{invite.email}</td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60 shadow-sm">
+                      {invite.role}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold capitalize">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      {invite.status}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    {invite.status === 'pending' && (
+                    <div class="flex justify-end gap-2">
+                      <form method="post" action={`/api/settings/members/invitations/${invite.id}/resend`}>
+                        <button type="submit" class="rounded-lg border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">Kirim ulang</button>
+                      </form>
+                      <form method="post" action={`/api/settings/members/invitations/${invite.id}/cancel`} data-confirm-cancel-invite>
+                        <button type="submit" class="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50">Batalkan</button>
+                      </form>
+                    </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite Member Modal -->
+    <dialog id="inviteModal" class="m-auto backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm rounded-2xl shadow-2xl border-0 p-0 w-full max-w-md open:animate-in open:fade-in-90 open:zoom-in-95">
+      <div class="bg-white p-6">
+        <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
+          <h2 class="font-bold text-slate-900 text-lg">Undang Member</h2>
+          <form method="dialog">
+            <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </form>
+        </div>
+        <form method="post" action="/api/settings/members/invite" class="space-y-5">
+          <div class="flex flex-col gap-2">
+            <label class="block text-sm font-semibold text-slate-700">Email <span class="text-rose-500">*</span></label>
+            <input name="email" type="email" required placeholder="nama@perusahaan.com" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" />
           </div>
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Role</label>
-            <select name="role" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
+          <div class="flex flex-col gap-2">
+            <label class="block text-sm font-semibold text-slate-700">Role</label>
+            <select name="role" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
               <option value="member">Member</option>
               <option value="viewer">Viewer</option>
               <option value="facilitator">Facilitator</option>
               <option value="admin">Admin</option>
             </select>
           </div>
-          <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Send Invite</button>
+          <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end gap-3">
+            <form method="dialog"><button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Batal</button></form>
+            <button type="submit" class="btn-interactive rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">Kirim Undangan</button>
+          </div>
         </form>
       </div>
+    </dialog>
 
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 class="font-bold text-slate-900 mb-4">Teams Summary</h2>
-        <div class="space-y-3">
-          {teams.map((team) => (
-            <div class="rounded-lg border border-slate-200 p-3">
-              <div class="font-medium text-slate-900">{team.name}</div>
-              <div class="text-xs text-slate-500">{team.member_count} members</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
   </div>
+
+  <script>
+    document.querySelectorAll('[data-confirm-cancel-invite]').forEach((form) => form.addEventListener('submit', (event) => {
+      if (!window.confirm('Batalkan undangan ini? Link undangan lama tidak akan dapat digunakan lagi.')) event.preventDefault();
+    }));
+
+    const tabMembers = document.getElementById('tab-members');
+    const tabInvites = document.getElementById('tab-invites');
+    const contentMembers = document.getElementById('content-members');
+    const contentInvites = document.getElementById('content-invites');
+
+    const activeClass = "border-b-2 border-indigo-600 px-1 py-3 text-sm font-bold text-indigo-700 transition-colors";
+    const inactiveClass = "border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors";
+
+    tabMembers?.addEventListener('click', () => {
+      tabMembers.className = activeClass;
+      if(tabInvites) tabInvites.className = inactiveClass;
+      contentMembers?.classList.remove('hidden');
+      contentInvites?.classList.add('hidden');
+    });
+
+    tabInvites?.addEventListener('click', () => {
+      tabInvites.className = activeClass;
+      if(tabMembers) tabMembers.className = inactiveClass;
+      contentInvites?.classList.remove('hidden');
+      contentMembers?.classList.add('hidden');
+    });
+  </script>
 </AppLayout>

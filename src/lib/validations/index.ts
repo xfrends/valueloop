@@ -12,6 +12,8 @@ const checkboxValue = z.preprocess(
   (value) => value === true || value === 'true' || value === 'on' || value === '1' || value === 1,
   z.boolean().default(false)
 );
+const emptyStringAsUndefined = (value: unknown) =>
+  typeof value === 'string' && value.trim() === '' ? undefined : value;
 
 export const authSignupSchema = z.object({
   fullName: z.string({ error: 'Nama lengkap wajib diisi.' }).trim().min(2, 'Nama lengkap minimal 2 karakter.').max(120, 'Nama lengkap maksimal 120 karakter.'),
@@ -22,27 +24,44 @@ export const authSignupSchema = z.object({
 
 export const authLoginSchema = z.object({
   email: trimmedEmail,
-  password: z.string().min(1).max(200),
+  password: z
+    .string({ error: 'Kata sandi wajib diisi.' })
+    .min(1, 'Kata sandi wajib diisi.')
+    .max(200, 'Kata sandi maksimal 200 karakter.'),
   rememberMe: checkboxValue,
+});
+
+export const userProfileSchema = z.object({
+  fullName: z.string({ error: 'Nama lengkap wajib diisi.' }).trim().min(2, 'Nama lengkap minimal 2 karakter.').max(120, 'Nama lengkap maksimal 120 karakter.'),
+  email: trimmedEmail,
+  currentPassword: z.string().max(200, 'Kata sandi saat ini maksimal 200 karakter.').optional().default(''),
+});
+
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().max(200, 'Kata sandi saat ini maksimal 200 karakter.').optional().default(''),
+  newPassword: z.string({ error: 'Kata sandi baru wajib diisi.' }).min(8, 'Kata sandi baru minimal 8 karakter.').max(200, 'Kata sandi baru maksimal 200 karakter.'),
+  confirmPassword: z.string({ error: 'Konfirmasi kata sandi wajib diisi.' }).min(1, 'Konfirmasi kata sandi wajib diisi.').max(200),
+}).refine((value) => value.newPassword === value.confirmPassword, {
+  message: 'Konfirmasi kata sandi tidak cocok.',
+  path: ['confirmPassword'],
 });
 
 export const organizationCreateSchema = z.object({
   name: z.string().trim().min(2).max(120),
-  slug: z.string().trim().min(2).max(120).optional(),
   timezone: z.string().trim().min(1).default('Asia/Jakarta'),
   defaultLocale: z.string().trim().min(1).default('id'),
   templateId: z.string().trim().optional(),
 });
 
 export const valueSchema = z.object({
-  name: z.string().trim().min(2).max(120),
-  shortDescription: z.string().trim().min(2).max(200),
+  name: z.string({ error: 'Nama core value wajib diisi.' }).trim().min(2, 'Nama core value minimal 2 karakter.').max(120, 'Nama core value maksimal 120 karakter.'),
+  shortDescription: z.string({ error: 'Deskripsi singkat wajib diisi.' }).trim().min(2, 'Deskripsi singkat minimal 2 karakter.').max(200, 'Deskripsi singkat maksimal 200 karakter.'),
   description: z.string().trim().optional().default(''),
   example: z.string().trim().optional().default(''),
-  color: z.string().trim().min(1).default('#2563EB'),
-  iconName: z.string().trim().min(1).default('star'),
+  color: z.preprocess(emptyStringAsUndefined, z.string().trim().min(1).default('#2563EB')),
+  iconName: z.preprocess(emptyStringAsUndefined, z.string().trim().min(1).default('star')),
   sortOrder: z.coerce.number().int().min(0).default(0),
-  isActive: z.coerce.number().int().min(0).max(1).default(1),
+  isActive: z.preprocess(emptyStringAsUndefined, z.coerce.number().int().min(0).max(1).default(0)),
   expectedBehaviors: z.string().trim().optional().default(''),
   antiPatterns: z.string().trim().optional().default(''),
 });
@@ -56,11 +75,11 @@ export const questionSchema = z.object({
 });
 
 export const challengeAnswerSchema = z.object({
-  answerText: z.string().trim().min(3).max(5000),
+  answerText: z.string({ error: 'Jawaban wajib diisi.' }).trim().min(3, 'Jawaban minimal 3 karakter.').max(5000, 'Jawaban maksimal 5000 karakter.'),
 });
 
 export const challengeScoreSchema = z.object({
-  score: z.coerce.number().int().min(0).max(10),
+  score: z.coerce.number({ error: 'Skor wajib dipilih.' }).int('Skor harus berupa angka bulat.').min(0, 'Skor minimal 0.').max(10, 'Skor maksimal 10.'),
   evaluatorNote: z.string().trim().optional().default(''),
 });
 
@@ -72,7 +91,7 @@ export const memberInviteSchema = z.object({
 export const teamSchema = z.object({
   name: z.string().trim().min(2).max(120),
   description: z.string().trim().optional().default(''),
-  isActive: z.coerce.number().int().min(0).max(1).default(1),
+  isActive: z.preprocess(emptyStringAsUndefined, z.coerce.number().int().min(0).max(1).default(1)),
 });
 
 export const teamMemberSchema = z.object({

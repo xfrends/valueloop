@@ -24,9 +24,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       ? await readJsonBody(request)
       : {
           name: await readFormDataValue(request, 'name'),
-          slug: await readFormDataValue(request, 'slug'),
           timezone: await readFormDataValue(request, 'timezone'),
-          defaultLocale: await readFormDataValue(request, 'defaultLocale'),
           templateId: await readFormDataValue(request, 'templateId'),
         };
 
@@ -43,7 +41,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try {
     organization = await createOrganizationWithOwner(runtime.env.DB, {
       name: parsed.data.name,
-      slug: parsed.data.slug,
       timezone: parsed.data.timezone,
       defaultLocale: parsed.data.defaultLocale,
       ownerUserId: locals.user.id,

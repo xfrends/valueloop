@@ -20,51 +20,100 @@ const settings = organization && runtime?.env?.DB ? await getOrganizationSetting
   {!allowed ? (
     <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin untuk mengubah settings organisasi.</div>
   ) : (
-    <form method="post" action="/api/settings/organization" class="grid gap-6 lg:grid-cols-2">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="font-bold text-slate-900">Profile</h2>
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Organization Name</label>
-          <input name="name" value={organization?.name} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
+    <form method="post" action="/api/settings/organization" class="space-y-10">
+      <!-- Section 1: Profile -->
+      <section class="grid gap-x-8 gap-y-6 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-base font-semibold text-slate-900">Organization Profile</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Perbarui nama, slug, dan zona waktu untuk identitas organisasi Anda. Slug digunakan untuk link undangan unik.
+          </p>
         </div>
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Slug</label>
-          <input name="slug" value={organization?.slug} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
-        </div>
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Timezone</label>
-            <input name="timezone" value={organization?.timezone ?? 'Asia/Jakarta'} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
+        
+        <div class="md:col-span-2 space-y-6 bg-white shadow-sm border border-slate-200/60 rounded-2xl p-6">
+          <div class="flex flex-col gap-2">
+            <label class="block text-sm font-semibold text-slate-700">Organization Name</label>
+            <input name="name" value={organization?.name} placeholder="Contoh: PT ValueLoop Indonesia" class="w-full max-w-md rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" required />
           </div>
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Default Locale</label>
-            <input name="defaultLocale" value={organization?.default_locale ?? 'id'} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required />
+          
+          <div class="flex flex-col gap-2">
+            <label class="block text-sm font-semibold text-slate-700">Slug Identifier</label>
+            <div class="flex items-center rounded-lg border border-slate-300 max-w-md overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-colors">
+              <span class="bg-slate-50 px-4 py-2 text-sm text-slate-500 border-r border-slate-200 select-none">valueloop.com/</span>
+              <input name="slug" value={organization?.slug} placeholder="organisasi-ku" class="w-full px-3 py-2 text-sm text-slate-900 outline-none" required />
+            </div>
+            <p class="text-xs text-slate-500">Harus unik dan hanya mengandung huruf, angka, atau strip (-).</p>
+          </div>
+          
+          <div class="grid gap-6 md:grid-cols-2 max-w-md">
+            <div class="flex flex-col gap-2">
+              <label class="block text-sm font-semibold text-slate-700">Timezone</label>
+              <input name="timezone" value={organization?.timezone ?? 'Asia/Jakarta'} placeholder="Asia/Jakarta" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" required />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="block text-sm font-semibold text-slate-700">Default Locale</label>
+              <input name="defaultLocale" value={organization?.default_locale ?? 'id'} placeholder="id" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" required />
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="font-bold text-slate-900">Challenge Rules</h2>
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Frequency</label>
-          <select name="challengeFrequency" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            <option value="daily" selected={settings?.challengeFrequency === 'daily'}>Daily</option>
-            <option value="weekly" selected={settings?.challengeFrequency === 'weekly'}>Weekly</option>
-          </select>
+      <hr class="border-slate-200" />
+
+      <!-- Section 2: Challenge Rules -->
+      <section class="grid gap-x-8 gap-y-6 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-base font-semibold text-slate-900">Challenge Rules</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Atur bagaimana sistem menjadwalkan challenge dan menilai jawaban anggota tim Anda.
+          </p>
         </div>
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Question Cooldown Days</label>
-          <input name="questionCooldownDays" type="number" min="0" max="365" value={settings?.questionCooldownDays ?? 14} class="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+
+        <div class="md:col-span-2 space-y-6 bg-white shadow-sm border border-slate-200/60 rounded-2xl p-6">
+          <div class="grid gap-6 md:grid-cols-2 max-w-lg">
+            <div class="flex flex-col gap-2">
+              <label class="block text-sm font-semibold text-slate-700">Frequency</label>
+              <select name="challengeFrequency" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors">
+                <option value="daily" selected={settings?.challengeFrequency === 'daily'}>Harian (Daily)</option>
+                <option value="weekly" selected={settings?.challengeFrequency === 'weekly'}>Mingguan (Weekly)</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="block text-sm font-semibold text-slate-700">Cooldown (Hari)</label>
+              <input name="questionCooldownDays" type="number" min="0" max="365" value={settings?.questionCooldownDays ?? 14} placeholder="14" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" />
+              <p class="text-xs text-slate-500 mt-1">Jeda sebelum pertanyaan yang sama muncul kembali.</p>
+            </div>
+          </div>
+          
+          <div class="space-y-3 max-w-lg">
+            <label class="flex items-start gap-3 cursor-pointer group">
+              <div class="flex items-center h-5">
+                <input type="checkbox" name="allowMultipleChallengesPerDay" value="1" checked={settings?.allowMultipleChallengesPerDay} class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 transition-colors cursor-pointer" />
+              </div>
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold text-slate-700 group-hover:text-slate-900">Allow multiple challenges per day</span>
+                <span class="text-xs text-slate-500">Anggota bisa me-request challenge baru setelah menjawab.</span>
+              </div>
+            </label>
+            
+            <label class="flex items-start gap-3 cursor-pointer group">
+              <div class="flex items-center h-5">
+                <input type="checkbox" name="allowSelfScoring" value="1" checked={settings?.allowSelfScoring} class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 transition-colors cursor-pointer" />
+              </div>
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold text-slate-700 group-hover:text-slate-900">Allow self-scoring</span>
+                <span class="text-xs text-slate-500">Anggota dapat memberikan skor ke dirinya sendiri tanpa review Admin.</span>
+              </div>
+            </label>
+          </div>
         </div>
-        <label class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
-          <input type="checkbox" name="allowMultipleChallengesPerDay" value="1" checked={settings?.allowMultipleChallengesPerDay} class="h-4 w-4 rounded border-slate-300 text-blue-700" />
-          <span class="text-sm font-medium text-slate-700">Allow multiple challenges per day</span>
-        </label>
-        <label class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
-          <input type="checkbox" name="allowSelfScoring" value="1" checked={settings?.allowSelfScoring} class="h-4 w-4 rounded border-slate-300 text-blue-700" />
-          <span class="text-sm font-medium text-slate-700">Allow self-scoring</span>
-        </label>
-        <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-white font-medium hover:bg-slate-800">Save Settings</button>
+      </section>
+      
+      <!-- Footer Actions -->
+      <div class="flex justify-end pt-4 border-t border-slate-200">
+        <button type="submit" class="btn-interactive rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+          Save Settings
+        </button>
       </div>
     </form>
   )}

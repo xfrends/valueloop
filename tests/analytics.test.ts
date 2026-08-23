@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { TestD1 } from './helpers/d1';
 import { createTestD1 } from './helpers/d1';
 import { createOwnedOrganization } from './helpers/seed';
-import { createCoreValue } from '../src/lib/services/values';
+import { createCoreValue, setCoreValueStatus } from '../src/lib/services/values';
 import { createQuestion } from '../src/lib/services/questions';
 import { addMemberToTeam, createTeam } from '../src/lib/services/members';
 import { startChallenge, submitAnswer, submitScore } from '../src/lib/services/challenge';
@@ -28,6 +28,10 @@ async function seedScoredChallenge(
     actorMemberId: organization.membershipId,
     name: 'Ownership',
     shortDescription: 'Ambil tanggung jawab sampai tuntas.',
+    description: 'Menuntaskan komitmen dan bertanggung jawab atas hasil pekerjaan.',
+    expectedBehaviors: ['Menutup setiap tindak lanjut'],
+    antiPatterns: ['Melempar tanggung jawab'],
+    example: 'Member menyelesaikan hambatan lintas tim sampai tuntas.',
   });
   await createQuestion(db, {
     organizationId: organization.organization.organizationId,
@@ -36,6 +40,13 @@ async function seedScoredChallenge(
     coreValueId: value.id,
     questionText: 'Apa contoh ownership paling konkret minggu ini?',
     difficulty: 'easy',
+  });
+  await setCoreValueStatus(db, {
+    organizationId: organization.organization.organizationId,
+    valueId: value.id,
+    actorUserId: organization.owner.id,
+    actorMemberId: organization.membershipId,
+    isActive: 1,
   });
   const team = await createTeam(db, {
     organizationId: organization.organization.organizationId,
@@ -148,4 +159,3 @@ describe('analytics services', () => {
     ]);
   });
 });
-

@@ -38,16 +38,19 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
   </div>
 
   <!-- Today's Challenge Banner -->
-  <div class="bg-gradient-to-r from-blue-700 to-teal-700 rounded-2xl p-6 md:p-8 text-white shadow-lg shadow-blue-700/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
-    <div>
-      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-xs font-medium mb-3 backdrop-blur-sm">
-        <span class="w-2 h-2 rounded-full bg-blue-300 animate-pulse"></span>
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 text-white shadow-xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+    <!-- Subtle overlay grid/pattern inside banner -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+    
+    <div class="relative z-10">
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-white text-xs font-medium mb-3 backdrop-blur-sm shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         Today's Challenge is Ready
       </div>
       <h2 class="text-xl md:text-2xl font-bold mb-1">{todayChallengeHeadline}</h2>
-      <p class="text-blue-50">{todayChallengeSubtitle}</p>
+      <p class="text-indigo-100/80">{todayChallengeSubtitle}</p>
     </div>
-    <a href="/challenge" class="shrink-0 bg-white text-blue-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-blue-50 transition-colors active:scale-95">
+    <a href="/challenge" class="btn-interactive shrink-0 bg-white text-slate-900 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-slate-50 transition-colors">
       Start Challenge &rarr;
     </a>
   </div>
@@ -55,11 +58,11 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
   <!-- Stats Grid -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     {stats.map((stat) => (
-      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div class="interactive-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <p class="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
         <div class="flex items-end gap-3">
-          <p class="text-3xl font-bold text-slate-900">{stat.value}</p>
-          <span class="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded mb-1">
+          <p class="text-3xl font-bold text-slate-900 tracking-tight">{stat.value}</p>
+          <span class="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md mb-1">
             {stat.trend}
           </span>
         </div>
@@ -72,37 +75,37 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
     <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
         <h3 class="font-bold text-slate-900">Top Members This Month</h3>
-        <a href="/leaderboard" class="text-sm font-medium text-blue-700 hover:text-blue-800">View all &rarr;</a>
+        <a href="/leaderboard" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 hover:underline underline-offset-4">View all &rarr;</a>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
-          <thead class="bg-slate-50 text-slate-500">
+          <thead class="bg-slate-50/80 text-slate-500 border-b border-slate-100">
             <tr>
-              <th class="px-6 py-3 font-medium">Rank</th>
-              <th class="px-6 py-3 font-medium">Member</th>
-              <th class="px-6 py-3 font-medium">Total Points</th>
-              <th class="px-6 py-3 font-medium text-right">Avg Score</th>
+              <th class="px-6 py-3 font-semibold">Rank</th>
+              <th class="px-6 py-3 font-semibold">Member</th>
+              <th class="px-6 py-3 font-semibold">Total Points</th>
+              <th class="px-6 py-3 font-semibold text-right">Avg Score</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
             {topMembers.map((member, index) => (
               <tr class="hover:bg-slate-50/50 transition-colors">
                 <td class="px-6 py-4">
-                  <span class={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                    index === 0 ? 'bg-amber-100 text-amber-700' : 
-                    index === 1 ? 'bg-slate-200 text-slate-700' : 
-                    index === 2 ? 'bg-orange-100 text-orange-800' : 
-                    'bg-slate-100 text-slate-500'
+                  <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shadow-sm ${
+                    index === 0 ? 'bg-[#FFFBEB] text-[#B45309] border border-[#FEF3C7]' : 
+                    index === 1 ? 'bg-[#F8FAFC] text-[#475569] border border-[#E2E8F0]' : 
+                    index === 2 ? 'bg-[#FFF7ED] text-[#C2410C] border border-[#FFEDD5]' : 
+                    'bg-white text-slate-500 border border-slate-200'
                   }`}>
                     {index + 1}
                   </span>
                 </td>
                 <td class="px-6 py-4">
-                  <div class="font-medium text-slate-900">{member.full_name}</div>
-                  <div class="text-slate-500 text-xs">{member.role}</div>
+                  <div class="font-bold text-slate-900">{member.full_name}</div>
+                  <div class="text-slate-500 text-xs font-medium mt-0.5">{member.role}</div>
                 </td>
-                <td class="px-6 py-4 font-semibold text-slate-700">{member.total_points}</td>
-                <td class="px-6 py-4 text-right font-medium text-slate-900">{member.average_score ?? '-'}</td>
+                <td class="px-6 py-4 font-bold text-indigo-700">{member.total_points}</td>
+                <td class="px-6 py-4 text-right font-bold text-slate-900">{member.average_score ?? '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -118,11 +121,11 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
         {valueDistribution.length ? valueDistribution.map((value) => (
           <div>
             <div class="flex justify-between text-sm mb-1.5">
-              <span class="font-medium text-slate-700">{value.name}</span>
-              <span class="text-slate-500">{value.total}</span>
+              <span class="font-semibold text-slate-700">{value.name}</span>
+              <span class="text-slate-500 font-medium">{value.total}</span>
             </div>
             <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500 rounded-full" style={`width: ${Math.max(10, Number(value.total) * 10)}%`}></div>
+              <div class="h-full bg-indigo-500 rounded-full" style={`width: ${Math.max(10, Number(value.total) * 10)}%`}></div>
             </div>
           </div>
         )) : (
@@ -135,7 +138,7 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
   ) : (
     <section class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 shadow-sm">
       <div class="max-w-xl">
-        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-800">Dashboard</p>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-800">Dashboard</p>
         <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900">Belum ada organisasi</h1>
         <p class="mt-3 text-slate-600">
           Dashboard tetap bisa dibuka. Buat organisasi pertama untuk mulai menambahkan core values, anggota, dan challenge.

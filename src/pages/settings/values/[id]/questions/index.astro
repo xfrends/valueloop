@@ -1,0 +1,160 @@
+---
+import AppLayout from '../../../../../layouts/AppLayout.astro';
+import DependencyAlert from '../../../../../components/DependencyAlert.astro';
+import { getCloudflareRuntime } from '../../../../../lib/cloudflare/bindings';
+import { canManageValues } from '../../../../../lib/permissions';
+import { listQuestionsForCoreValue } from '../../../../../lib/services/questions';
+import { getCoreValue } from '../../../../../lib/services/values';
+import { formatOrgDateTime } from '../../../../../lib/utils/date';
+
+const valueId = Astro.params.id || '';
+const organization = Astro.locals.organization;
+const runtime = getCloudflareRuntime(Astro);
+const allowed = canManageValues(Astro.locals.membership?.role);
+const coreValue = organization && runtime?.env?.DB
+  ? await getCoreValue(runtime.env.DB, organization.id, valueId)
+  : null;
+const questions = organization && coreValue && runtime?.env?.DB
+  ? await listQuestionsForCoreValue(runtime.env.DB, organization.id, valueId)
+  : [];
+const stats = {
+  total: questions.length,
+  active: questions.filter((question) => question.is_active === 1).length,
+  inactive: questions.filter((question) => question.is_active === 0).length,
+  hard: questions.filter((question) => question.difficulty === 'hard').length,
+};
+const error = Astro.url.searchParams.get('error') || '';
+const success = Astro.url.searchParams.get('success') || '';
+---
+
+<AppLayout title={`Question Bank - ${coreValue?.name || 'Core Value'}`} currentPath="/settings/values">
+  <div class="mx-auto max-w-6xl space-y-6">
+    {error && <DependencyAlert title="Question Bank gagal diproses" message={error} tone="danger" />}
+    {success && <DependencyAlert title="Berhasil" message={success} tone="info" />}
+    {!coreValue ? (
+      <DependencyAlert title="Core value tidak ditemukan" message="Question Bank tidak tersedia atau berasal dari organisasi lain." actionHref="/settings/values" actionLabel="Kembali ke core values" tone="danger" />
+    ) : (
+      <>
+        <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <a href={`/settings/values/${valueId}`} class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-700">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7"></path></svg>
+              Back to {coreValue.name}
+            </a>
+            <div class="flex items-center gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.23 9a4 4 0 0 1 7.54 1.87c0 1.86-1.28 3.43-3 3.88-.46.12-.77.52-.77.99V16m0 3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>
+              </div>
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-800">{coreValue.name}</p>
+                <h1 class="mt-1 text-2xl font-bold text-slate-900">Question Bank</h1>
+              </div>
+            </div>
+            <p class="mt-3 max-w-2xl text-sm text-slate-500">Kelola pertanyaan yang digunakan randomizer challenge untuk core value ini.</p>
+          </div>
+          {allowed && (
+            <a href={`/settings/values/${valueId}/questions/new`} class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"></path></svg>
+              Add Question
+            </a>
+          )}
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total</p><p class="mt-2 text-2xl font-bold text-slate-900">{stats.total}</p></div>
+          <div class="rounded-xl border border-green-100 bg-green-50/60 p-4"><p class="text-xs font-semibold uppercase tracking-wider text-green-700">Active</p><p class="mt-2 text-2xl font-bold text-green-800">{stats.active}</p></div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Inactive</p><p class="mt-2 text-2xl font-bold text-slate-700">{stats.inactive}</p></div>
+          <div class="rounded-xl border border-red-100 bg-red-50/60 p-4"><p class="text-xs font-semibold uppercase tracking-wider text-red-700">Hard</p><p class="mt-2 text-2xl font-bold text-red-800">{stats.hard}</p></div>
+        </div>
+
+        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div class="grid gap-3 border-b border-slate-200 bg-slate-50/70 p-4 md:grid-cols-[minmax(0,1fr)_190px_170px] md:p-5">
+            <label class="relative block">
+              <span class="sr-only">Cari question</span>
+              <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path></svg>
+              <input id="question-search" type="search" placeholder="Cari question atau rubric..." class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" />
+            </label>
+            <label>
+              <span class="sr-only">Filter difficulty</span>
+              <select id="question-difficulty" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                <option value="all">Semua difficulty</option>
+                <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+              </select>
+            </label>
+            <label>
+              <span class="sr-only">Filter status</span>
+              <select id="question-status" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                <option value="all">Semua status</option><option value="active">Active</option><option value="inactive">Inactive</option>
+              </select>
+            </label>
+          </div>
+
+          {questions.length > 0 ? (
+            <>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead class="border-b border-slate-200 bg-white text-xs uppercase tracking-wider text-slate-400">
+                    <tr>
+                      <th class="px-6 py-3.5 font-semibold">Question & Rubric</th>
+                      <th class="px-6 py-3.5 font-semibold">Difficulty</th>
+                      <th class="px-6 py-3.5 font-semibold">Status</th>
+                      <th class="px-6 py-3.5 font-semibold">Updated</th>
+                      {allowed && <th class="px-6 py-3.5 text-right font-semibold">Action</th>}
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    {questions.map((question) => (
+                      <tr data-question-row data-search={`${question.question_text} ${question.suggested_rubric_note || ''}`.toLowerCase()} data-difficulty={question.difficulty} data-status={question.is_active === 1 ? 'active' : 'inactive'} class="hover:bg-slate-50/70">
+                        <td class="min-w-96 px-6 py-4">
+                          <p class={`font-semibold ${question.is_active === 1 ? 'text-slate-900' : 'text-slate-500'}`}>{question.question_text}</p>
+                          <p class="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500">{question.suggested_rubric_note || 'Belum ada panduan rubric.'}</p>
+                        </td>
+                        <td class="px-6 py-4"><span class={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${question.difficulty === 'easy' ? 'bg-green-50 text-green-700' : question.difficulty === 'medium' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'}`}>{question.difficulty}</span></td>
+                        <td class="px-6 py-4"><span class={`inline-flex items-center gap-1.5 text-xs font-semibold ${question.is_active === 1 ? 'text-green-700' : 'text-slate-500'}`}><span class={`h-1.5 w-1.5 rounded-full ${question.is_active === 1 ? 'bg-green-500' : 'bg-slate-400'}`}></span>{question.is_active === 1 ? 'Active' : 'Inactive'}</span></td>
+                        <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-500">{formatOrgDateTime(new Date(question.updated_at), organization?.timezone || 'Asia/Jakarta')}</td>
+                        {allowed && <td class="px-6 py-4 text-right"><a href={`/settings/values/${valueId}/questions/${question.id}/edit`} class="inline-flex rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800">Edit</a></td>}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div id="question-filter-empty" class="hidden px-6 py-12 text-center"><p class="font-semibold text-slate-900">Question tidak ditemukan</p><p class="mt-1 text-sm text-slate-500">Ubah kata pencarian atau filter yang dipilih.</p></div>
+            </>
+          ) : (
+            <div class="px-6 py-16 text-center">
+              <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.23 9a4 4 0 0 1 7.54 1.87c0 1.86-1.28 3.43-3 3.88-.46.12-.77.52-.77.99V16m0 3h.01"></path></svg></div>
+              <p class="mt-4 font-semibold text-slate-900">Belum ada question</p>
+              <p class="mt-1 text-sm text-slate-500">Tambahkan question pertama agar core value siap digunakan dalam challenge.</p>
+              {allowed && <a href={`/settings/values/${valueId}/questions/new`} class="mt-5 inline-flex rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">Add Question</a>}
+            </div>
+          )}
+        </section>
+      </>
+    )}
+  </div>
+
+  <script>
+    const searchInput = document.querySelector<HTMLInputElement>('#question-search');
+    const difficultyInput = document.querySelector<HTMLInputElement>('#question-difficulty');
+    const statusInput = document.querySelector<HTMLInputElement>('#question-status');
+    const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-question-row]'));
+    const filterEmpty = document.querySelector<HTMLElement>('#question-filter-empty');
+    const filterQuestions = () => {
+      const query = searchInput?.value.trim().toLowerCase() || '';
+      const difficulty = difficultyInput?.value || 'all';
+      const status = statusInput?.value || 'all';
+      let visible = 0;
+      rows.forEach((row) => {
+        const matches = (!query || (row.dataset.search || '').includes(query))
+          && (difficulty === 'all' || row.dataset.difficulty === difficulty)
+          && (status === 'all' || row.dataset.status === status);
+        row.classList.toggle('hidden', !matches);
+        if (matches) visible += 1;
+      });
+      filterEmpty?.classList.toggle('hidden', visible > 0);
+    };
+    searchInput?.addEventListener('input', filterQuestions);
+    difficultyInput?.addEventListener('change', filterQuestions);
+    statusInput?.addEventListener('change', filterQuestions);
+  </script>
+</AppLayout>

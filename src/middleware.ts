@@ -1,13 +1,15 @@
 import { defineMiddleware } from 'astro:middleware';
 import { loadRequestContext } from './lib/context/request';
 import { parseCookieHeader } from './lib/http/cookies';
+import { getCloudflareRuntime } from './lib/cloudflare/bindings';
+import { SESSION_COOKIE_NAME } from './lib/auth/constants';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = crypto.randomUUID();
   const cookies = parseCookieHeader(context.request.headers.get('cookie'));
 
   try {
-    const runtime = context.locals.runtime;
+    const runtime = getCloudflareRuntime(context);
     const db = runtime?.env?.DB;
 
     if (db) {
@@ -56,6 +58,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   if (!context.locals.user && !isPublicRoute && !pathname.startsWith('/api/')) {
+    if (cookies.has(SESSION_COOKIE_NAME)) {
+      return context.redirect('/login?alert=session&error=Sesi%20Anda%20sudah%20berakhir%20atau%20tidak%20valid.%20Silakan%20masuk%20kembali.');
+    }
     return context.redirect('/login');
   }
 

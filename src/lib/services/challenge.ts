@@ -2,6 +2,7 @@ import { dbAll, dbFirst, dbRun } from '../db/client';
 import { randomId } from '../utils/crypto';
 import { formatOrgDate, isoNow } from '../utils/date';
 import { getOrganizationPlanSummary, getOrganizationSettings, writeAuditLog } from './shared';
+import type { OrganizationRealtime } from '../notifications/realtime';
 
 export type ChallengeSessionRow = {
   id: string;
@@ -129,7 +130,7 @@ export async function listChallengeSessions(
 
 export async function startChallenge(
   db: D1Database,
-  payload: { organizationId: string; actorUserId: string | null; actorMemberId: string | null }
+  payload: { organizationId: string; actorUserId: string | null; actorMemberId: string | null; realtime?: DurableObjectNamespace<OrganizationRealtime> }
 ): Promise<ChallengeSessionRow> {
   const org = await dbFirst<{ timezone: string }>(db, `select timezone from organizations where id = ?`, [payload.organizationId]);
   if (!org) {
@@ -293,6 +294,7 @@ export async function startChallenge(
     entityType: 'challenge_session',
     entityId: session.id,
     afterValue: session,
+    realtime: payload.realtime,
   });
 
   return session;
@@ -306,6 +308,7 @@ export async function rerollChallenge(
     actorUserId: string | null;
     actorMemberId: string | null;
     reason?: string;
+    realtime?: DurableObjectNamespace<OrganizationRealtime>;
   }
 ): Promise<ChallengeSessionRow> {
   const before = await dbFirst<ChallengeSessionRow>(
@@ -423,6 +426,7 @@ export async function rerollChallenge(
       question_id: questionId,
       reason: payload.reason || null,
     },
+    realtime: payload.realtime,
   });
 
   return updated as ChallengeSessionRow;
@@ -436,6 +440,7 @@ export async function submitAnswer(
     actorUserId: string | null;
     actorMemberId: string | null;
     answerText: string;
+    realtime?: DurableObjectNamespace<OrganizationRealtime>;
   }
 ): Promise<ChallengeSessionRow> {
   const before = await dbFirst<ChallengeSessionRow>(
@@ -454,10 +459,13 @@ export async function submitAnswer(
     db,
     `update challenge_sessions
      set answer_text = ?, answered_at = ?, status = 'answered', updated_at = ?
-     where id = ? and organization_id = ?
+     where id = ? and organization_id = ? and status = 'open'
      returning *`,
     [payload.answerText.trim(), isoNow(), isoNow(), payload.sessionId, payload.organizationId]
   );
+  if (!after) {
+    throw new Error('Jawaban hanya bisa dikirim untuk challenge yang masih terbuka.');
+  }
 
   await writeAuditLog(db, {
     organizationId: payload.organizationId,
@@ -468,6 +476,7 @@ export async function submitAnswer(
     entityId: payload.sessionId,
     beforeValue: before,
     afterValue: after,
+    realtime: payload.realtime,
   });
 
   return after as ChallengeSessionRow;
@@ -483,6 +492,7 @@ export async function submitScore(
     score: number;
     evaluatorNote?: string;
     allowSelfScoring: boolean;
+    realtime?: DurableObjectNamespace<OrganizationRealtime>;
   }
 ): Promise<ChallengeSessionRow> {
   if (!Number.isInteger(payload.score) || payload.score < 0 || payload.score > 10) {
@@ -525,6 +535,7 @@ export async function submitScore(
     entityId: payload.sessionId,
     beforeValue: before,
     afterValue: after,
+    realtime: payload.realtime,
   });
 
   return after as ChallengeSessionRow;

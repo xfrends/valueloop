@@ -1,7 +1,9 @@
 ---
 import '../styles/global.css';
+import DependencyAlert from '../components/DependencyAlert.astro';
 import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
-import { getOrganizationSettings } from '../lib/services/shared';
+import { canManageValues } from '../lib/permissions';
+import { getOrganizationReadiness, getOrganizationSettings } from '../lib/services/shared';
 
 type Props = {
   title?: string;
@@ -19,6 +21,141 @@ const user = Astro.locals.user;
 const organization = Astro.locals.organization;
 const runtime = getCloudflareRuntime(Astro);
 const settings = organization && runtime?.env?.DB ? await getOrganizationSettings(runtime.env.DB, organization.id) : null;
+const readiness = organization && runtime?.env?.DB ? await getOrganizationReadiness(runtime.env.DB, organization.id) : null;
+
+type DependencyNotice = {
+  title: string;
+  message: string;
+  actionHref?: string;
+  actionLabel?: string;
+  tone?: 'warning' | 'info' | 'danger';
+};
+const dependencyNotices: DependencyNotice[] = [];
+const managesValues = canManageValues(Astro.locals.membership?.role);
+const setupAction = managesValues
+  ? { actionHref: '/settings/values', actionLabel: 'Siapkan core value' }
+  : {};
+
+if (readiness && (currentPath === '/dashboard' || currentPath === '/challenge')) {
+  if (!['active', 'trialing'].includes(readiness.subscriptionStatus || '')) {
+    dependencyNotices.push({
+      title: 'Challenge tidak dapat dimulai',
+      message: 'Subscription organisasi harus berstatus aktif atau trialing sebelum challenge dapat dibuat.',
+      ...(Astro.locals.membership?.role === 'owner' ? { actionHref: '/billing', actionLabel: 'Periksa plan' } : {}),
+      tone: 'danger',
+    });
+  } else if (readiness.activeMembers === 0) {
+    dependencyNotices.push({
+      title: 'Challenge membutuhkan anggota aktif',
+      message: 'Aktifkan atau undang setidaknya satu anggota sebelum memulai challenge.',
+      actionHref: '/settings/members',
+      actionLabel: 'Kelola anggota',
+    });
+  } else if (readiness.activeValues === 0) {
+    dependencyNotices.push({
+      title: 'Core value wajib disiapkan',
+      message: managesValues
+        ? readiness.totalValues > 0
+          ? 'Lengkapi seluruh field dan minimal satu question aktif, lalu aktifkan core value sebelum memulai challenge.'
+          : 'Buat dan aktifkan setidaknya satu core value sebelum memulai challenge.'
+        : 'Minta owner atau admin menyiapkan core value aktif sebelum challenge dimulai.',
+      ...setupAction,
+    });
+  } else if (readiness.activeValuesWithoutQuestions > 0) {
+    dependencyNotices.push({
+      title: 'Pertanyaan challenge belum lengkap',
+      message: `${readiness.activeValuesWithoutQuestions} core value aktif belum memiliki pertanyaan aktif. Setiap core value aktif wajib memiliki minimal satu pertanyaan agar randomizer tidak gagal.`,
+      ...(managesValues ? { actionHref: '/settings/values', actionLabel: 'Pilih core value' } : {}),
+    });
+  } else if (readiness.maxChallengesPerMonth > 0 && readiness.monthlyChallenges >= readiness.maxChallengesPerMonth) {
+    dependencyNotices.push({
+      title: 'Kuota challenge bulanan tercapai',
+      message: `Organisasi telah menggunakan ${readiness.monthlyChallenges} dari ${readiness.maxChallengesPerMonth} challenge bulan ini.`,
+      ...(Astro.locals.membership?.role === 'owner' ? { actionHref: '/billing', actionLabel: 'Lihat plan' } : {}),
+      tone: 'danger',
+    });
+  }
+}
+
+if (readiness && currentPath === '/settings/values') {
+  if (readiness.activeValues === 0) {
+    dependencyNotices.push({
+      title: 'Challenge membutuhkan core value aktif',
+      message: readiness.totalValues > 0
+        ? 'Core value draft harus melengkapi seluruh field dan minimal satu question aktif sebelum dapat diaktifkan.'
+        : 'Buat core value pertama sebagai dasar pertanyaan dan randomizer challenge.',
+      ...(managesValues
+        ? readiness.totalValues > 0
+          ? { actionHref: '/settings/values', actionLabel: 'Periksa core value' }
+          : { actionHref: '/settings/values/new', actionLabel: 'Buat core value' }
+        : {}),
+      tone: 'info',
+    });
+  } else if (readiness.activeValuesWithoutQuestions > 0) {
+    dependencyNotices.push({
+      title: 'Core value belum siap dipakai challenge',
+      message: `${readiness.activeValuesWithoutQuestions} core value aktif belum memiliki pertanyaan aktif.`,
+      ...(managesValues ? { actionHref: '/settings/values', actionLabel: 'Pilih core value' } : {}),
+    });
+  } else if (readiness.maxActiveValues > 0 && readiness.activeValues >= readiness.maxActiveValues) {
+    dependencyNotices.push({
+      title: 'Batas core value aktif tercapai',
+      message: `Plan saat ini mengizinkan maksimal ${readiness.maxActiveValues} core value aktif. Nonaktifkan value lama sebelum mengaktifkan value baru.`,
+      ...(Astro.locals.membership?.role === 'owner' ? { actionHref: '/billing', actionLabel: 'Lihat plan' } : {}),
+    });
+  }
+}
+
+if (
+  readiness
+  && currentPath === '/settings/members'
+  && readiness.maxMembers > 0
+  && readiness.activeMembers + readiness.pendingInvitations >= readiness.maxMembers
+) {
+  dependencyNotices.push({
+    title: 'Batas member dan undangan tercapai',
+    message: `Plan saat ini mengizinkan maksimal ${readiness.maxMembers} member, termasuk undangan yang masih pending. Batalkan undangan atau nonaktifkan member sebelum mengundang lagi.`,
+    ...(Astro.locals.membership?.role === 'owner' ? { actionHref: '/billing', actionLabel: 'Lihat plan' } : {}),
+    tone: 'danger',
+  });
+}
+
+if (readiness && currentPath === '/history' && readiness.totalChallenges === 0) {
+  dependencyNotices.push({
+    title: 'History membutuhkan challenge',
+    message: 'Riwayat akan terisi setelah organisasi memulai challenge pertama.',
+    actionHref: '/challenge',
+    actionLabel: 'Buka challenge',
+    tone: 'info',
+  });
+}
+
+if (readiness && (currentPath === '/leaderboard' || currentPath === '/insights') && readiness.scoredChallenges === 0) {
+  dependencyNotices.push({
+    title: currentPath === '/leaderboard' ? 'Leaderboard membutuhkan hasil penilaian' : 'Insights membutuhkan hasil penilaian',
+    message: 'Selesaikan jawaban dan berikan skor pada setidaknya satu challenge agar data analitik dapat dihitung.',
+    actionHref: '/challenge',
+    actionLabel: 'Buka challenge',
+    tone: 'info',
+  });
+}
+
+if (readiness && currentPath === '/billing' && !['active', 'trialing'].includes(readiness.subscriptionStatus || '')) {
+  dependencyNotices.push({
+    title: 'Subscription organisasi tidak aktif',
+    message: 'Challenge baru tidak dapat dimulai sampai subscription organisasi kembali aktif.',
+    tone: 'danger',
+  });
+}
+
+if (currentPath === '/platform/articles' && !runtime?.env?.OPENAI_API_KEY) {
+  dependencyNotices.push({
+    title: 'Generator artikel AI belum siap',
+    message: 'Konfigurasikan OPENAI_API_KEY pada environment Cloudflare untuk memakai fitur generator. Artikel manual tetap dapat dibuat.',
+    actionHref: '/platform/articles/new',
+    actionLabel: 'Buat artikel manual',
+  });
+}
 
 const menuItems = [
   { name: 'Dashboard', path: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -29,10 +166,17 @@ const menuItems = [
   { name: 'Members', path: '/settings/members', icon: 'M17 20h5v-2a4 4 0 00-5-3.87M9 20H2v-2a4 4 0 014-4h3m0-4a4 4 0 100-8 4 4 0 000 8zm8 4a4 4 0 100-8 4 4 0 000 8z' },
   { name: 'Teams', path: '/settings/teams', icon: 'M4 6h16M4 12h16M4 18h7' },
   { name: 'Core Values', path: '/settings/values', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-  { name: 'Questions', path: '/settings/questions', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+  { name: 'Roles & Access', path: '/settings/roles', icon: 'M12 3 4 6v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-3Zm0 5v4m0 4h.01' },
   { name: 'Settings', path: '/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z' },
   { name: 'Plan', path: '/billing', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
   { name: 'Audit Log', path: '/settings/audit', icon: 'M9 12h6m-6 4h6M10 2h4l6 6v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z' },
+];
+
+const menuSections = [
+  { name: 'Overview', items: menuItems.slice(0, 1) },
+  { name: 'Culture', items: menuItems.slice(1, 5) },
+  { name: 'Organization', items: menuItems.slice(5, 9) },
+  { name: 'Administration', items: menuItems.slice(9) },
 ];
 
 const platformItems = user?.platform_role === 'platform_admin'
@@ -64,35 +208,44 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
     <aside class="w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 z-10 transition-transform">
       <div class="h-16 flex items-center px-6 border-b border-slate-200">
         <a href="/" class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-teal-700 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <div class="w-8 h-8 rounded bg-slate-900 border border-slate-700 flex items-center justify-center text-white font-bold text-sm shadow-sm transition-transform group-active:scale-95">
             V
           </div>
-          <span class="font-bold text-lg tracking-tight text-slate-900">ValueLoop</span>
+          <span class="text-xl font-bold tracking-tight text-slate-900">ValueLoop</span>
         </a>
       </div>
 
-      <div class="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
-        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-2">Menu</div>
-        {menuItems.map((item) => {
-          const isActive = isActivePath(item.path);
-          return (
-            <a 
-              href={item.path}
-              class={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive 
-                  ? 'bg-blue-50 text-blue-800' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <svg class={`w-5 h-5 ${isActive ? 'text-blue-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon}></path>
-              </svg>
-              {item.name}
-            </a>
-          )
-        })}
+      <div class="flex flex-1 flex-col overflow-y-auto px-4 py-5">
+        {menuSections.map((section, sectionIndex) => (
+          <section class={sectionIndex > 0 ? 'mt-5' : ''} aria-labelledby={`sidebar-${section.name.toLowerCase()}`}>
+            <h2 id={`sidebar-${section.name.toLowerCase()}`} class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              {section.name}
+            </h2>
+            <div class="flex flex-col gap-1">
+              {section.items.map((item) => {
+                const isActive = isActivePath(item.path);
+                return (
+                  <a
+                    href={item.path}
+                    aria-current={isActive ? 'page' : undefined}
+                    class={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-800'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    <svg class={`h-5 w-5 ${isActive ? 'text-indigo-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon}></path>
+                    </svg>
+                    {item.name}
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        ))}
         {platformItems.length > 0 && (
-          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-2">Platform</div>
+          <div class="mb-2 mt-5 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Platform</div>
         )}
         {platformItems.map((item) => {
           const isActive = isActivePath(item.path);
@@ -101,11 +254,11 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
               href={item.path}
               class={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-blue-50 text-blue-800'
+                  ? 'bg-indigo-50 text-indigo-800'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <svg class={`w-5 h-5 ${isActive ? 'text-blue-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class={`w-5 h-5 ${isActive ? 'text-indigo-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon}></path>
               </svg>
               {item.name}
@@ -114,7 +267,7 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
         })}
       </div>
 
-      <div class="p-4 border-t border-slate-200">
+      <div class="p-4 border-t border-slate-200 lg:hidden">
         <div class="flex items-center gap-3 px-2 py-2">
           <div class="w-9 h-9 rounded-full bg-slate-200 flex flex-shrink-0 items-center justify-center text-slate-600 font-medium">
             {(user?.full_name || 'U').slice(0, 2).toUpperCase()}
@@ -130,36 +283,106 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
     <!-- Main Content -->
     <main class="flex-1 ml-64 flex flex-col min-h-screen">
       <!-- Top Header -->
-      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 flex items-center justify-between px-8">
-        <div class="flex items-center gap-4">
-          <!-- Org Switcher Mock -->
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200 bg-white shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
-            <div class="w-5 h-5 rounded bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
-              {(organization?.name || 'O').slice(0, 1).toUpperCase()}
+      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 flex items-center justify-end px-8">
+        <div class="flex items-center gap-3">
+          <div id="notification-widget" class="relative">
+            <button
+              id="notification-bell"
+              type="button"
+              aria-label="Notifikasi"
+              class="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors relative"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+              <span id="notification-count" class="absolute -right-0.5 -top-0.5 hidden min-w-4 rounded-full bg-red-500 px-1 text-center text-[10px] font-bold leading-4 text-white"></span>
+            </button>
+            <div id="notification-dropdown" class="absolute right-0 top-12 z-40 hidden w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+              <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3"><span class="text-sm font-semibold text-slate-900">Notifikasi</span><a href="/notifications" class="text-xs font-semibold text-indigo-600">Lihat semua</a></div>
+              <div id="notification-preview" class="max-h-80 overflow-y-auto"><p class="p-5 text-center text-sm text-slate-500">Memuat...</p></div>
             </div>
-            <span class="text-sm font-medium text-slate-700">{organization?.name ?? 'Belum ada organisasi'}</span>
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 text-xs font-medium border border-blue-200">
-            {settings ? 'Plan Aktif' : 'Plan Default'}
-          </span>
-        </div>
-        
-        <div class="flex items-center gap-4">
-          <button class="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors relative">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
-          </button>
+
+          <details class="relative hidden lg:block group">
+            <summary
+              aria-label="Buka menu profil"
+              class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1.5 pr-2 text-left transition-colors hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 [&::-webkit-details-marker]:hidden"
+            >
+              <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600">
+                {(user?.full_name || 'U').slice(0, 2).toUpperCase()}
+              </span>
+              <span class="hidden min-w-0 xl:flex xl:max-w-40 xl:flex-col">
+                <span class="truncate text-sm font-medium text-slate-900">{user?.full_name ?? 'Pengguna'}</span>
+                <span class="truncate text-xs text-slate-500">{user?.email ?? '-'}</span>
+              </span>
+              <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+
+            <!-- Dropdown Menu -->
+            <div class="absolute right-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
+              <!-- User Info -->
+              <div class="border-b border-slate-100 px-5 py-4 bg-slate-50/50">
+                <p class="truncate text-sm font-bold text-slate-900">{user?.full_name ?? 'Pengguna'}</p>
+                <p class="mt-0.5 truncate text-xs text-slate-500">{user?.email ?? '-'}</p>
+              </div>
+              
+              <!-- Organization & Plan -->
+              <div class="border-b border-slate-100 p-3">
+                <p class="px-2 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Workspace</p>
+                
+                <div class="flex items-center justify-between p-2 rounded-xl bg-indigo-50/40 border border-indigo-100/50 mb-1">
+                  <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
+                      {(organization?.name || 'O').slice(0, 1).toUpperCase()}
+                    </div>
+                    <span class="text-sm font-semibold text-slate-800 truncate">{organization?.name ?? 'No Workspace'}</span>
+                  </div>
+                  <span class="shrink-0 px-2 py-0.5 rounded bg-white text-indigo-700 text-[10px] font-bold uppercase tracking-widest border border-indigo-200 shadow-sm ml-2">
+                    {settings ? 'Plan' : 'Free'}
+                  </span>
+                </div>
+                
+                <a href="/platform/organizations" class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors">
+                  <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                  Ganti Workspace
+                </a>
+              </div>
+
+              <!-- Profile Actions -->
+              <div class="p-2">
+                <a href="/profile" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                  <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 21a8 8 0 10-16 0m8-10a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                  Pengaturan Profil
+                </a>
+                <form method="post" action="/api/auth/logout">
+                  <button type="submit" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors mt-1">
+                    <svg class="h-4 w-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"></path></svg>
+                    Keluar (Logout)
+                  </button>
+                </form>
+              </div>
+            </div>
+          </details>
         </div>
       </header>
 
       <!-- Page Content -->
       <div class="flex-1 p-8">
         <div class="max-w-5xl mx-auto">
+          {dependencyNotices.map((notice) => <DependencyAlert {...notice} />)}
           <slot />
         </div>
       </div>
     </main>
+    <script>
+      // @ts-nocheck
+      (() => {
+        const bell = document.querySelector('#notification-bell'); const dropdown = document.querySelector('#notification-dropdown'); const count = document.querySelector('#notification-count'); const preview = document.querySelector('#notification-preview');
+        const refresh = async () => { try { const [countResponse, listResponse] = await Promise.all([fetch('/api/notifications/unread-count'), fetch('/api/notifications?limit=5')]); const countData = await countResponse.json(); const listData = await listResponse.json(); const unread = Number(countData.count || 0); count.textContent = unread > 99 ? '99+' : String(unread); count.classList.toggle('hidden', unread === 0); preview.innerHTML = (listData.notifications || []).length ? listData.notifications.map((n) => `<a href="${n.entity_id ? '/challenge' : '/notifications'}" data-preview-id="${n.id}" class="block border-b border-slate-50 px-4 py-3 hover:bg-slate-50 ${n.read_at ? '' : 'bg-indigo-50/40'}"><p class="text-sm font-semibold text-slate-800">${n.title}</p><p class="mt-1 text-xs text-slate-600">${n.message}</p></a>`).join('') : '<p class="p-6 text-center text-sm text-slate-500">Belum ada notifikasi.</p>'; preview.querySelectorAll('[data-preview-id]').forEach((item) => item.addEventListener('click', () => { fetch(`/api/notifications/${item.dataset.previewId}/read`, { method: 'POST' }); })); } catch { preview.innerHTML = '<p class="p-5 text-center text-sm text-slate-500">Notifikasi belum dapat dimuat.</p>'; } };
+        bell?.addEventListener('click', () => { dropdown.classList.toggle('hidden'); if (!dropdown.classList.contains('hidden')) refresh(); }); refresh();
+        let socket; let retry = 0; const connect = () => { const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'; socket = new WebSocket(`${protocol}//${location.host}/api/realtime`); socket.onopen = () => { retry = 0; refresh(); }; socket.onmessage = () => refresh(); socket.onclose = () => { const delay = Math.min(30000, 1000 * 2 ** retry++); window.setTimeout(connect, delay); }; }; connect();
+      })();
+    </script>
     
   </body>
 </html>

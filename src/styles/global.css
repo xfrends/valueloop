@@ -1,14 +1,56 @@
 @import "tailwindcss";
 
-/* ─── Landing page animations ─── */
+/* ─── Emil Kowalski Design Engineering System for ValueLoop ─── */
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
 
 /*
- * Reveal classes start visible by default (no-JS fallback).
- * The inline <script> at page top adds `js-ready` to <html>,
- * which then hides reveal elements so the observer can animate them in.
+ * Easing Curves:
+ * - ease-out-custom: Strong initial punch for responsive entrance & UI states
+ * - ease-in-out-custom: Smooth momentum for natural motion & transitions
+ * - ease-spring: Natural spring physics approximation
  */
+:root {
+  --vl-background: #F8FAFC;
+  --vl-surface: #FFFFFF;
+  --vl-surface-soft: #F1F5F9;
+  --vl-primary: #4F46E5;
+  --vl-primary-hover: #4338CA;
+  --vl-primary-soft: #E0E7FF;
+  --vl-secondary: #0F172A;
+  --vl-accent: #10B981;
+  --vl-text: #0F172A;
+  --vl-text-muted: #64748B;
+  --vl-border: #E2E8F0;
 
-/* Without js-ready: everything visible, no animation flicker */
+  --ease-out-custom: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-custom: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Base Interactive Feedback (Responsive buttons & cards) ─── */
+button, 
+.btn,
+a.btn-interactive {
+  transition: transform 160ms var(--ease-out-custom), 
+              box-shadow 160ms var(--ease-out-custom), 
+              background-color 160ms var(--ease-out-custom),
+              border-color 160ms var(--ease-out-custom),
+              color 160ms var(--ease-out-custom);
+  transform-origin: center;
+  user-select: none;
+}
+
+button:active,
+.btn:active,
+a.btn-interactive:active {
+  transform: scale(0.97);
+}
+
+/* ─── Reveal & Stagger Scroll Animation ─── */
+/* Without js-ready: everything visible, no layout flash */
 .reveal,
 .reveal-scale,
 .reveal-left,
@@ -17,12 +59,12 @@
   transform: none;
 }
 
-/* With js-ready: start hidden, transition in when .is-visible is added */
+/* With js-ready: progressive reveal with physical easing */
 html.js-ready .reveal {
   opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(24px);
+  transition: opacity 0.5s var(--ease-out-custom),
+              transform 0.5s var(--ease-out-custom);
 }
 html.js-ready .reveal.is-visible {
   opacity: 1;
@@ -31,9 +73,9 @@ html.js-ready .reveal.is-visible {
 
 html.js-ready .reveal-scale {
   opacity: 0;
-  transform: scale(0.92);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(0.95);
+  transition: opacity 0.5s var(--ease-out-custom),
+              transform 0.5s var(--ease-out-custom);
 }
 html.js-ready .reveal-scale.is-visible {
   opacity: 1;
@@ -42,9 +84,9 @@ html.js-ready .reveal-scale.is-visible {
 
 html.js-ready .reveal-left {
   opacity: 0;
-  transform: translateX(-48px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-32px);
+  transition: opacity 0.55s var(--ease-out-custom),
+              transform 0.55s var(--ease-out-custom);
 }
 html.js-ready .reveal-left.is-visible {
   opacity: 1;
@@ -53,31 +95,28 @@ html.js-ready .reveal-left.is-visible {
 
 html.js-ready .reveal-right {
   opacity: 0;
-  transform: translateX(48px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(32px);
+  transition: opacity 0.55s var(--ease-out-custom),
+              transform 0.55s var(--ease-out-custom);
 }
 html.js-ready .reveal-right.is-visible {
   opacity: 1;
   transform: translateX(0);
 }
 
-/*
- * Stagger delays — prefixed `stagger-` to avoid clashing with
- * Tailwind v4 built-in `delay-*` utilities.
- */
-.stagger-1 { transition-delay: 100ms; }
-.stagger-2 { transition-delay: 200ms; }
-.stagger-3 { transition-delay: 300ms; }
-.stagger-4 { transition-delay: 400ms; }
-.stagger-5 { transition-delay: 500ms; }
-.stagger-6 { transition-delay: 600ms; }
+/* Crisp Staggers (40-80ms cadence per Emil's rule) */
+.stagger-1 { transition-delay: 40ms; }
+.stagger-2 { transition-delay: 80ms; }
+.stagger-3 { transition-delay: 120ms; }
+.stagger-4 { transition-delay: 160ms; }
+.stagger-5 { transition-delay: 200ms; }
+.stagger-6 { transition-delay: 240ms; }
 
-/* Hero entrance — CSS-only, plays once on load, always deterministic */
+/* ─── Hero Load Transition ─── */
 @keyframes hero-fade-up {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
@@ -86,19 +125,22 @@ html.js-ready .reveal-right.is-visible {
 }
 
 .hero-animate {
-  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hero-fade-up 0.6s var(--ease-out-custom) both;
 }
 .hero-animate-delay-1 {
-  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  animation: hero-fade-up 0.6s var(--ease-out-custom) 0.08s both;
 }
 .hero-animate-delay-2 {
-  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+  animation: hero-fade-up 0.6s var(--ease-out-custom) 0.16s both;
 }
 .hero-animate-delay-3 {
-  animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+  animation: hero-fade-up 0.6s var(--ease-out-custom) 0.24s both;
+}
+.hero-animate-delay-4 {
+  animation: hero-fade-up 0.7s var(--ease-out-custom) 0.32s both;
 }
 
-/* Shimmer effect for the hero CTA — subtle, looping micro-interaction */
+/* ─── Polished Micro-Interactions ─── */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -115,25 +157,40 @@ html.js-ready .reveal-right.is-visible {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.15) 50%,
+    rgba(255, 255, 255, 0.16) 50%,
     transparent 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
+  animation: shimmer 3.5s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* Glow pulse for timeline step numbers */
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50% { box-shadow: 0 0 24px 8px rgba(16, 185, 129, 0.15); }
+/* Pulse indicator with subtle aura */
+@keyframes pulse-subtle {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 1; }
 }
 
-.glow-step {
-  animation: glow-pulse 3s ease-in-out infinite;
+.pulse-live {
+  animation: pulse-subtle 2.5s var(--ease-in-out-custom) infinite;
 }
 
-/* Reduce motion for accessibility */
+/* Card hover with micro-depth and origin awareness */
+@media (hover: hover) and (pointer: fine) {
+  .interactive-card {
+    transition: transform 220ms var(--ease-out-custom), 
+                box-shadow 220ms var(--ease-out-custom),
+                border-color 220ms var(--ease-out-custom);
+  }
+  .interactive-card:hover {
+    transform: translateY(-3px);
+  }
+  .interactive-card:active {
+    transform: scale(0.985);
+  }
+}
+
+/* ─── Reduced Motion ─── */
 @media (prefers-reduced-motion: reduce) {
   html.js-ready .reveal,
   html.js-ready .reveal-scale,
@@ -141,15 +198,19 @@ html.js-ready .reveal-right.is-visible {
   html.js-ready .reveal-right {
     opacity: 1;
     transform: none;
-    transition: none;
+    transition: opacity 0.2s ease;
   }
-  .hero-animate, .hero-animate-delay-1,
-  .hero-animate-delay-2, .hero-animate-delay-3 {
+  .hero-animate, 
+  .hero-animate-delay-1,
+  .hero-animate-delay-2, 
+  .hero-animate-delay-3,
+  .hero-animate-delay-4 {
     animation: none;
     opacity: 1;
+    transform: none;
   }
   .btn-shimmer::after,
-  .glow-step {
+  .pulse-live {
     animation: none;
   }
 }

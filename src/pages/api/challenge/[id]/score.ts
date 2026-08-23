@@ -6,6 +6,7 @@ import { json } from '../../../../lib/http/response';
 import { readFormDataValue, readJsonBody } from '../../../../lib/http/forms';
 import { getOrganizationSettings } from '../../../../lib/services/shared';
 import { canScoreChallenge } from '../../../../lib/permissions';
+import { zodFieldErrors } from '../../../../lib/utils/form-errors';
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
   const runtime = getCloudflareRuntime(locals);
@@ -29,17 +30,32 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
           evaluatorNote: await readFormDataValue(request, 'evaluatorNote'),
         };
 
-  const parsed = challengeScoreSchema.parse(input);
+  const parsed = challengeScoreSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message || 'Skor wajib dipilih dari 0 sampai 10.';
+    if (contentType.includes('application/json')) {
+      return json({ ok: false, message, fieldErrors: zodFieldErrors(parsed.error) }, { status: 400 });
+    }
+    return new Response(null, { status: 302, headers: { Location: `/challenge?error=${encodeURIComponent(message)}` } });
+  }
   const settings = await getOrganizationSettings(runtime.env.DB, locals.organization.id);
-  const session = await submitScore(runtime.env.DB, {
-    organizationId: locals.organization.id,
-    sessionId: params.id || '',
-    actorUserId: locals.user?.id ?? null,
-    actorMemberId: locals.membership?.id ?? null,
-    score: parsed.score,
-    evaluatorNote: parsed.evaluatorNote,
-    allowSelfScoring: Boolean(settings.allowSelfScoring),
-  });
+  let session;
+  try {
+    session = await submitScore(runtime.env.DB, {
+      organizationId: locals.organization.id,
+      sessionId: params.id || '',
+      actorUserId: locals.user?.id ?? null,
+      actorMemberId: locals.membership?.id ?? null,
+      realtime: runtime.env.ORGANIZATION_REALTIME,
+      score: parsed.data.score,
+      evaluatorNote: parsed.data.evaluatorNote,
+      allowSelfScoring: Boolean(settings.allowSelfScoring),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Penilaian challenge gagal dikirim.';
+    if (contentType.includes('application/json')) return json({ ok: false, message }, { status: 409 });
+    return new Response(null, { status: 302, headers: { Location: `/challenge?error=${encodeURIComponent(message)}` } });
+  }
 
   if (contentType.includes('application/json')) {
     return json({ ok: true, session });

@@ -3,7 +3,7 @@
 	"compatibility_date": "2026-06-17",
 	"compatibility_flags": ["global_fetch_strictly_public"],
 	"name": "valueloop",
-	"main": "@astrojs/cloudflare/entrypoints/server",
+	"main": "src/worker.ts",
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS"
@@ -44,5 +44,13 @@
 	],
 	"observability": {
 		"enabled": true
-	}
+	},
+	"durable_objects": {
+		"bindings": [
+			{ "name": "ORGANIZATION_REALTIME", "class_name": "OrganizationRealtime" }
+		]
+	},
+	"migrations": [
+		{ "tag": "v1", "new_sqlite_classes": ["OrganizationRealtime"] }
+	]
 }

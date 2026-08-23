@@ -11,16 +11,54 @@ import { listUserOrganizations } from '../../../lib/services/organization';
 import { zodFieldErrors } from '../../../lib/utils/form-errors';
 
 export const POST: APIRoute = async ({ request, locals }) => {
+  const contentType = request.headers.get('content-type') || '';
+  const redirectWithError = (params: {
+    message: string;
+    alert: 'validation' | 'credentials' | 'email_unverified' | 'system';
+    email?: string;
+    rememberMe?: boolean;
+    fieldErrors?: Record<string, string>;
+    status?: number;
+  }) => {
+    if (contentType.includes('application/json')) {
+      return json(
+        { ok: false, message: params.message, alert: params.alert, fieldErrors: params.fieldErrors },
+        { status: params.status || 400 }
+      );
+    }
+
+    const redirect = new URL('/login', request.url);
+    redirect.searchParams.set('error', params.message);
+    redirect.searchParams.set('alert', params.alert);
+    if (params.fieldErrors && Object.keys(params.fieldErrors).length > 0) {
+      redirect.searchParams.set('fieldErrors', JSON.stringify(params.fieldErrors));
+    }
+    if (params.email !== undefined) {
+      redirect.searchParams.set('email', params.email);
+    }
+    if (params.rememberMe) {
+      redirect.searchParams.set('rememberMe', '1');
+    }
+    return new Response(null, { status: 302, headers: { Location: redirect.pathname + redirect.search } });
+  };
+
   const runtime = getCloudflareRuntime(locals);
   if (!runtime?.env?.DB || !runtime.env.KV) {
-    return json({ ok: false, message: 'Konfigurasi runtime tidak tersedia.' }, { status: 500 });
+    return redirectWithError({
+      message: 'Layanan login sedang tidak tersedia karena konfigurasi runtime belum lengkap.',
+      alert: 'system',
+      status: 500,
+    });
   }
 
   if (!(await hasAnyUsers(runtime.env.DB))) {
-    return json({ ok: false, message: 'Instalasi belum disiapkan. Jalankan `npm run setup` terlebih dahulu.' }, { status: 403 });
+    return redirectWithError({
+      message: 'Instalasi belum disiapkan. Jalankan `npm run setup` terlebih dahulu.',
+      alert: 'system',
+      status: 403,
+    });
   }
 
-  const contentType = request.headers.get('content-type') || '';
   const input =
     contentType.includes('application/json')
       ? await readJsonBody(request)
@@ -32,19 +70,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   const parsed = authLoginSchema.safeParse(input);
   if (!parsed.success) {
-    const message = 'Email dan kata sandi wajib diisi dengan benar.';
     const fieldErrors = zodFieldErrors(parsed.error);
-    if (contentType.includes('application/json')) {
-      return json({ ok: false, message, fieldErrors }, { status: 400 });
-    }
-    const redirect = new URL('/login', request.url);
-    redirect.searchParams.set('error', message);
-    redirect.searchParams.set('fieldErrors', JSON.stringify(fieldErrors));
-    redirect.searchParams.set('email', String(input.email || ''));
-    if (String(input.rememberMe || '') === 'on') {
-      redirect.searchParams.set('rememberMe', '1');
-    }
-    return new Response(null, { status: 302, headers: { Location: redirect.pathname + redirect.search } });
+    return redirectWithError({
+      message: 'Periksa kembali data login yang Anda masukkan.',
+      alert: 'validation',
+      fieldErrors,
+      email: String(input.email || ''),
+      rememberMe: String(input.rememberMe || '') === 'on',
+    });
   }
 
   let user;
@@ -52,20 +85,36 @@ export const POST: APIRoute = async ({ request, locals }) => {
     user = await loginUser(runtime.env.DB, parsed.data);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Email atau kata sandi salah.';
-    if (contentType.includes('application/json')) {
-      return json({ ok: false, message }, { status: 400 });
-    }
-    const redirect = new URL('/login', request.url);
-    redirect.searchParams.set('error', message);
-    redirect.searchParams.set('email', parsed.data.email);
-    if (parsed.data.rememberMe) {
-      redirect.searchParams.set('rememberMe', '1');
-    }
-    return new Response(null, { status: 302, headers: { Location: redirect.pathname + redirect.search } });
+    const errorCode = (error as { code?: unknown } | null)?.code;
+    const emailUnverified = errorCode === 'email_unverified';
+    return redirectWithError({
+      message,
+      alert: emailUnverified ? 'email_unverified' : 'credentials',
+      fieldErrors: emailUnverified ? undefined : { password: 'Email atau kata sandi tidak cocok.' },
+      email: parsed.data.email,
+      rememberMe: parsed.data.rememberMe,
+    });
   }
-  const sessionTtlSeconds = parsed.data.rememberMe ? SESSION_TTL_SECONDS : SESSION_TTL_ONE_DAY_SECONDS;
-  const session = await createAuthSession(runtime.env.DB, runtime.env.KV, user.id, sessionTtlSeconds);
-  const orgs = await listUserOrganizations(runtime.env.DB, user.id);
+
+  let session;
+  let orgs;
+  try {
+    const sessionTtlSeconds = parsed.data.rememberMe ? SESSION_TTL_SECONDS : SESSION_TTL_ONE_DAY_SECONDS;
+    session = await createAuthSession(runtime.env.DB, runtime.env.KV, user.id, sessionTtlSeconds);
+    orgs = await listUserOrganizations(runtime.env.DB, user.id);
+  } catch (error) {
+    console.error('[ValueLoop] Gagal membuat sesi login', {
+      userId: user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return redirectWithError({
+      message: 'Login berhasil diverifikasi, tetapi sesi tidak dapat dibuat. Silakan coba lagi.',
+      alert: 'system',
+      email: parsed.data.email,
+      rememberMe: parsed.data.rememberMe,
+      status: 500,
+    });
+  }
   const target = '/dashboard';
 
   const headers = new Headers();

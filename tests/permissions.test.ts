@@ -10,6 +10,9 @@ import {
   canViewInsights,
   canViewOrg,
   canViewSelfHistory,
+  hasPermission,
+  PERMISSIONS,
+  ROLE_PERMISSIONS,
 } from '../src/lib/permissions';
 
 describe('permission helpers', () => {
@@ -43,5 +46,14 @@ describe('permission helpers', () => {
     expect(canManageBilling('owner')).toBe(true);
     expect(canManageBilling('admin')).toBe(false);
   });
-});
 
+  it('exposes the RBAC matrix as the application source of truth', () => {
+    expect(hasPermission('owner', PERMISSIONS.ORG_DELETE)).toBe(true);
+    expect(hasPermission('admin', PERMISSIONS.MEMBERS_MANAGE_ROLES)).toBe(true);
+    expect(hasPermission('admin', PERMISSIONS.BILLING_MANAGE)).toBe(false);
+    expect(hasPermission('facilitator', PERMISSIONS.CHALLENGE_SCORE)).toBe(true);
+    expect(hasPermission('member', PERMISSIONS.QUESTIONS_VIEW)).toBe(false);
+    expect(hasPermission('viewer', PERMISSIONS.INSIGHTS_VIEW)).toBe(true);
+    expect(ROLE_PERMISSIONS.owner.length).toBe(Object.keys(PERMISSIONS).length);
+  });
+});

@@ -19,6 +19,7 @@ export type CloudflareBindings = {
   OPENAI_IMAGE_MODEL?: string;
   SESSION_SECRET?: string;
   TURNSTILE_SECRET_KEY?: string;
+  ORGANIZATION_REALTIME: DurableObjectNamespace<import('../lib/notifications/realtime').OrganizationRealtime>;
 };
 
 export type CloudflareRuntime = {

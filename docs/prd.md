@@ -208,6 +208,7 @@ Recommended MVP:
 - User and session source of truth in Cloudflare D1.
 - Session cache, login throttling, and one-time tokens in Cloudflare KV.
 - Cloudflare Turnstile optional for signup/login abuse protection.
+- Authenticated users can update their profile data and change or set a password. Email changes require OTP verification again, and password changes revoke the user's other sessions.
 - Magic link and OAuth are not part of MVP unless a future external email/OAuth provider is intentionally added.
 
 Acceptance Criteria:
@@ -234,7 +235,7 @@ Onboarding steps:
 
 Acceptance Criteria:
 
-- User can create organization with name and slug.
+- User can create an organization by name; its slug is generated automatically. If the base slug is already used, append the owner user code and, only if still needed, a numeric sequence.
 - Creator becomes `owner`.
 - Organization gets default settings.
 - User can choose a core value template or start blank.
@@ -341,6 +342,9 @@ Fields:
 Acceptance Criteria:
 
 - Owner/Admin can create, update, deactivate core values.
+- Core value baru selalu dibuat dalam status inactive.
+- Core value hanya dapat diaktifkan setelah seluruh field profil terisi dan memiliki minimal satu question aktif.
+- Owner/Admin dapat menghapus core value hanya jika tidak memiliki question atau dependensi data lain seperti riwayat challenge.
 - Core values are tenant-specific.
 - There is no hardcoded limit of 5 values.
 - Minimum recommended active values: 1.
@@ -659,6 +663,7 @@ Plan limits examples:
 Acceptance Criteria:
 
 - Organization has assigned plan.
+- Seluruh plan tetap ditampilkan dalam katalog, tetapi hanya Free yang tersedia; plan lainnya berstatus Coming Soon.
 - App can check feature access.
 - Owner can see plan page.
 - Payment provider integration can be stubbed in MVP.
@@ -772,4 +777,3 @@ Acceptance Criteria:
 - Design all tenant-owned tables with `organization_id`.
 
 ---
-

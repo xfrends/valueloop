@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const loadRequestContext = vi.hoisted(() => vi.fn());
+const parseCookieHeader = vi.hoisted(() => vi.fn(() => new Map<string, string>()));
+const getCloudflareRuntime = vi.hoisted(() => vi.fn((source: { locals?: { runtime?: unknown } }) => source.locals?.runtime));
 
 vi.mock('astro:middleware', () => ({
   defineMiddleware: (handler: unknown) => handler,
@@ -11,7 +13,11 @@ vi.mock('../src/lib/context/request', () => ({
 }));
 
 vi.mock('../src/lib/http/cookies', () => ({
-  parseCookieHeader: vi.fn(() => new Map()),
+  parseCookieHeader,
+}));
+
+vi.mock('../src/lib/cloudflare/bindings', () => ({
+  getCloudflareRuntime,
 }));
 
 import { onRequest } from '../src/middleware';
@@ -31,6 +37,9 @@ function buildContext(pathname: string, loadedContext: Record<string, unknown>) 
 describe('middleware auth guards', () => {
   beforeEach(() => {
     loadRequestContext.mockReset();
+    parseCookieHeader.mockReset();
+    parseCookieHeader.mockReturnValue(new Map());
+    getCloudflareRuntime.mockClear();
   });
 
   it('redirects authenticated users with organization away from onboarding', async () => {
@@ -97,5 +106,21 @@ describe('middleware auth guards', () => {
     const response = await onRequest(buildContext('/settings', {}), async () => new Response('ok'));
     expect(response?.status).toBe(302);
     expect(response?.headers.get('location')).toBe('/dashboard');
+  });
+
+  it('explains an invalid or expired session when a stale session cookie exists', async () => {
+    parseCookieHeader.mockReturnValue(new Map([['valueloop_session', 'stale-token']]));
+    loadRequestContext.mockResolvedValue({
+      user: null,
+      session: null,
+      organization: null,
+      membership: null,
+    });
+
+    const response = await onRequest(buildContext('/dashboard', {}), async () => new Response('ok'));
+
+    expect(response?.status).toBe(302);
+    expect(response?.headers.get('location')).toContain('/login?alert=session');
+    expect(response?.headers.get('location')).toContain('Sesi%20Anda');
   });
 });

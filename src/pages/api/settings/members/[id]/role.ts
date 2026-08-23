@@ -20,6 +20,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   }
 
   const contentType = request.headers.get('content-type') || '';
+  const redirectPath = new URL(request.url).searchParams.get('source') === 'roles' ? '/settings/roles' : '/settings/members';
   const input =
     contentType.includes('application/json')
       ? await readJsonBody(request)
@@ -33,7 +34,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     if (contentType.includes('application/json')) {
       return json({ ok: false, message }, { status: 400 });
     }
-    return new Response(null, { status: 302, headers: { Location: `/settings/members?error=${encodeURIComponent(message)}` } });
+    return new Response(null, { status: 302, headers: { Location: `${redirectPath}?error=${encodeURIComponent(message)}` } });
   }
 
   try {
@@ -49,12 +50,12 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     if (contentType.includes('application/json')) {
       return json({ ok: false, message }, { status: 400 });
     }
-    return new Response(null, { status: 302, headers: { Location: `/settings/members?error=${encodeURIComponent(message)}` } });
+    return new Response(null, { status: 302, headers: { Location: `${redirectPath}?error=${encodeURIComponent(message)}` } });
   }
 
   if (contentType.includes('application/json')) {
     return json({ ok: true });
   }
 
-  return new Response(null, { status: 302, headers: { Location: '/settings/members' } });
+  return new Response(null, { status: 302, headers: { Location: `${redirectPath}?success=${encodeURIComponent('Role anggota berhasil diperbarui.')}` } });
 };

@@ -51,18 +51,18 @@ Jawaban bagus bukan yang panjang, tapi yang jelas dan bisa diterapkan.
   --vl-surface: #FFFFFF;
   --vl-surface-soft: #EEF4FF;
 
-  --vl-primary: #1D4ED8;
-  --vl-primary-hover: #1E40AF;
-  --vl-primary-soft: #DBEAFE;
+  --vl-primary: #4F46E5;
+  --vl-primary-hover: #4338CA;
+  --vl-primary-soft: #E0E7FF;
 
   --vl-secondary: #0F172A;
-  --vl-accent: #14B8A6;
+  --vl-accent: #10B981;
 
   --vl-text: #0F172A;
   --vl-text-muted: #64748B;
   --vl-border: #DCE4F0;
 
-  --vl-success: #16A34A;
+  --vl-success: #10B981;
   --vl-warning: #F59E0B;
   --vl-danger: #DC2626;
   --vl-info: #0284C7;

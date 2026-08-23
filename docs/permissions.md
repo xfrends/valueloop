@@ -180,5 +180,12 @@ export const ROLE_PERMISSIONS = {
 } as const;
 ```
 
----
+## 4.6 RBAC Management UI
 
+- Matriks role dan permission tersedia di `/settings/roles` pada kategori menu Organization.
+- Semua anggota organisasi dapat melihat definisi akses.
+- Hanya owner/admin dengan `members.manage_roles` yang dapat mengubah assignment role.
+- Role bawaan belum dapat dikustomisasi pada MVP/Free.
+- Owner tidak dapat diturunkan langsung; perubahan owner wajib melalui alur transfer ownership.
+
+---
