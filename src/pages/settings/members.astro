@@ -100,14 +100,17 @@ const success = Astro.url.searchParams.get('success') || '';
                   </td>
                   <td class="px-6 py-4 flex justify-end">
                     {canManageRoles && !ownerLocked ? (
-                      <form method="post" action={`/api/settings/members/${member.id}/role?source=members`} class="flex justify-end items-center gap-2">
-                        <select name="role" aria-label={`Role untuk ${member.full_name}`} class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 outline-none hover:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer">
-                          {roles.filter((role) => role.id !== 'owner').map((role) => <option value={role.id} selected={member.role === role.id}>{role.name}</option>)}
-                        </select>
-                        <button type="submit" title="Simpan Role" class="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900 text-white shadow-sm hover:bg-slate-800 transition-colors">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </button>
-                      </form>
+                      <button 
+                        type="button" 
+                        title="Ganti Role" 
+                        class="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
+                        data-action="change-role"
+                        data-member-id={member.id}
+                        data-member-name={member.full_name}
+                        data-member-role={member.role}
+                      >
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                      </button>
                     ) : (
                       <span class="inline-flex items-center px-2.5 py-1 text-[11px] font-bold text-slate-400">
                         {ownerLocked ? 'LOCKED' : '-'}
@@ -160,6 +163,38 @@ const success = Astro.url.searchParams.get('success') || '';
       </div>
     </div>
 
+    <!-- Change Role Modal -->
+    <dialog id="roleModal" class="m-auto backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm rounded-2xl shadow-2xl border-0 p-0 w-full max-w-md open:animate-in open:fade-in-90 open:zoom-in-95">
+      <div class="bg-white p-6">
+        <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
+          <h2 class="font-bold text-slate-900 text-lg">Ganti Role Anggota</h2>
+          <form method="dialog">
+            <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </form>
+        </div>
+        <form id="roleForm" method="post" action="" class="space-y-5">
+          <div>
+            <p class="text-sm text-slate-500 mb-1">Anggota</p>
+            <p id="roleModalMemberName" class="font-bold text-slate-900">-</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="block text-sm font-semibold text-slate-700">Role Baru</label>
+            <select id="roleModalSelect" name="role" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
+              {roles.filter(r => r.id !== 'owner').map(r => (
+                <option value={r.id}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end gap-3">
+            <form method="dialog"><button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Batal</button></form>
+            <button type="submit" class="btn-interactive rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">Simpan Role</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
     <!-- Invite Member Modal -->
     <dialog id="inviteModal" class="m-auto backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm rounded-2xl shadow-2xl border-0 p-0 w-full max-w-md open:animate-in open:fade-in-90 open:zoom-in-95">
       <div class="bg-white p-6">
@@ -196,6 +231,25 @@ const success = Astro.url.searchParams.get('success') || '';
   </div>
 
   <script>
+    const roleModal = document.getElementById('roleModal') as HTMLDialogElement;
+    const roleForm = document.getElementById('roleForm') as HTMLFormElement;
+    const roleModalMemberName = document.getElementById('roleModalMemberName');
+    const roleModalSelect = document.getElementById('roleModalSelect') as HTMLSelectElement;
+
+    document.querySelectorAll('button[data-action="change-role"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const memberId = btn.getAttribute('data-member-id');
+        const memberName = btn.getAttribute('data-member-name');
+        const memberRole = btn.getAttribute('data-member-role');
+
+        if (roleModalMemberName) roleModalMemberName.textContent = memberName || '-';
+        if (roleModalSelect && memberRole) roleModalSelect.value = memberRole;
+        if (roleForm && memberId) roleForm.action = `/api/settings/members/${memberId}/role?source=members`;
+
+        roleModal?.showModal();
+      });
+    });
+
     document.querySelectorAll('[data-confirm-cancel-invite]').forEach((form) => form.addEventListener('submit', (event) => {
       if (!window.confirm('Batalkan undangan ini? Link undangan lama tidak akan dapat digunakan lagi.')) event.preventDefault();
     }));
