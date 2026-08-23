@@ -6,6 +6,8 @@ import { canManageValues } from '../../../../../lib/permissions';
 import { listQuestionsForCoreValue } from '../../../../../lib/services/questions';
 import { getCoreValue } from '../../../../../lib/services/values';
 import { formatOrgDateTime } from '../../../../../lib/utils/date';
+import DataTable from '../../../../../components/DataTable.astro';
+import TableToolbar from '../../../../../components/TableToolbar.astro';
 
 const valueId = Astro.params.id || '';
 const organization = Astro.locals.organization;
@@ -63,30 +65,17 @@ const success = Astro.url.searchParams.get('success') || '';
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div class="grid gap-3 border-b border-slate-200 bg-slate-50/70 p-4 md:grid-cols-[minmax(0,1fr)_190px_170px] md:p-5">
-            <label class="relative block">
-              <span class="sr-only">Cari question</span>
-              <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path></svg>
-              <input id="question-search" type="search" placeholder="Cari question atau rubric..." class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" />
-            </label>
-            <label>
-              <span class="sr-only">Filter difficulty</span>
-              <select id="question-difficulty" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
-                <option value="all">Semua difficulty</option>
-                <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
-              </select>
-            </label>
-            <label>
-              <span class="sr-only">Filter status</span>
-              <select id="question-status" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
-                <option value="all">Semua status</option><option value="active">Active</option><option value="inactive">Inactive</option>
-              </select>
-            </label>
-          </div>
+          <TableToolbar searchId="question-search" searchPlaceholder="Cari question atau rubric..." submitLabel={null}>
+            <Fragment slot="filters">
+              <label><span class="sr-only">Filter difficulty</span><select id="question-difficulty" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"><option value="all">Semua difficulty</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label>
+              <label><span class="sr-only">Filter status</span><select id="question-status" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"><option value="all">Semua status</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+            </Fragment>
+          </TableToolbar>
 
           {questions.length > 0 ? (
             <>
               <div class="overflow-x-auto">
+                <DataTable class="rounded-none border-0 shadow-none" tableClass="">
                 <table class="w-full text-left text-sm">
                   <thead class="border-b border-slate-200 bg-white text-xs uppercase tracking-wider text-slate-400">
                     <tr>
@@ -118,6 +107,7 @@ const success = Astro.url.searchParams.get('success') || '';
                     ))}
                   </tbody>
                 </table>
+                </DataTable>
               </div>
               <div id="question-filter-empty" class="hidden px-6 py-12 text-center"><p class="font-semibold text-slate-900">Question tidak ditemukan</p><p class="mt-1 text-sm text-slate-500">Ubah kata pencarian atau filter yang dipilih.</p></div>
             </>

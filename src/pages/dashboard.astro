@@ -3,6 +3,7 @@ import AppLayout from '../layouts/AppLayout.astro';
 import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
 import { getDashboardSummary } from '../lib/services/analytics';
 import { formatOrgDateTime } from '../lib/utils/date';
+import DataTable from '../components/DataTable.astro';
 
 const organization = Astro.locals.organization;
 const runtime = getCloudflareRuntime(Astro);
@@ -78,6 +79,7 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
         <a href="/leaderboard" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 hover:underline underline-offset-4">View all &rarr;</a>
       </div>
       <div class="overflow-x-auto">
+        <DataTable class="rounded-none border-0 shadow-none" tableClass="">
         <table class="w-full text-left text-sm">
           <thead class="bg-slate-50/80 text-slate-500 border-b border-slate-100">
             <tr>
@@ -110,6 +112,7 @@ const valueDistribution = (dashboard?.valueDistribution ?? []) as Array<{ name: 
             ))}
           </tbody>
         </table>
+        </DataTable>
       </div>
     </div>
 

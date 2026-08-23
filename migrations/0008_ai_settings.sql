@@ -1,6 +1,6 @@
 create table organization_ai_settings (
     organization_id text primary key references organizations(id) on delete cascade,
-    provider text not null check (provider in ('openai', 'openrouter', 'sumopod', 'gemini', 'claude', 'custom')),
+    provider text not null check (provider in ('openai', 'claude', 'gemini', 'openrouter', 'custom')),
     protocol text not null check (protocol in ('openai_compatible', 'gemini', 'claude')),
     base_url text,
     model text not null,

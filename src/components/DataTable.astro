@@ -1,0 +1,16 @@
+---
+interface Props {
+  class?: string;
+  tableClass?: string;
+}
+
+const { class: className = '', tableClass = 'w-full text-left text-sm' } = Astro.props;
+---
+
+<div class={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}>
+  <div class="overflow-x-auto">
+    <div class={tableClass}>
+      <slot />
+    </div>
+  </div>
+</div>

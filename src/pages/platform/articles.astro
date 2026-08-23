@@ -2,6 +2,7 @@
 import AppLayout from '../../layouts/AppLayout.astro';
 import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
 import { listAllArticles } from '../../lib/services/articles';
+import DataTable from '../../components/DataTable.astro';
 
 const user = Astro.locals.user;
 const runtime = getCloudflareRuntime(Astro);
@@ -24,6 +25,7 @@ const aiConfigured = Boolean(runtime?.env?.OPENAI_API_KEY && runtime.env.R2);
   ) : (
     <div class="grid gap-6 lg:grid-cols-3">
       <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <DataTable class="rounded-none border-0 shadow-none" tableClass="">
         <table class="w-full text-left text-sm">
           <thead class="bg-slate-50 text-slate-500">
             <tr>
@@ -51,6 +53,7 @@ const aiConfigured = Boolean(runtime?.env?.OPENAI_API_KEY && runtime.env.R2);
             ))}
           </tbody>
         </table>
+        </DataTable>
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">

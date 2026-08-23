@@ -73,7 +73,7 @@ export const aiGenerationSchema = z.object({
 });
 
 export const aiSettingsSchema = z.object({
-  provider: z.enum(['openai', 'openrouter', 'sumopod', 'gemini', 'claude', 'custom']),
+  provider: z.enum(['openai', 'openrouter', 'gemini', 'claude', 'custom']),
   protocol: z.enum(['openai_compatible', 'gemini', 'claude']),
   baseUrl: z.preprocess(emptyStringAsUndefined, z.string().trim().url('Base URL harus berupa URL yang valid.').optional()),
   model: z.string().trim().min(1, 'Model wajib diisi.').max(160, 'Model terlalu panjang.'),

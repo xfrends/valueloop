@@ -20,7 +20,7 @@ export type ProviderPrompt = { systemPrompt: string; userPrompt: string };
 
 export type GeneratedCoreValueDraft = z.infer<typeof generatedCoreValueDraftSchema>;
 export type AiProtocol = 'openai_compatible' | 'gemini' | 'claude';
-export type AiProvider = 'openai' | 'openrouter' | 'sumopod' | 'gemini' | 'claude' | 'custom';
+export type AiProvider = 'openai' | 'claude' | 'gemini' | 'openrouter' | 'custom';
 
 export type AiProviderConfig = {
   provider: AiProvider;

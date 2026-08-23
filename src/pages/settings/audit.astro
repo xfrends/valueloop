@@ -4,6 +4,7 @@ import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
 import { listAuditLogs, listOrganizationMembers } from '../../lib/services/members';
 import { formatOrgDateTime } from '../../lib/utils/date';
 import { canViewAudit } from '../../lib/permissions';
+import DataTable from '../../components/DataTable.astro';
 
 const organization = Astro.locals.organization;
 const allowed = canViewAudit(Astro.locals.membership?.role);
@@ -185,6 +186,7 @@ const getDiff = (beforeStr: string | null | undefined, afterStr: string | null |
 
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
+          <DataTable class="rounded-none border-0 shadow-none" tableClass="">
           <table class="w-full text-left text-sm">
         <thead class="bg-slate-50 text-slate-500">
           <tr>
@@ -218,7 +220,8 @@ const getDiff = (beforeStr: string | null | undefined, afterStr: string | null |
             );
           })}
         </tbody>
-      </table>
+          </table>
+          </DataTable>
     </div>
   </div>
 
