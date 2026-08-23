@@ -4,7 +4,7 @@ import { challengeAnswerSchema } from '../../../../lib/validations';
 import { submitAnswer } from '../../../../lib/services/challenge';
 import { json } from '../../../../lib/http/response';
 import { readFormDataValue, readJsonBody } from '../../../../lib/http/forms';
-import { canRunChallenge } from '../../../../lib/permissions';
+import { canSubmitChallengeAnswer } from '../../../../lib/permissions';
 import { zodFieldErrors } from '../../../../lib/utils/form-errors';
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   if (!locals.organization || !locals.membership) {
     return new Response('Organisasi tidak tersedia.', { status: 403 });
   }
-  if (!canRunChallenge(locals.membership.role)) {
+  if (!canSubmitChallengeAnswer(locals.membership.role)) {
     return new Response('Anda tidak memiliki izin untuk aksi ini.', { status: 403 });
   }
 

@@ -115,10 +115,10 @@ export async function listChallengeSessions(
             q.question_text as question_text,
             eu.full_name as evaluator_name
      from challenge_sessions cs
-     join organization_members om on om.id = cs.selected_member_id
+     join organization_members om on om.id = cs.selected_member_id and om.organization_id = cs.organization_id
      join users u on u.id = om.user_id
-     join core_values cv on cv.id = cs.core_value_id
-     join questions q on q.id = cs.question_id
+     join core_values cv on cv.id = cs.core_value_id and cv.organization_id = cs.organization_id
+     join questions q on q.id = cs.question_id and q.organization_id = cs.organization_id
      left join organization_members eom on eom.id = cs.evaluator_member_id
      left join users eu on eu.id = eom.user_id
      where ${conditions.join(' and ')}
@@ -547,6 +547,18 @@ export async function submitScore(
   }
   if (before.status !== 'answered') {
     throw new Error('Challenge harus memiliki jawaban sebelum dinilai.');
+  }
+  if (payload.actorMemberId) {
+    const evaluator = await dbFirst<{ id: string }>(
+      db,
+      `select id from organization_members
+       where id = ? and organization_id = ? and status = 'active'
+       limit 1`,
+      [payload.actorMemberId, payload.organizationId]
+    );
+    if (!evaluator) {
+      throw new Error('Evaluator tidak terdaftar sebagai member aktif organisasi.');
+    }
   }
   if (!payload.allowSelfScoring && payload.actorMemberId && payload.actorMemberId === before.selected_member_id) {
     throw new Error('Self-scoring tidak diizinkan untuk organisasi ini.');

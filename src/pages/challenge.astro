@@ -4,7 +4,7 @@ import DependencyAlert from '../components/DependencyAlert.astro';
 import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
 import { dbFirst } from '../lib/db/client';
 import { getOrganizationReadiness, getOrganizationSettings } from '../lib/services/shared';
-import { canRerollChallenge, canRunChallenge, canScoreChallenge } from '../lib/permissions';
+import { canRerollChallenge, canRunChallenge, canScoreChallenge, canSubmitChallengeAnswer } from '../lib/permissions';
 import { formatOrgDateTime } from '../lib/utils/date';
 
 type ChallengeSessionView = {
@@ -48,10 +48,10 @@ const session = organization && runtime?.env?.DB
          q.question_text,
          q.difficulty
        from challenge_sessions cs
-       join organization_members om on om.id = cs.selected_member_id
+       join organization_members om on om.id = cs.selected_member_id and om.organization_id = cs.organization_id
        join users u on u.id = om.user_id
-       join core_values cv on cv.id = cs.core_value_id
-       join questions q on q.id = cs.question_id
+       join core_values cv on cv.id = cs.core_value_id and cv.organization_id = cs.organization_id
+       join questions q on q.id = cs.question_id and q.organization_id = cs.organization_id
        where cs.organization_id = ?
          and cs.status != 'cancelled'
        order by cs.session_date desc, cs.sequence_no desc
@@ -63,7 +63,7 @@ const challenge = session as ChallengeSessionView | null;
 
 const canRun = canRunChallenge(membership?.role);
 const canReroll = canRerollChallenge(membership?.role);
-const canAnswer = canRun;
+const canAnswer = canSubmitChallengeAnswer(membership?.role);
 const canScore = canScoreChallenge(membership?.role);
 const canStartNewChallenge = !challenge || challenge.status === 'open' || Boolean(settings?.allowMultipleChallengesPerDay);
 const canRerollCurrentChallenge = Boolean(challenge && challenge.status === 'open' && canReroll);

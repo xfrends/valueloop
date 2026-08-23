@@ -4,8 +4,10 @@ import {
   canManageBilling,
   canManageMembers,
   canManageValues,
+  canRerollChallenge,
   canRunChallenge,
   canScoreChallenge,
+  canSubmitChallengeAnswer,
   canViewAudit,
   canViewInsights,
   canViewOrg,
@@ -31,8 +33,13 @@ describe('permission helpers', () => {
     expect(canRunChallenge('facilitator')).toBe(true);
     expect(canRunChallenge('member')).toBe(false);
     expect(canRunChallenge('viewer')).toBe(false);
+    expect(canRerollChallenge('owner')).toBe(true);
+    expect(canRerollChallenge('facilitator')).toBe(true);
+    expect(canRerollChallenge('viewer')).toBe(false);
     expect(canScoreChallenge('facilitator')).toBe(true);
     expect(canScoreChallenge('member')).toBe(false);
+    expect(canSubmitChallengeAnswer('facilitator')).toBe(true);
+    expect(canSubmitChallengeAnswer('member')).toBe(false);
   });
 
   it('matches read-only and operational view permissions from the MVP matrix', () => {

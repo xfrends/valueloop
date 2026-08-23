@@ -218,6 +218,62 @@ describe('challenge service', () => {
     ).rejects.toThrow('Challenge yang sudah dinilai tidak dapat di-reroll.');
   });
 
+  it('rejects reroll for a cancelled session', async () => {
+    const seeded = await seedOrganization(testD1.db, 'cancelled');
+    const session = await startChallenge(testD1.db, {
+      organizationId: seeded.organizationId,
+      actorUserId: 'user-cancelled-1',
+      actorMemberId: 'member-cancelled-1',
+    });
+    await dbRun(
+      testD1.db,
+      `update challenge_sessions set status = 'cancelled', updated_at = ? where id = ? and organization_id = ?`,
+      [now, session.id, seeded.organizationId]
+    );
+
+    await expect(rerollChallenge(testD1.db, {
+      organizationId: seeded.organizationId,
+      sessionId: session.id,
+      actorUserId: 'user-cancelled-1',
+      actorMemberId: 'member-cancelled-1',
+    })).rejects.toThrow('Challenge yang dibatalkan tidak dapat di-reroll.');
+  });
+
+  it('validates answer and evaluator note in the domain service', async () => {
+    const seeded = await seedOrganization(testD1.db, 'validation');
+    const session = await startChallenge(testD1.db, {
+      organizationId: seeded.organizationId,
+      actorUserId: 'user-validation-1',
+      actorMemberId: 'member-validation-1',
+    });
+
+    await expect(submitAnswer(testD1.db, {
+      organizationId: seeded.organizationId,
+      sessionId: session.id,
+      actorUserId: 'user-validation-1',
+      actorMemberId: 'member-validation-1',
+      answerText: '  x  ',
+    })).rejects.toThrow('Jawaban minimal 3 karakter.');
+
+    const answered = await submitAnswer(testD1.db, {
+      organizationId: seeded.organizationId,
+      sessionId: session.id,
+      actorUserId: 'user-validation-1',
+      actorMemberId: 'member-validation-1',
+      answerText: 'Jawaban yang valid dan cukup panjang.',
+    });
+
+    await expect(submitScore(testD1.db, {
+      organizationId: seeded.organizationId,
+      sessionId: session.id,
+      actorUserId: 'user-validation-2',
+      actorMemberId: seeded.memberIds.find((memberId) => memberId !== answered.selected_member_id) ?? null,
+      score: 8,
+      evaluatorNote: 'x'.repeat(2001),
+      allowSelfScoring: false,
+    })).rejects.toThrow('Catatan evaluator maksimal 2000 karakter.');
+  });
+
   it('enforces answer-before-score, score range, and self-scoring setting', async () => {
     const seeded = await seedOrganization(testD1.db, 'alpha');
     const session = await startChallenge(testD1.db, {

@@ -2,10 +2,24 @@
 import AppLayout from '../layouts/AppLayout.astro';
 import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
 import { getLeaderboardRows } from '../lib/services/analytics';
+import { listTeams } from '../lib/services/members';
 
 const organization = Astro.locals.organization;
 const runtime = getCloudflareRuntime(Astro);
-const leaderboardData = organization && runtime?.env?.DB ? await getLeaderboardRows(runtime.env.DB, organization.id, { includeInactive: true }) : [];
+
+const teamId = Astro.url.searchParams.get('teamId') || '';
+const fromDate = Astro.url.searchParams.get('fromDate') || '';
+const toDate = Astro.url.searchParams.get('toDate') || '';
+
+const teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
+const leaderboardData = organization && runtime?.env?.DB 
+  ? await getLeaderboardRows(runtime.env.DB, organization.id, { 
+      includeInactive: true, 
+      teamId: teamId || undefined, 
+      fromDate: fromDate || undefined, 
+      toDate: toDate || undefined 
+    }) 
+  : [];
 ---
 
 <AppLayout title="Leaderboard - ValueLoop" currentPath="/leaderboard">
@@ -18,19 +32,33 @@ const leaderboardData = organization && runtime?.env?.DB ? await getLeaderboardR
         <p class="text-slate-500 mt-1 text-sm leading-relaxed">Ranking based on scored challenge sessions.</p>
       </div>
       
-      <div class="flex items-center gap-3">
-        <select class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow">
-          <option>All Teams</option>
-          <option>Engineering</option>
-          <option>Product</option>
-          <option>Sales</option>
-        </select>
-        <select class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow">
-          <option>This Month</option>
-          <option>Last 30 Days</option>
-          <option>All Time</option>
-        </select>
-      </div>
+      <form method="get" class="flex flex-col md:flex-row items-end gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Filter Team</label>
+          <select name="teamId" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow">
+            <option value="">Semua Team</option>
+            {teams.map(t => (
+              <option value={t.id} selected={t.id === teamId}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Dari Tanggal</label>
+          <input type="date" name="fromDate" value={fromDate} class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Sampai Tanggal</label>
+          <input type="date" name="toDate" value={toDate} class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow" />
+        </div>
+        <button type="submit" class="btn-interactive shrink-0 px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+          Terapkan
+        </button>
+        {(teamId || fromDate || toDate) && (
+          <a href="/leaderboard" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors">
+            Reset
+          </a>
+        )}
+      </form>
     </div>
 
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -46,7 +74,13 @@ const leaderboardData = organization && runtime?.env?.DB ? await getLeaderboardR
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 text-sm">
-          {leaderboardData.map((row, index) => (
+          {leaderboardData.length === 0 ? (
+            <tr>
+              <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-500">
+                Belum ada data skor yang ditemukan. Pastikan ada sesi challenge yang telah dinilai atau coba ubah filter yang dipilih.
+              </td>
+            </tr>
+          ) : leaderboardData.map((row, index) => (
             <tr class="hover:bg-slate-50/70 transition-colors group">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
@@ -80,10 +114,10 @@ const leaderboardData = organization && runtime?.env?.DB ? await getLeaderboardR
     </div>
     
     <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-      <p class="text-sm text-slate-500">Showing top 7 members</p>
+      <p class="text-sm text-slate-500">Showing top {leaderboardData.length} members</p>
       <div class="flex gap-2">
         <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-500 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Prev</button>
-        <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50">Next</button>
+        <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Next</button>
       </div>
     </div>
   </div>
