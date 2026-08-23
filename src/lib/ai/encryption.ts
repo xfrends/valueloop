@@ -31,7 +31,7 @@ export async function encryptApiKey(apiKey: string, secret: string | undefined, 
 
 export async function decryptApiKey(encrypted: string, iv: string, secret: string | undefined, organizationId: string): Promise<string> {
   if (!secret) throw new Error('SESSION_SECRET belum dikonfigurasi.');
-  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(iv) }, await encryptionKey(secret, organizationId), fromBase64(encrypted));
+  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(iv) as unknown as BufferSource }, await encryptionKey(secret, organizationId), fromBase64(encrypted) as unknown as BufferSource);
   return new TextDecoder().decode(decrypted);
 }
 

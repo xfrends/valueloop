@@ -3,12 +3,14 @@ import AppLayout from '../../layouts/AppLayout.astro';
 import { getCloudflareRuntime } from '../../lib/cloudflare/bindings';
 import { canManageOrganizationSettings } from '../../lib/permissions';
 import { getOrganizationSettings } from '../../lib/services/shared';
+import { getOrganizationAiSettings } from '../../lib/services/ai-settings';
 
 const organization = Astro.locals.organization;
 const membership = Astro.locals.membership;
 const runtime = getCloudflareRuntime(Astro);
 const allowed = canManageOrganizationSettings(membership?.role);
 const settings = organization && runtime?.env?.DB ? await getOrganizationSettings(runtime.env.DB, organization.id) : null;
+const aiSettings = organization && runtime?.env?.DB ? await getOrganizationAiSettings(runtime.env.DB, organization.id) : null;
 ---
 
 <AppLayout title="Settings - ValueLoop" currentPath="/settings">
@@ -20,6 +22,7 @@ const settings = organization && runtime?.env?.DB ? await getOrganizationSetting
   {!allowed ? (
     <div class="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Anda tidak memiliki izin untuk mengubah settings organisasi.</div>
   ) : (
+    <div class="space-y-10">
     <form method="post" action="/api/settings/organization" class="space-y-10">
       <!-- Section 1: Profile -->
       <section class="grid gap-x-8 gap-y-6 md:grid-cols-3">
@@ -116,5 +119,35 @@ const settings = organization && runtime?.env?.DB ? await getOrganizationSetting
         </button>
       </div>
     </form>
+
+    <section class="grid gap-x-8 gap-y-6 md:grid-cols-3 border-t border-slate-200 pt-10">
+      <div><h2 class="text-base font-semibold text-slate-900">AI Provider</h2><p class="mt-1 text-sm text-slate-500">Konfigurasi ini hanya digunakan untuk membuat draft core value. Token disimpan terenkripsi dan tidak pernah dikirim ke browser.</p></div>
+      <div class="md:col-span-2 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
+        <form id="ai-settings-form" class="space-y-5">
+          <div class="grid gap-5 md:grid-cols-2">
+            <label class="space-y-2 text-sm font-semibold text-slate-700">Provider<select id="ai-provider" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required><option value="openai" selected={aiSettings?.provider === 'openai'}>OpenAI</option><option value="openrouter" selected={aiSettings?.provider === 'openrouter'}>OpenRouter</option><option value="sumopod" selected={aiSettings?.provider === 'sumopod'}>Sumopod</option><option value="gemini" selected={aiSettings?.provider === 'gemini'}>Gemini</option><option value="claude" selected={aiSettings?.provider === 'claude'}>Claude</option><option value="custom" selected={aiSettings?.provider === 'custom'}>Custom</option></select></label>
+            <label class="space-y-2 text-sm font-semibold text-slate-700">Protocol<select id="ai-protocol" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required><option value="openai_compatible" selected={aiSettings?.protocol === 'openai_compatible'}>OpenAI-compatible</option><option value="gemini" selected={aiSettings?.protocol === 'gemini'}>Gemini native</option><option value="claude" selected={aiSettings?.protocol === 'claude'}>Anthropic native</option></select></label>
+          </div>
+          <label class="block space-y-2 text-sm font-semibold text-slate-700">Base URL <input id="ai-base-url" value={aiSettings?.baseUrl ?? ''} placeholder="Kosongkan untuk endpoint resmi" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+          <label class="block space-y-2 text-sm font-semibold text-slate-700">Model <input id="ai-model" value={aiSettings?.model ?? ''} placeholder="Contoh: gpt-4o-mini" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required /></label>
+          <label class="block space-y-2 text-sm font-semibold text-slate-700">API token <input id="ai-token" type="password" autocomplete="new-password" placeholder={aiSettings?.maskedApiKey ? `Tersimpan: ${aiSettings.maskedApiKey}` : 'Masukkan API token'} class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+          <label class="flex items-center gap-2 text-sm font-semibold text-slate-700"><input id="ai-enabled" type="checkbox" checked={aiSettings?.isEnabled ?? false} class="h-4 w-4 rounded" /> Aktifkan AI generator</label>
+          <div class="flex flex-wrap items-center gap-3"><button type="submit" class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Simpan konfigurasi AI</button><button id="ai-test" type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Test koneksi</button><span id="ai-message" class="text-sm text-slate-500"></span></div>
+        </form>
+      </div>
+    </section>
+    </div>
   )}
 </AppLayout>
+
+<script is:inline>
+  const form = document.querySelector('#ai-settings-form');
+  const message = document.querySelector('#ai-message');
+  const value = (id) => document.querySelector(id).value;
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault(); message.textContent = 'Menyimpan...';
+    const response = await fetch('/api/settings/ai', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: value('#ai-provider'), protocol: value('#ai-protocol'), baseUrl: value('#ai-base-url'), model: value('#ai-model'), apiToken: value('#ai-token'), isEnabled: document.querySelector('#ai-enabled').checked }) });
+    const result = await response.json(); message.textContent = result.message || (result.ok ? 'Konfigurasi AI tersimpan.' : 'Konfigurasi AI gagal disimpan.');
+  });
+  document.querySelector('#ai-test')?.addEventListener('click', async () => { message.textContent = 'Menguji koneksi...'; const response = await fetch('/api/settings/ai/test', { method: 'POST' }); const result = await response.json(); message.textContent = result.message || 'Test selesai.'; });
+</script>
