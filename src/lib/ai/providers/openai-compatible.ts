@@ -1,4 +1,5 @@
 import { AiProviderError, type AiProviderConfig, type ProviderPrompt } from '../types';
+import { providerErrorMessage } from './error';
 
 function endpoint(baseUrl: string | null | undefined): string {
   return `${(baseUrl || 'https://api.openai.com/v1').replace(/\/$/, '')}/chat/completions`;
@@ -13,8 +14,8 @@ export async function requestOpenAiCompatible(config: AiProviderConfig, input: P
       { role: 'user', content: input.userPrompt },
     ], response_format: { type: 'json_object' } }),
   });
-  if (response.status === 429) throw new AiProviderError('rate_limited', 'Provider AI sedang membatasi permintaan.');
-  if (!response.ok) throw new AiProviderError('unavailable', 'Provider AI tidak tersedia.');
+  if (response.status === 429) throw new AiProviderError('rate_limited', `Provider menolak permintaan: ${await providerErrorMessage(response)}`);
+  if (!response.ok) throw new AiProviderError('unavailable', `Provider menolak permintaan: ${await providerErrorMessage(response)}`);
   const payload = await response.json() as { choices?: Array<{ message?: { content?: string | Array<{ text?: string }> } }> };
   const content = payload.choices?.[0]?.message?.content;
   if (Array.isArray(content)) return content.map((item) => item.text || '').join('');

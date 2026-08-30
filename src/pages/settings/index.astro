@@ -11,6 +11,7 @@ const runtime = getCloudflareRuntime(Astro);
 const allowed = canManageOrganizationSettings(membership?.role);
 const settings = organization && runtime?.env?.DB ? await getOrganizationSettings(runtime.env.DB, organization.id) : null;
 const aiSettings = organization && runtime?.env?.DB ? await getOrganizationAiSettings(runtime.env.DB, organization.id) : null;
+const turnstileSiteKey = runtime?.env?.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 
 <AppLayout title="Settings - ValueLoop" currentPath="/settings">
@@ -124,14 +125,15 @@ const aiSettings = organization && runtime?.env?.DB ? await getOrganizationAiSet
       <div class="md:col-span-2 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
         <form id="ai-settings-form" class="space-y-5">
           <div class="grid gap-5 md:grid-cols-2">
-            <label class="space-y-2 text-sm font-semibold text-slate-700">Provider<select id="ai-provider" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required><option value="openai" selected={aiSettings?.provider === 'openai'}>OpenAI</option><option value="claude" selected={aiSettings?.provider === 'claude'}>Claude</option><option value="gemini" selected={aiSettings?.provider === 'gemini'}>Gemini</option><option value="openrouter" selected={aiSettings?.provider === 'openrouter'}>OpenRouter</option><option value="custom" selected={aiSettings?.provider === 'custom'}>Custom</option></select></label>
-            <label class="space-y-2 text-sm font-semibold text-slate-700">Protocol<select id="ai-protocol" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required><option value="openai_compatible" selected={aiSettings?.protocol === 'openai_compatible'}>OpenAI-compatible</option><option value="gemini" selected={aiSettings?.protocol === 'gemini'}>Gemini native</option><option value="claude" selected={aiSettings?.protocol === 'claude'}>Anthropic native</option></select></label>
+            <label class="space-y-2 text-sm font-semibold text-slate-700">Provider<select id="ai-provider" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required><option value="openai" selected={aiSettings?.provider === 'openai'}>OpenAI</option><option value="claude" selected={aiSettings?.provider === 'claude'}>Claude</option><option value="gemini" selected={aiSettings?.provider === 'gemini'}>Gemini</option><option value="openrouter" selected={aiSettings?.provider === 'openrouter'}>OpenRouter</option><option value="custom" selected={aiSettings?.provider === 'custom'}>Custom</option></select><small data-ai-error="provider" class="hidden font-medium text-red-600"></small></label>
+            <label class="space-y-2 text-sm font-semibold text-slate-700">Protocol<select id="ai-protocol" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required><option value="openai_compatible" selected={aiSettings?.protocol === 'openai_compatible'}>OpenAI-compatible</option><option value="gemini" selected={aiSettings?.protocol === 'gemini'}>Gemini native</option><option value="claude" selected={aiSettings?.protocol === 'claude'}>Anthropic native</option></select><small data-ai-error="protocol" class="hidden font-medium text-red-600"></small></label>
           </div>
-          <label class="block space-y-2 text-sm font-semibold text-slate-700">Base URL <input id="ai-base-url" value={aiSettings?.baseUrl ?? ''} placeholder="Kosongkan untuk endpoint resmi" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
-          <label class="block space-y-2 text-sm font-semibold text-slate-700">Model <input id="ai-model" value={aiSettings?.model ?? ''} placeholder="Contoh: gpt-4o-mini" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required /></label>
-          <label class="block space-y-2 text-sm font-semibold text-slate-700">API token <input id="ai-token" type="password" autocomplete="new-password" placeholder={aiSettings?.maskedApiKey ? `Tersimpan: ${aiSettings.maskedApiKey}` : 'Masukkan API token'} class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+          <label class="block space-y-2 text-sm font-semibold text-slate-700">Base URL <input id="ai-base-url" value={aiSettings?.baseUrl ?? ''} placeholder="Kosongkan untuk endpoint resmi" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /><small class="font-normal text-slate-500">Untuk Gemini native, gunakan root API atau kosongkan field ini; jangan gunakan URL <code>/interactions</code>.</small><small data-ai-error="baseUrl" class="hidden font-medium text-red-600"></small></label>
+          <label class="block space-y-2 text-sm font-semibold text-slate-700">Model <input id="ai-model" value={aiSettings?.model ?? ''} placeholder="Contoh: gpt-4o-mini" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" required /><small data-ai-error="model" class="hidden font-medium text-red-600"></small></label>
+          <label class="block space-y-2 text-sm font-semibold text-slate-700">API token <input id="ai-token" type="password" autocomplete="new-password" placeholder={aiSettings?.maskedApiKey ? `Tersimpan: ${aiSettings.maskedApiKey}` : 'Masukkan API token'} class="w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /><small data-ai-error="apiToken" class="hidden font-medium text-red-600"></small></label>
           <label class="flex items-center gap-2 text-sm font-semibold text-slate-700"><input id="ai-enabled" type="checkbox" checked={aiSettings?.isEnabled ?? false} class="h-4 w-4 rounded" /> Aktifkan AI generator</label>
-          <div class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-5"><span id="ai-message" class="mr-auto text-sm text-slate-500"></span><button id="ai-test" type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Test koneksi</button><button type="submit" class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Simpan konfigurasi AI</button></div>
+          {turnstileSiteKey && <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><p class="mb-2 text-xs font-medium text-slate-500">Selesaikan verifikasi keamanan sebelum menguji koneksi.</p><div id="ai-turnstile" class="cf-turnstile" data-sitekey={turnstileSiteKey} data-action="ai_connection_test"></div></div>}
+          <div id="ai-message" class="hidden rounded-xl border px-4 py-3 text-sm font-medium" role="alert" aria-live="polite"></div><div class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-5"><button id="ai-test" type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Test koneksi</button><button type="submit" class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Simpan konfigurasi AI</button></div>
         </form>
       </div>
     </section>
@@ -139,14 +141,38 @@ const aiSettings = organization && runtime?.env?.DB ? await getOrganizationAiSet
   )}
 </AppLayout>
 
+{turnstileSiteKey && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
 <script is:inline>
   const form = document.querySelector('#ai-settings-form');
   const message = document.querySelector('#ai-message');
   const value = (id) => document.querySelector(id).value;
+  const aiPresets = {
+    'openai:openai_compatible': { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+    'openrouter:openai_compatible': { baseUrl: 'https://openrouter.ai/api/v1', model: 'google/gemini-2.5-flash-lite' },
+    'gemini:gemini': { baseUrl: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.5-flash-lite' },
+    'claude:claude': { baseUrl: 'https://api.anthropic.com', model: 'claude-3-5-haiku-latest' },
+    'custom:openai_compatible': { baseUrl: '', model: '' },
+    'custom:gemini': { baseUrl: 'https://generativelanguage.googleapis.com/v1beta', model: '' },
+    'custom:claude': { baseUrl: 'https://api.anthropic.com', model: '' },
+  };
+  const applyAiPreset = () => { const preset = aiPresets[`${value('#ai-provider')}:${value('#ai-protocol')}`] || { baseUrl: '', model: '' }; document.querySelector('#ai-base-url').value = preset.baseUrl; document.querySelector('#ai-model').value = preset.model; clearAiErrors(); };
+  document.querySelector('#ai-provider')?.addEventListener('change', () => { const provider = value('#ai-provider'); const protocol = document.querySelector('#ai-protocol'); if (provider !== 'custom') { protocol.value = provider === 'gemini' ? 'gemini' : provider === 'claude' ? 'claude' : 'openai_compatible'; } applyAiPreset(); });
+  document.querySelector('#ai-protocol')?.addEventListener('change', applyAiPreset);
+  const showAiMessage = (text, tone = 'error') => { message.textContent = text; message.className = `rounded-xl border px-4 py-3 text-sm font-medium ${tone === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`; };
+  const clearAiErrors = () => document.querySelectorAll('[data-ai-error]').forEach((field) => { field.textContent = ''; field.classList.add('hidden'); });
+  const showAiErrors = (errors = {}) => Object.entries(errors).forEach(([field, error]) => { const target = document.querySelector(`[data-ai-error="${field}"]`); if (target) { target.textContent = error; target.classList.remove('hidden'); } });
   form?.addEventListener('submit', async (event) => {
-    event.preventDefault(); message.textContent = 'Menyimpan...';
+    event.preventDefault(); clearAiErrors(); showAiMessage('Menyimpan...', 'success');
     const response = await fetch('/api/settings/ai', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: value('#ai-provider'), protocol: value('#ai-protocol'), baseUrl: value('#ai-base-url'), model: value('#ai-model'), apiToken: value('#ai-token'), isEnabled: document.querySelector('#ai-enabled').checked }) });
-    const result = await response.json(); message.textContent = result.message || (result.ok ? 'Konfigurasi AI tersimpan.' : 'Konfigurasi AI gagal disimpan.');
+    const result = await response.json(); if (!result.ok) { showAiMessage(result.message || 'Konfigurasi AI gagal disimpan.'); showAiErrors(result.fieldErrors); return; } showAiMessage('Konfigurasi AI tersimpan.', 'success');
   });
-  document.querySelector('#ai-test')?.addEventListener('click', async () => { message.textContent = 'Menguji koneksi...'; const response = await fetch('/api/settings/ai/test', { method: 'POST' }); const result = await response.json(); message.textContent = result.message || 'Test selesai.'; });
+  document.querySelector('#ai-test')?.addEventListener('click', async () => {
+    const turnstileToken = document.querySelector('[name="cf-turnstile-response"]')?.value || '';
+    if (!turnstileToken) { message.textContent = 'Selesaikan verifikasi keamanan terlebih dahulu.'; return; }
+    showAiMessage('Menguji koneksi...', 'success');
+    const response = await fetch('/api/settings/ai/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ turnstileToken }) });
+    const result = await response.json(); showAiMessage(result.message || 'Test selesai.', result.ok ? 'success' : 'error');
+    if (window.turnstile) window.turnstile.reset('ai-turnstile');
+  });
 </script>

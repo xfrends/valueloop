@@ -12,7 +12,8 @@ const isLoggedIn = !!Astro.locals.user;
     <div class="flex items-center gap-4">
       <nav class="hidden md:flex items-center gap-6 text-[15px] font-medium mr-2">
         <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/#how-it-works">Cara Kerja</a>
-        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/#features">Fitur Utama</a>
+        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/fitur">Fitur</a>
+        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/preview">Preview</a>
         <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/blog">Blog</a>
       </nav>
       {isLoggedIn ? (

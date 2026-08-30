@@ -19,9 +19,10 @@ const roles = (Object.keys(ROLE_PERMISSIONS) as OrganizationRole[]).map((role) =
 const query = Astro.url.searchParams.get('query') || '';
 const roleFilter = Astro.url.searchParams.get('role') || '';
 const teamFilter = Astro.url.searchParams.get('team') || '';
+const statusFilter = Astro.url.searchParams.get('status') || '';
 
-let members = organization && runtime?.env?.DB ? await listOrganizationMembers(runtime.env.DB, organization.id) : [];
-const invitations = organization && runtime?.env?.DB ? await listInvitations(runtime.env.DB, organization.id) : [];
+let members = organization && runtime?.env?.DB ? (await listOrganizationMembers(runtime.env.DB, organization.id)).filter((member) => member.status !== 'invited') : [];
+let invitations = organization && runtime?.env?.DB ? await listInvitations(runtime.env.DB, organization.id) : [];
 const teams = organization && runtime?.env?.DB ? await listTeams(runtime.env.DB, organization.id) : [];
 
 const error = Astro.url.searchParams.get('error') || '';
@@ -31,6 +32,7 @@ const success = Astro.url.searchParams.get('success') || '';
 if (query) {
   const q = query.toLowerCase();
   members = members.filter(m => m.full_name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+  invitations = invitations.filter(invite => invite.email.toLowerCase().includes(q));
 }
 if (roleFilter) {
   members = members.filter(m => m.role === roleFilter);
@@ -41,6 +43,10 @@ if (teamFilter) {
     members = members.filter(m => m.team_names?.includes(team.name));
   }
 }
+if (statusFilter) {
+  members = members.filter((member) => member.status === statusFilter);
+  invitations = invitations.filter((invite) => invite.status === statusFilter);
+}
 ---
 
 <AppLayout title="Members - ValueLoop" currentPath="/settings/members">
@@ -49,22 +55,23 @@ if (teamFilter) {
       <div>
         <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">Organization</p>
         <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Members</h1>
-        <p class="text-slate-500 mt-1 text-sm">Kelola akses anggota, role (RBAC), dan status undangan.</p>
+        <p class="text-slate-500 mt-1 text-sm">Kelola akses anggota, role (RBAC), dan undangan dalam satu daftar.</p>
+        <button onclick="document.getElementById('inviteModal').showModal()" class="btn-interactive mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+          Undang Member
+        </button>
       </div>
       <div class="flex flex-col md:flex-row md:items-center gap-3">
         <TableToolbar action="/settings/members" searchValue={query} searchPlaceholder="Search member..." submitLabel={null} compact>
           <Fragment slot="filters">
             <input type="hidden" name="role" value={roleFilter} />
             <input type="hidden" name="team" value={teamFilter} />
+            <input type="hidden" name="status" value={statusFilter} />
           </Fragment>
         </TableToolbar>
         <button onclick="document.getElementById('memberFilterModal').showModal()" class="btn-interactive flex items-center gap-2 px-4 py-2 bg-white border border-slate-200/80 rounded-xl text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
           <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           Filters
-        </button>
-        <button onclick="document.getElementById('inviteModal').showModal()" class="btn-interactive inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-          Undang Member
         </button>
       </div>
     </div>
@@ -81,19 +88,7 @@ if (teamFilter) {
       </div>
     )}
 
-    <!-- Member filters -->
-    <div class="mb-6 flex gap-2" role="tablist" aria-label="Filter member">
-      <button id="tab-members" type="button" role="tab" aria-selected="true" class="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
-        Organization Members
-        <span class="ml-1 opacity-80">{members.length}</span>
-      </button>
-      <button id="tab-invites" type="button" role="tab" aria-selected="false" class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:text-indigo-700">
-        Pending Invites
-        <span class="ml-1 opacity-70">{invitations.length}</span>
-      </button>
-    </div>
-
-    <!-- Tab 1 & Tab 2: Merged Single Table -->
+    <!-- Members and pending invitations share one list -->
     <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden animate-in fade-in duration-300">
       <div class="overflow-x-auto">
         <DataTable class="rounded-none border-0 shadow-none" tableClass="">
@@ -159,7 +154,7 @@ if (teamFilter) {
 
             {/* Render Pending Invitations */}
             {invitations.map((invite) => (
-              <tr data-type="invite" class="hidden hover:bg-slate-50/50 transition-colors">
+              <tr data-type="invite" class="hover:bg-slate-50/50 transition-colors">
                 <td class="px-6 py-4">
                   <div class="font-medium text-slate-700 italic">Pending Invite</div>
                   <div class="text-xs text-slate-500">{invite.email}</div>
@@ -200,7 +195,7 @@ if (teamFilter) {
       </div>
       
       <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-        <p class="text-sm text-slate-500">Showing {members.length} members</p>
+        <p class="text-sm text-slate-500">{members.length} anggota · {invitations.length} undangan menunggu</p>
         <div class="flex gap-2">
           <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-500 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Prev</button>
           <button class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-50" disabled>Next</button>
@@ -241,6 +236,16 @@ if (teamFilter) {
               {teams.map((t) => (
                 <option value={t.id} selected={t.id === teamFilter}>{t.name}</option>
               ))}
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700">Status</label>
+            <select name="status" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer transition-colors">
+              <option value="">Semua Status</option>
+              <option value="active" selected={statusFilter === 'active'}>Aktif</option>
+              <option value="inactive" selected={statusFilter === 'inactive'}>Nonaktif</option>
+              <option value="invited" selected={statusFilter === 'invited'}>Undangan Menunggu</option>
             </select>
           </div>
         </div>
@@ -338,46 +343,5 @@ if (teamFilter) {
       if (!window.confirm('Batalkan undangan ini? Link undangan lama tidak akan dapat digunakan lagi.')) event.preventDefault();
     }));
 
-    const tabMembers = document.getElementById('tab-members');
-    const tabInvites = document.getElementById('tab-invites');
-    
-    const activeClass = "rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white";
-    const inactiveClass = "rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:text-indigo-700";
-
-    const filterRows = (type: string) => {
-      document.querySelectorAll('#merged-table-body tr[data-type]').forEach((row) => {
-        if (row.getAttribute('data-type') === type) {
-          row.classList.remove('hidden');
-        } else {
-          row.classList.add('hidden');
-        }
-      });
-      // Handle empty state gracefully
-      const emptyRow = document.querySelector('#merged-table-body tr[data-empty-row]');
-      const visibleRows = document.querySelectorAll(`#merged-table-body tr[data-type="${type}"]`);
-      if (emptyRow) {
-        if (visibleRows.length === 0) {
-          emptyRow.classList.remove('hidden');
-        } else {
-          emptyRow.classList.add('hidden');
-        }
-      }
-    };
-
-    tabMembers?.addEventListener('click', () => {
-      tabMembers.className = activeClass;
-      tabMembers.setAttribute('aria-selected', 'true');
-      if(tabInvites) tabInvites.className = inactiveClass;
-      tabInvites?.setAttribute('aria-selected', 'false');
-      filterRows('member');
-    });
-
-    tabInvites?.addEventListener('click', () => {
-      tabInvites.className = activeClass;
-      tabInvites.setAttribute('aria-selected', 'true');
-      if(tabMembers) tabMembers.className = inactiveClass;
-      tabMembers?.setAttribute('aria-selected', 'false');
-      filterRows('invite');
-    });
   </script>
 </AppLayout>

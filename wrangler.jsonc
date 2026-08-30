@@ -11,6 +11,7 @@
 	"vars": {
 		"PUBLIC_APP_URL": "http://localhost:4321",
 		"PUBLIC_TURNSTILE_SITE_KEY": "",
+		"TURNSTILE_HOSTNAMES": "localhost,127.0.0.1",
 		"GOOGLE_CLIENT_ID": "",
 		"AUTH_EMAIL_FROM": "ValueLoop <no-reply@valueloop.local>",
 		"SMTP_HOST": "",

@@ -33,25 +33,16 @@ const bootstrapReady = runtime?.env?.DB ? await hasAnyUsers(runtime.env.DB) : tr
     </div>
   )}
 
-  <main class="relative z-10 overflow-hidden">
+  <main class="public-main relative z-10 overflow-hidden">
     <!-- Hero Section -->
-    <section class="pt-20 pb-24 md:pt-28 md:pb-32">
+    <section class="public-hero pt-20 pb-24 md:pt-28 md:pb-32">
       <div class="mx-auto w-full max-w-7xl px-6 flex flex-col items-center text-center">
         
-        <!-- Live Status Pill with Emil's subtle pulse -->
-        <div class="inline-flex items-center gap-2.5 rounded-full border border-slate-200 bg-white backdrop-blur-md px-4 py-1.5 text-[13px] font-semibold tracking-wide text-slate-600 mb-8 shadow-sm hero-animate">
-          <span class="relative flex h-2 w-2">
-            <span class="pulse-live absolute inline-flex h-full w-full rounded-full bg-indigo-600 opacity-70"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
-          </span>
-          <span class="text-slate-900">ValueLoop</span> SaaS Budaya Kerja
-        </div>
-        
-        <h1 class="max-w-4xl text-[40px] leading-[1.1] sm:text-6xl md:text-7xl font-bold tracking-[-0.02em] text-slate-900 hero-animate-delay-1">
+        <h1 class="public-title max-w-4xl text-[40px] leading-[1.1] sm:text-6xl md:text-7xl font-bold hero-animate-delay-1">
           Dari hiasan tembok <br />ke <span class="text-indigo-600">kebiasaan nyata.</span>
         </h1>
         
-        <p class="mt-6 max-w-2xl text-[17px] sm:text-[19px] leading-[1.6] text-slate-600 hero-animate-delay-2 font-medium">
+        <p class="public-lead mt-6 max-w-2xl text-[17px] sm:text-[19px] leading-[1.6] hero-animate-delay-2 font-medium">
           SOP tak lagi tersimpan di laci. Bawa nilai luhur perusahaan ke keseharian tim Anda lewat refleksi, kompetisi, dan leaderboard yang terus berputar di ingatan.
         </p>
         
@@ -66,7 +57,7 @@ const bootstrapReady = runtime?.env?.DB ? await hasAnyUsers(runtime.env.DB) : tr
           </a>
         </div>
 
-        <!-- Interactive Product Preview Mockup -->
+        <!-- Interactive Preview Mockup -->
         <div id="demo-preview" class="mt-16 w-full max-w-4xl hero-animate-delay-4">
           <div class="relative rounded-3xl border border-slate-200/80 bg-white/75 p-3 sm:p-5 shadow-2xl backdrop-blur-xl transition-all">
             <div class="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8 text-left shadow-sm">
@@ -104,6 +95,10 @@ const bootstrapReady = runtime?.env?.DB ? await hasAnyUsers(runtime.env.DB) : tr
             </div>
           </div>
         </div>
+
+        <a href="/preview" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:text-indigo-900 transition-colors">
+          Jelajahi preview <span aria-hidden="true">→</span>
+        </a>
 
       </div>
     </section>
@@ -231,50 +226,95 @@ const bootstrapReady = runtime?.env?.DB ? await hasAnyUsers(runtime.env.DB) : tr
             <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Pertanyaan AI Kontekstual</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Pertanyaan dirancang relevan dengan skenario kerja nyata, bukan hafalan teori.</p>
+            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Core values yang benar-benar milik tim</h3>
+            <p class="text-[#64748B] text-[15px] leading-relaxed">Definisikan value dan perilaku yang relevan dengan cara kerja organisasi Anda.</p>
           </div>
 
           <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-2">
             <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Sesi Challenge Terstruktur</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Rotasi pemilihan member dan value yang adil tanpa bias.</p>
+            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Challenge harian yang kontekstual</h3>
+            <p class="text-[#64748B] text-[15px] leading-relaxed">Ubah value menjadi pertanyaan praktis untuk refleksi, bukan sekadar hafalan.</p>
           </div>
 
           <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-3">
             <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Leaderboard & Rekam Jejak</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Apresiasi staff yang paling konsisten menghidupkan core values perusahaan.</p>
+            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Scoring berbasis contoh nyata</h3>
+            <p class="text-[#64748B] text-[15px] leading-relaxed">Beri skor 0–10 dengan konteks yang jelas agar feedback terasa adil dan berguna.</p>
           </div>
 
           <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-4">
             <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Multi-tenant & Aman</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Data setiap organisasi terisolasi penuh dengan proteksi otentikasi ketat.</p>
+            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Leaderboard yang membangun momentum</h3>
+            <p class="text-[#64748B] text-[15px] leading-relaxed">Lihat konsistensi partisipasi dan beri apresiasi dengan cara yang sehat.</p>
           </div>
 
           <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-5">
             <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Meeting Room Ready</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Tampilan sesi challenge dirancang jelas untuk diproyeksikan di layar rapat tim.</p>
+            <h3 class="text-xl font-bold text-[#0F172A] mb-2">History untuk melihat perkembangan</h3>
+            <p class="text-[#64748B] text-[15px] leading-relaxed">Simpan perjalanan challenge agar percakapan budaya tidak hilang setelah meeting.</p>
           </div>
 
           <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-6">
             <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2h3a2 2 0 002-2zm0 0V9a2 2 0 012-2h3a2 2 0 012 2v10m-6 0a2 2 0 002 2h3a2 2 0 002-2m0 0V5a2 2 0 012-2h3a2 2 0 012 2v14a2 2 0 01-2 2h-3a2 2 0 01-2-2z"></path></svg>
             </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Insight Perkembangan Tim</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Metrik dan grafik evaluasi tingkat pemahaman nilai di tiap divisi.</p>
+            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Insights untuk keputusan yang lebih baik</h3>
+            <p class="text-[#64748B] text-[15px] leading-relaxed">Temukan value yang sudah kuat dan area yang perlu dibicarakan lebih sering.</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Preview -->
+    <section id="product-preview" class="py-24 bg-white border-t border-slate-100">
+      <div class="mx-auto w-full max-w-7xl px-6">
+        <div class="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 lg:gap-20 items-center">
+          <div class="reveal-left">
+            <span class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-3 block">Preview</span>
+            <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">Satu ruang untuk menggerakkan budaya kerja.</h2>
+            <p class="mt-5 text-base sm:text-lg leading-relaxed text-slate-600">Mulai dari pertanyaan harian hingga insight perkembangan tim—semua tersaji dalam alur yang ringan dan mudah dipahami.</p>
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="/preview" class="btn-interactive inline-flex items-center rounded-full bg-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700">Lihat preview lengkap</a>
+              <a href="/fitur" class="btn-interactive inline-flex items-center rounded-full border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700">Pelajari fitur</a>
+            </div>
+          </div>
+          <div class="reveal-right rounded-3xl border border-slate-200 bg-slate-50 p-3 sm:p-5 shadow-xl">
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span><span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span></div>
+                <span class="text-xs font-semibold text-slate-400">Workspace / Dashboard</span>
+              </div>
+              <div class="grid sm:grid-cols-[150px_1fr]">
+                <aside class="hidden sm:block border-r border-slate-100 bg-slate-50 p-4"><div class="mb-7 text-sm font-bold text-slate-900">ValueLoop</div><div class="space-y-3 text-xs text-slate-400"><div class="rounded-lg bg-indigo-50 px-3 py-2 font-semibold text-indigo-700">Dashboard</div><div class="px-3">Challenge</div><div class="px-3">Leaderboard</div><div class="px-3">Insights</div></div></aside>
+                <div class="p-5 sm:p-7"><div class="flex items-end justify-between"><div><p class="text-xs font-semibold text-slate-400">SELAMAT PAGI, RIAN</p><h3 class="mt-1 text-xl font-bold text-slate-900">Bagaimana kabar value tim?</h3></div><span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Minggu ke-12</span></div><div class="mt-6 grid grid-cols-2 gap-3"><div class="rounded-xl bg-indigo-50 p-4"><p class="text-xs text-indigo-600">Partisipasi</p><p class="mt-2 text-2xl font-bold text-indigo-900">86%</p></div><div class="rounded-xl bg-emerald-50 p-4"><p class="text-xs text-emerald-700">Skor rata-rata</p><p class="mt-2 text-2xl font-bold text-emerald-900">8,4</p></div></div><div class="mt-4 rounded-xl border border-slate-100 p-4"><div class="flex items-center justify-between text-xs"><span class="font-semibold text-slate-700">Progress challenge minggu ini</span><span class="font-bold text-indigo-600">4/5</span></div><div class="mt-3 h-2 rounded-full bg-slate-100"><div class="h-2 w-4/5 rounded-full bg-indigo-600"></div></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-24 bg-slate-50 border-t border-slate-100">
+      <div class="mx-auto w-full max-w-4xl px-6">
+        <div class="text-center reveal"><span class="text-xs font-bold uppercase tracking-widest text-indigo-600">Pertanyaan umum</span><h2 class="mt-3 text-3xl sm:text-4xl font-bold text-slate-900">Mulai dengan pemahaman yang jelas.</h2><p class="mt-4 text-slate-600">Hal-hal yang biasanya ingin diketahui tim sebelum mulai.</p></div>
+        <div class="mt-12 space-y-3 reveal">
+          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Bagaimana cara kerja ValueLoop?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Organisasi membuat core values dan pertanyaan, lalu tim menjalankan challenge secara berkala. Jawaban dapat diberi skor manual untuk membentuk leaderboard dan insight.</p></details>
+          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Berapa lama setup organisasi?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Setup awal dirancang singkat: masukkan profil organisasi, definisikan value, dan undang anggota. Setelah itu pertanyaan bisa terus disempurnakan sesuai ritme tim.</p></details>
+          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Apa peran member, facilitator, dan admin?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Member menjawab challenge, facilitator menjalankan sesi dan memberi skor, sedangkan admin mengelola anggota, value, pertanyaan, serta laporan organisasi.</p></details>
+          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Bagaimana scoring dilakukan?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Scoring dilakukan oleh facilitator atau admin menggunakan skala 0–10 berdasarkan kejelasan, relevansi, dan contoh nyata dalam jawaban.</p></details>
+          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Apakah data organisasi aman?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Setiap organisasi memiliki konteks dan data yang terisolasi. Akses juga dibatasi berdasarkan autentikasi dan role yang dimiliki pengguna.</p></details>
+          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Apakah ValueLoop cocok untuk tim kecil?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Ya. ValueLoop dapat dimulai dari ritual sederhana untuk beberapa orang dan berkembang ketika organisasi siap menambah value, pertanyaan, atau tim.</p></details>
+        </div>
+        <div class="mt-10 text-center"><a href="/bantuan" class="font-semibold text-indigo-700 hover:text-indigo-900">Lihat pusat bantuan <span aria-hidden="true">→</span></a></div>
       </div>
     </section>
 

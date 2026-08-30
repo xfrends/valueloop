@@ -20,6 +20,7 @@ export type CloudflareBindings = {
   SESSION_SECRET?: string;
   AI_GENERATION_TIMEOUT_MS?: string;
   TURNSTILE_SECRET_KEY?: string;
+  TURNSTILE_HOSTNAMES?: string;
   ORGANIZATION_REALTIME: DurableObjectNamespace<import('../lib/notifications/realtime').OrganizationRealtime>;
 };
 
