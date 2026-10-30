@@ -45,22 +45,25 @@ Jawaban bagus bukan yang panjang, tapi yang jelas dan bisa diterapkan.
 
 ## 6.3 Design Tokens
 
+Visual direction: monochrome ink on white and warm paper, oversized display headings with tight tracking, pill-shaped actions, flat cards with hairline borders, and dark grain surfaces for hero/footer moments.
+
 ```css
 :root {
-  --vl-background: #F6F8FB;
+  --vl-background: #F9F9F9;
   --vl-surface: #FFFFFF;
-  --vl-surface-soft: #EEF4FF;
+  --vl-surface-soft: #F4F5F0; /* warm paper */
 
-  --vl-primary: #4F46E5;
-  --vl-primary-hover: #4338CA;
-  --vl-primary-soft: #E0E7FF;
+  --vl-primary: #111111;      /* ink */
+  --vl-primary-hover: #000000;
+  --vl-primary-soft: #F4F5F0;
 
-  --vl-secondary: #0F172A;
+  --vl-secondary: #111111;
   --vl-accent: #10B981;
 
-  --vl-text: #0F172A;
-  --vl-text-muted: #64748B;
-  --vl-border: #DCE4F0;
+  --vl-text: #111111;
+  --vl-text-muted: #666666;
+  --vl-text-subtle: #999999;
+  --vl-border: #E5E5E5;
 
   --vl-success: #10B981;
   --vl-warning: #F59E0B;
@@ -68,6 +71,13 @@ Jawaban bagus bukan yang panjang, tapi yang jelas dan bisa diterapkan.
   --vl-info: #0284C7;
 }
 ```
+
+Implementation notes (`src/styles/global.css`):
+
+- Tailwind `slate-*` is remapped to the neutral scale above and `indigo-*` to the ink accent, so existing utility classes inherit the system.
+- Font weights are lightened (`semibold` 550, `bold`/`extrabold` 600); hierarchy comes from size and tracking.
+- Primary actions (`bg-indigo-600`, `bg-slate-900` links/buttons) render as pills.
+- `.grain` adds film-grain texture to dark surfaces.
 
 ## 6.4 Dynamic Core Value Colors
 
@@ -99,8 +109,11 @@ export const DEFAULT_VALUE_PALETTE = [
 
 Recommended:
 
-- Inter
+- Geist (Google Fonts) for UI and display
+- Geist Mono for kicker labels and metadata
 - System UI fallback
+
+Display headings use `font-medium` (or `font-normal` for hero), `tracking-tighter`, and tight leading (`0.9`–`1.05`).
 
 Type scale:
 
@@ -179,7 +192,7 @@ Background: white
 Border: 1px solid var(--vl-border)
 Radius: 16px
 Padding: 24px
-Shadow: subtle
+Shadow: none or very soft; rely on the hairline border
 ```
 
 ### Badge

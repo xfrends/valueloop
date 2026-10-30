@@ -197,28 +197,28 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
     <title>{title}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      body { font-family: 'Inter', sans-serif; }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   </head>
-  <body class="min-h-screen bg-slate-50 text-slate-900 flex antialiased">
+  <body class="min-h-screen bg-white text-[#111] font-sans flex antialiased">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 z-10 transition-transform">
-      <div class="h-16 flex items-center px-6 border-b border-slate-200">
+    <aside class="w-64 bg-[#F9F9F9] border-r border-[#E5E5E5] flex flex-col fixed inset-y-0 z-10 transition-transform">
+      <div class="h-16 flex items-center px-6">
         <a href="/" class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded bg-slate-900 border border-slate-700 flex items-center justify-center text-white font-bold text-sm shadow-sm transition-transform group-active:scale-95">
-            V
-          </div>
-          <span class="text-xl font-bold tracking-tight text-slate-900">ValueLoop</span>
+          <svg class="h-6 w-6 text-[#111]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.25" stroke="currentColor" stroke-width="1.5" />
+            <path d="M7.5 8.5 12 16l4.5-7.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="text-lg font-medium tracking-tight text-[#111]">ValueLoop</span>
         </a>
       </div>
 
       <div class="flex flex-1 flex-col overflow-y-auto px-4 py-5">
         {menuSections.map((section, sectionIndex) => (
           <section class={sectionIndex > 0 ? 'mt-5' : ''} aria-labelledby={`sidebar-${section.name.toLowerCase()}`}>
-            <h2 id={`sidebar-${section.name.toLowerCase()}`} class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            <h2 id={`sidebar-${section.name.toLowerCase()}`} class="mb-2 px-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[#999]">
               {section.name}
             </h2>
             <div class="flex flex-col gap-1">
@@ -228,14 +228,14 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
                   <a
                     href={item.path}
                     aria-current={isActive ? 'page' : undefined}
-                    class={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    class={`flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-indigo-50 text-indigo-800'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        ? 'bg-[#111] text-white'
+                        : 'text-[#666] hover:bg-black/[0.04] hover:text-[#111]'
                     }`}
                   >
-                    <svg class={`h-5 w-5 ${isActive ? 'text-indigo-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon}></path>
+                    <svg class={`h-5 w-5 ${isActive ? 'text-white' : 'text-[#999]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d={item.icon}></path>
                     </svg>
                     {item.name}
                   </a>
@@ -245,21 +245,21 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
           </section>
         ))}
         {platformItems.length > 0 && (
-          <div class="mb-2 mt-5 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Platform</div>
+          <div class="mb-2 mt-5 px-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[#999]">Platform</div>
         )}
         {platformItems.map((item) => {
           const isActive = isActivePath(item.path);
           return (
             <a
               href={item.path}
-              class={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              class={`flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-indigo-50 text-indigo-800'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-[#111] text-white'
+                  : 'text-[#666] hover:bg-black/[0.04] hover:text-[#111]'
               }`}
             >
-              <svg class={`w-5 h-5 ${isActive ? 'text-indigo-700' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon}></path>
+              <svg class={`w-5 h-5 ${isActive ? 'text-white' : 'text-[#999]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d={item.icon}></path>
               </svg>
               {item.name}
             </a>
@@ -267,7 +267,7 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
         })}
       </div>
 
-      <div class="p-4 border-t border-slate-200 lg:hidden">
+      <div class="p-4 border-t border-[#E5E5E5] lg:hidden">
         <div class="flex items-center gap-3 px-2 py-2">
           <div class="w-9 h-9 rounded-full bg-slate-200 flex flex-shrink-0 items-center justify-center text-slate-600 font-medium">
             {(user?.full_name || 'U').slice(0, 2).toUpperCase()}
@@ -283,7 +283,7 @@ const isActivePath = (path: string) => currentPath === path || (path !== '/setti
     <!-- Main Content -->
     <main class="flex-1 ml-64 flex flex-col min-h-screen">
       <!-- Top Header -->
-      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 flex items-center justify-end px-8">
+      <header class="h-16 bg-white/85 backdrop-blur-md border-b border-[#E5E5E5] sticky top-0 z-20 flex items-center justify-end px-8">
         <div class="flex items-center gap-3">
           <div id="notification-widget" class="relative">
             <button

@@ -7,381 +7,545 @@ import { hasAnyUsers } from '../lib/services/bootstrap';
 
 const runtime = getCloudflareRuntime(Astro);
 const bootstrapReady = runtime?.env?.DB ? await hasAnyUsers(runtime.env.DB) : true;
+
+const problems = [
+  { title: 'Poster di dinding', body: 'Dibaca sekali saat dipasang, lalu jadi bagian dari interior kantor.' },
+  { title: 'PDF onboarding', body: 'Rapi dan lengkap, tapi jarang dibuka lagi setelah minggu pertama.' },
+  { title: 'Ritual ValueLoop', body: 'Satu pertanyaan, satu cerita nyata, satu skor. Diulang setiap hari.' },
+];
+
+const features = [
+  { title: 'Pertanyaan harian.', body: 'Setiap value punya bank pertanyaan praktis. Randomizer memilih member, value, dan pertanyaan aktif.' },
+  { title: 'Skor yang adil.', body: 'Facilitator menilai 0–10 berdasarkan kejelasan, relevansi, dan contoh nyata.' },
+  { title: 'Leaderboard sehat.', body: 'Total poin, rata-rata, dan konsistensi partisipasi dalam satu papan.' },
+  { title: 'Core values milik tim.', body: 'Tidak terpaku pada 5 value. Tambah, ubah warna, dan nonaktifkan sesuai budaya Anda.' },
+  { title: 'History lengkap.', body: 'Setiap challenge tersimpan, lengkap dengan jawaban dan skornya.' },
+  { title: 'Insights per value.', body: 'Lihat value yang sudah kuat dan area yang perlu lebih sering dibicarakan.' },
+];
+
+const engineTabs = [
+  { key: 'siapkan', label: 'Siapkan', title: 'Definisikan value yang benar-benar dipakai', body: 'Tulis core values, perilaku yang diharapkan, dan pertanyaan refleksi. Mulai dari template opsional atau dari nol.', cta: 'Mulai setup', href: '/signup' },
+  { key: 'challenge', label: 'Challenge', title: 'Satu pertanyaan, setiap hari', body: 'Randomizer memilih member, value, dan pertanyaan aktif. Hasilnya tersimpan, tidak berubah karena refresh.', cta: 'Lihat challenge', href: '/preview' },
+  { key: 'nilai', label: 'Nilai', title: 'Skor berbasis contoh nyata', body: 'Facilitator memberi skor 0–10 setelah member menjawab. Sesi yang sudah dinilai terkunci dari reroll.', cta: 'Pelajari scoring', href: '/fitur' },
+  { key: 'tumbuh', label: 'Tumbuh', title: 'Kebiasaan yang terlihat', body: 'Leaderboard, history, dan insights menunjukkan value mana yang hidup dan mana yang perlu didorong.', cta: 'Lihat insights', href: '/preview' },
+];
+
+const roles = [
+  { name: 'Startup', body: 'Budaya terbentuk paling cepat di tahun-tahun awal. ValueLoop membantu founder menanamkan value sejak tim masih kecil, tanpa proses HR yang berat.' },
+  { name: 'Tim HR & People', body: 'Ubah program culture dari acara tahunan menjadi ritual harian yang terukur, lengkap dengan history dan insights per value.' },
+  { name: 'Agensi', body: 'Jaga standar kerja lintas klien dan tim proyek lewat pertanyaan yang relevan dengan cara kerja agensi Anda.' },
+  { name: 'Tim Operasional', body: 'Bawa value seperti keselamatan, ketelitian, dan pelayanan ke briefing pagi, dalam lima menit saja.' },
+  { name: 'Founder', body: 'Dengar langsung bagaimana tim menerjemahkan value Anda ke pekerjaan sehari-hari.' },
+  { name: 'Perusahaan Retail', body: 'Satukan standar pelayanan di banyak cabang dengan challenge yang sama dan leaderboard per tim.' },
+];
+
+const faqs = [
+  { q: 'Bagaimana cara kerja ValueLoop?', a: 'Organisasi membuat core values dan pertanyaan, lalu tim menjalankan challenge secara berkala. Jawaban diberi skor manual untuk membentuk leaderboard dan insight.' },
+  { q: 'Berapa lama setup organisasi?', a: 'Setup awal dirancang singkat: masukkan profil organisasi, definisikan value, dan undang anggota. Setelah itu pertanyaan bisa terus disempurnakan sesuai ritme tim.' },
+  { q: 'Apa peran member, facilitator, dan admin?', a: 'Member menjawab challenge, facilitator menjalankan sesi dan memberi skor, sedangkan admin mengelola anggota, value, pertanyaan, serta laporan organisasi.' },
+  { q: 'Bagaimana scoring dilakukan?', a: 'Scoring dilakukan oleh facilitator atau admin menggunakan skala 0–10 berdasarkan kejelasan, relevansi, dan contoh nyata dalam jawaban.' },
+  { q: 'Apakah data organisasi aman?', a: 'Setiap organisasi memiliki konteks dan data yang terisolasi. Akses juga dibatasi berdasarkan autentikasi dan role yang dimiliki pengguna.' },
+  { q: 'Apakah ValueLoop cocok untuk tim kecil?', a: 'Ya. ValueLoop dapat dimulai dari ritual sederhana untuk beberapa orang dan berkembang ketika organisasi siap menambah value, pertanyaan, atau tim.' },
+];
+
+const heroIcons = [
+  { title: 'Challenge', tone: 'text-[#111]', path: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { title: 'Skor', tone: 'text-emerald-600', path: 'M5 13l4 4L19 7' },
+  { title: 'Leaderboard', tone: 'text-amber-500', path: 'M8 21h8m-4-4v4m-5-17h10v5a5 5 0 0 1-10 0V4Zm10 2h3a3 3 0 0 1-3 3M7 6H4a3 3 0 0 0 3 3' },
+  { title: 'Insights', tone: 'text-sky-600', path: 'M4 19h16M7 15v-4m5 4V7m5 8v-6' },
+];
 ---
 
 <BaseLayout
   title="ValueLoop - Ubah Core Value Menjadi Kebiasaan Tim Setiap Hari"
-  description="Platform SaaS untuk menghidupkan core value perusahaan lewat daily reflection challenge, scoring berbasis contoh nyata, leaderboard, dan insight otomatis."
+  description="Platform SaaS untuk menghidupkan core value perusahaan lewat daily reflection challenge, scoring berbasis contoh nyata, leaderboard, dan insight."
 >
-  <!-- Mark js-ready synchronously before first paint to prevent layout flashes -->
   <script is:inline>document.documentElement.classList.add('js-ready');</script>
 
-  <!-- Ambient background glow layers (GPU-accelerated, zero continuous layout recalculation) -->
-  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-    <div class="absolute inset-0 bg-white [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] z-0"></div>
-  </div>
+  <PublicHeader variant="dark" />
 
-  <PublicHeader />
+  <main class="bg-white">
+    <!-- 1. Hero: hazy sky, centered display type, glass question bar, app rising out of the hills -->
+    <section class="hero-sky relative overflow-hidden text-white">
+      <div aria-hidden="true" class="hero-sky-clouds pointer-events-none absolute inset-0"></div>
 
-  {!bootstrapReady && (
-    <div class="mx-auto w-full max-w-7xl px-6 relative z-10 my-4">
-      <div class="rounded-2xl border border-amber-200 bg-amber-50/90 backdrop-blur-md px-5 py-3.5 text-sm text-amber-900 shadow-sm flex items-center gap-3">
-        <span class="flex h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0"></span>
-        <p>Instalasi baru terdeteksi. Jalankan <code class="font-semibold px-1.5 py-0.5 rounded bg-amber-100/80">npm run setup</code> di terminal untuk inisialisasi user root & organisasi pertama.</p>
-      </div>
-    </div>
-  )}
+      {!bootstrapReady && (
+        <div class="relative mx-auto mt-24 w-full max-w-3xl px-6">
+          <div class="flex items-center gap-3 rounded-full border border-white/30 bg-white/15 px-5 py-3 text-sm text-white backdrop-blur-md">
+            <span class="flex h-2 w-2 shrink-0 rounded-full bg-amber-300"></span>
+            <p>Instalasi baru terdeteksi. Jalankan <code class="rounded bg-white/20 px-1.5 py-0.5 font-mono">npm run setup</code> di terminal untuk inisialisasi user root & organisasi pertama.</p>
+          </div>
+        </div>
+      )}
 
-  <main class="public-main relative z-10 overflow-hidden">
-    <!-- Hero Section -->
-    <section class="public-hero pt-20 pb-24 md:pt-28 md:pb-32">
-      <div class="mx-auto w-full max-w-7xl px-6 flex flex-col items-center text-center">
-        
-        <h1 class="public-title max-w-4xl text-[40px] leading-[1.1] sm:text-6xl md:text-7xl font-bold hero-animate-delay-1">
-          Dari hiasan tembok <br />ke <span class="text-indigo-600">kebiasaan nyata.</span>
+      <div class="relative mx-auto flex w-full max-w-7xl flex-col items-center px-6 pt-36 text-center sm:pt-40">
+        <h1 class="hero-animate-delay-1 text-[3.25rem] font-normal leading-[0.9] tracking-[-0.05em] sm:text-[4.5rem] md:text-[6rem] lg:text-[7.5rem]">
+          Value hidup.<br />Setiap hari.
         </h1>
-        
-        <p class="public-lead mt-6 max-w-2xl text-[17px] sm:text-[19px] leading-[1.6] hero-animate-delay-2 font-medium">
-          SOP tak lagi tersimpan di laci. Bawa nilai luhur perusahaan ke keseharian tim Anda lewat refleksi, kompetisi, dan leaderboard yang terus berputar di ingatan.
+
+        <form action="/signup" method="get" class="hero-animate-delay-2 mt-10 flex h-16 w-full max-w-[660px] items-center rounded-full border border-white/25 bg-white/15 pl-6 pr-2 backdrop-blur-md">
+          <label for="hero-question" class="sr-only">Contoh pertanyaan challenge</label>
+          <input id="hero-question" type="text" readonly tabindex="-1" class="min-w-0 flex-1 cursor-default bg-transparent text-left text-base text-white/85 outline-none placeholder:text-white/85" placeholder="Ceritakan momen kamu menolong customer|" />
+          <button type="submit" aria-label="Mulai sekarang" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-105">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"></path></svg>
+          </button>
+        </form>
+
+        <p class="hero-animate-delay-3 mt-10 max-w-2xl text-xl leading-snug text-white/85 sm:text-2xl">
+          Ubah core values jadi kebiasaan kerja nyata
+          <span class="whitespace-nowrap">– lewat
+            <span class="inline-flex translate-y-1 items-center -space-x-1 align-baseline">
+              {heroIcons.map((icon) => (
+                <span class={`flex h-8 w-8 items-center justify-center rounded-full bg-white ring-2 ring-white/40 ${icon.tone}`} title={icon.title}>
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icon.path} /></svg>
+                </span>
+              ))}
+            </span>
+          </span>
         </p>
-        
-        <!-- Action buttons with tactile scale & shimmer -->
-        <div class="mt-10 flex flex-wrap justify-center gap-4 hero-animate-delay-3">
-          <a class="btn-shimmer btn-interactive inline-flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 font-semibold text-white shadow-xl shadow-slate-900/10 hover:bg-slate-800" href="/signup">
-            Mulai Transformasi
-            <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-          </a>
-          <a class="btn-interactive inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-8 py-3.5 font-semibold text-slate-900 shadow-sm hover:border-slate-300 hover:bg-slate-50" href="#how-it-works">
-            Lihat Cara Kerja
+
+        <div class="hero-animate-delay-3 mt-10 flex flex-wrap justify-center gap-3">
+          <a class="btn-interactive inline-flex h-11 items-center rounded-full bg-white px-6 text-sm font-medium text-black transition-colors hover:bg-white/90" href="/signup">Mulai Gratis</a>
+          <a class="btn-interactive inline-flex h-11 items-center gap-2 rounded-full bg-white pl-5 pr-6 text-sm font-medium text-black transition-colors hover:bg-white/85" href="/preview">
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></svg>
+            Lihat preview
           </a>
         </div>
 
-        <!-- Interactive Preview Mockup -->
-        <div id="demo-preview" class="mt-16 w-full max-w-4xl hero-animate-delay-4">
-          <div class="relative rounded-3xl border border-slate-200/80 bg-white/75 p-3 sm:p-5 shadow-2xl backdrop-blur-xl transition-all">
-            <div class="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8 text-left shadow-sm">
-              <div class="flex items-center justify-between border-b border-slate-100 pb-5 mb-6 flex-wrap gap-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full bg-rose-400"></div>
-                  <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-                  <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
-                  <span class="text-xs font-mono text-slate-400 ml-2">Daily Core Value Challenge</span>
-                </div>
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-100">
-                  <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
-                  Value: Customer Obsession
-                </div>
-              </div>
-
-              <div class="space-y-4">
-                <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-100">
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Pertanyaan AI Hari Ini</p>
-                  <p class="text-base sm:text-lg font-semibold text-slate-900">
-                    "Ceritakan 1 momen minggu ini di mana kamu mengambil inisiatif ekstra untuk menyelesaikan kendala customer tanpa diminta!"
-                  </p>
-                </div>
-
-                <div class="p-4 rounded-xl bg-indigo-50/40 border border-indigo-100/60">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold text-indigo-900">Jawaban Tim Member (Rian - Support)</span>
-                    <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">Skor: 9/10 (Sangat Baik)</span>
-                  </div>
-                  <p class="text-sm sm:text-base text-slate-700 leading-relaxed italic">
-                    "Kemarin ada user mengalami kendala integrasi API saat deploy malam. Saya buatkan video walkthrough 3 menit dan snippet kustom langsung agar problem tuntas sebelum launch mereka."
-                  </p>
-                </div>
-              </div>
+        <div class="hero-animate-delay-4 relative mt-16 w-full max-w-[1024px] sm:mt-20">
+          <div class="overflow-hidden rounded-t-2xl border border-b-0 border-white/10 bg-[#0e0e0e] text-left shadow-[0_-10px_60px_rgb(0_0_0_/_0.2)]">
+            <div class="flex items-center gap-3 border-b border-white/5 px-4 py-3">
+              <div class="flex gap-1.5"><span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span></div>
+              <div class="mx-auto hidden w-1/2 rounded-md bg-white/5 py-1 text-center text-xs text-white/70 sm:block">app.valueloop.id</div>
             </div>
-          </div>
-        </div>
-
-        <a href="/preview" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:text-indigo-900 transition-colors">
-          Jelajahi preview <span aria-hidden="true">→</span>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- Masalah yang Diselesaikan -->
-    <section class="py-24 bg-white border-t border-slate-100">
-      <div class="mx-auto w-full max-w-7xl px-6">
-        <div class="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div class="reveal-left">
-            <span class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-3 block">Problem vs Solution</span>
-            <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-6 leading-tight">
-              Value perusahaan sering berujung jadi hiasan tembok. ValueLoop mengubahnya jadi rutinitas.
-            </h2>
-            <p class="text-base sm:text-lg text-slate-600 mb-6 leading-relaxed">
-              Banyak organisasi kesulitan menanamkan value karena hanya dibaca saat onboarding. SOP seringkali hanya berupa PDF tebal yang tersimpan di laci.
-            </p>
-            <ul class="space-y-4">
-              <li class="flex items-start gap-3.5 reveal stagger-1">
-                <div class="mt-1 w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-100">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+            <div class="grid h-[340px] grid-cols-1 sm:h-[420px] sm:grid-cols-[180px_1fr]">
+              <aside class="hidden border-r border-white/5 bg-[#131314] p-3 sm:block">
+                <div class="mb-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-white/90"><span class="flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] font-semibold text-white">A</span>Acme Studio</div>
+                <div class="space-y-0.5 text-xs text-white/50">
+                  <div class="rounded-md bg-white/10 px-2 py-1.5 text-white">Dashboard</div>
+                  <div class="px-2 py-1.5">Daily Challenge</div>
+                  <div class="px-2 py-1.5">Leaderboard</div>
+                  <div class="px-2 py-1.5">History</div>
+                  <div class="px-2 py-1.5">Insights</div>
                 </div>
-                <span class="text-slate-700 font-medium">Ubah PDF statis menjadi sesi interaksi harian</span>
-              </li>
-              <li class="flex items-start gap-3.5 reveal stagger-2">
-                <div class="mt-1 w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-100">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                <p class="mt-5 px-2 text-[10px] uppercase tracking-wider text-white/30">Terbaru</p>
+                <div class="mt-1 space-y-2 px-2 text-[11px] text-white/70">
+                  <p>Rian · Ownership<br /><span class="text-emerald-400/80">● Dinilai 9/10</span></p>
+                  <p>Sari · Customer Obsession<br /><span class="text-amber-300/80">● Menunggu skor</span></p>
+                  <p>Dimas · Integritas<br /><span class="text-emerald-400/80">● Dinilai 8/10</span></p>
                 </div>
-                <span class="text-slate-700 font-medium">Beri skor untuk setiap implementasi value dengan AI & manual review</span>
-              </li>
-              <li class="flex items-start gap-3.5 reveal stagger-3">
-                <div class="mt-1 w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-100">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+              </aside>
+              <div class="p-5 sm:p-8">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">A</span>
+                    <div><p class="text-sm font-medium text-white">Acme Studio</p><p class="text-xs text-white/50">Challenge hari ini siap dimulai</p></div>
+                  </div>
+                  <span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-black">Mulai challenge</span>
                 </div>
-                <span class="text-slate-700 font-medium">Bakar semangat tim lewat Leaderboard dan rekam jejak performa</span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="relative reveal-right">
-            <div class="interactive-card bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
-              <div class="space-y-4">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between opacity-60">
-                  <span class="text-slate-500 line-through text-sm sm:text-base font-medium">Slogan pajangan dinding</span>
-                  <span class="text-xs bg-slate-200 text-slate-600 px-2.5 py-1 rounded-md font-semibold">Pasif</span>
+                <div class="mt-6 grid grid-cols-2 rounded-xl border border-white/5 sm:grid-cols-4 sm:divide-x sm:divide-white/5">
+                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Member aktif</p><p class="mt-1 text-xl text-white">24</p><p class="text-[10px] text-white/40">5 tim</p></div>
+                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Challenge</p><p class="mt-1 text-xl text-white">38</p><p class="text-[10px] text-white/40">Bulan ini</p></div>
+                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Rata-rata</p><p class="mt-1 text-xl text-white">8,4</p><p class="text-[10px] text-white/40">Skor 0–10</p></div>
+                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Partisipasi</p><p class="mt-1 text-xl text-white">86%</p><p class="text-[10px] text-white/40">Member menjawab</p></div>
                 </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between opacity-70">
-                  <span class="text-slate-600 line-through text-sm sm:text-base font-medium">Dokumen SOP di laci meja</span>
-                  <span class="text-xs bg-slate-200 text-slate-600 px-2.5 py-1 rounded-md font-semibold">Jarang Dibaca</span>
-                </div>
-                <div class="p-5 rounded-2xl bg-white border border-indigo-600 ring-4 ring-indigo-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center justify-between">
-                  <div class="flex items-center gap-4">
-                    <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 font-bold shadow-inner">
-                      V
+                <p class="mt-6 text-sm text-white">Core values</p>
+                <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {[['Ownership', '12 pertanyaan', 'bg-emerald-500', 'w-4/5'], ['Customer Obsession', '9 pertanyaan', 'bg-sky-500', 'w-3/5'], ['Integritas', '7 pertanyaan', 'bg-amber-400', 'w-2/5']].map(([name, count, color, width]) => (
+                    <div class="rounded-lg bg-white/[0.04] p-3">
+                      <p class="text-xs text-white">{name}</p>
+                      <p class="text-[10px] text-white/40">{count}</p>
+                      <div class="mt-6 h-1 rounded-full bg-white/10"><div class={`h-1 rounded-full ${color} ${width}`}></div></div>
                     </div>
-                    <span class="text-slate-900 font-bold text-base sm:text-lg">Refleksi harian interaktif & terukur</span>
-                  </div>
-                  <span class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-full font-bold shadow-sm">Terus Berputar</span>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- Solusi 5 Langkah -->
-    <section id="how-it-works" class="py-24 bg-slate-900 text-white relative overflow-hidden">
-      <div class="mx-auto w-full max-w-7xl px-6">
-        <div class="text-center max-w-3xl mx-auto mb-16 reveal">
-          <span class="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-3 block">Alur Kerja Cerdas</span>
-          <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-            Bagaimana ValueLoop bekerja untuk organisasi Anda
-          </h2>
-          <p class="mt-4 text-slate-300 text-base sm:text-lg">
-            Cukup definisikan core values organisasi. Sistem mengotomasi proses tantangan hingga perhitungan skor.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div class="interactive-card bg-slate-800/70 border border-slate-700/80 rounded-2xl p-6 reveal stagger-1">
-            <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center mb-4 border border-indigo-400/30">1</div>
-            <h3 class="font-bold text-white text-base mb-2">Input Nilai</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">Masukkan core values dan definisi prinsip organisasi Anda.</p>
-          </div>
-
-          <div class="interactive-card bg-slate-800/70 border border-slate-700/80 rounded-2xl p-6 reveal stagger-2">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center mb-4 border border-emerald-400/30">2</div>
-            <h3 class="font-bold text-white text-base mb-2">AI Generate</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">AI menyusun studi kasus & pertanyaan refleksi kontekstual.</p>
-          </div>
-
-          <div class="interactive-card bg-slate-800/70 border border-slate-700/80 rounded-2xl p-6 reveal stagger-3">
-            <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center mb-4 border border-indigo-400/30">3</div>
-            <h3 class="font-bold text-white text-base mb-2">Daily Session</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">Member dipilih secara berkala untuk menjawab pertanyaan.</p>
-          </div>
-
-          <div class="interactive-card bg-slate-800/70 border border-slate-700/80 rounded-2xl p-6 reveal stagger-4">
-            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center mb-4 border border-amber-400/30">4</div>
-            <h3 class="font-bold text-white text-base mb-2">Scoring Realistis</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">Penilaian awal otomatis oleh AI, dengan fleksibilitas edit skor oleh reviewer (user berizin) untuk akurasi terbaik.</p>
-          </div>
-
-          <div class="interactive-card bg-slate-800/70 border border-slate-700/80 rounded-2xl p-6 reveal stagger-5">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center mb-4 border border-emerald-400/30">5</div>
-            <h3 class="font-bold text-white text-base mb-2">Insight & Ranking</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">Leaderboard terupdate & grafik perkembangan budaya kerja.</p>
-          </div>
-        </div>
+      <!-- Rolling hills + fog covering the bottom of the mockup -->
+      <div aria-hidden="true" class="pointer-events-none relative -mt-40 h-64 sm:-mt-52 sm:h-80">
+        <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" fill="none">
+          <defs>
+            <linearGradient id="hill-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9aae6c" /><stop offset="1" stop-color="#5f7a3e" /></linearGradient>
+            <linearGradient id="hill-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7f9a52" /><stop offset="1" stop-color="#4e6a33" /></linearGradient>
+            <linearGradient id="fog" x1="0" y1="0" x2="0" y2="1"><stop offset="0.35" stop-color="#F4F5F0" stop-opacity="0" /><stop offset="1" stop-color="#F4F5F0" /></linearGradient>
+          </defs>
+          <path d="M0 120 C 160 60 300 70 420 110 C 520 140 620 150 720 138 C 840 124 940 132 1060 110 C 1180 70 1300 50 1440 90 L1440 320 L0 320 Z" fill="url(#hill-a)" />
+          <path d="M0 200 C 220 130 420 140 640 190 C 860 240 1080 170 1260 150 C 1350 140 1410 150 1440 160 L1440 320 L0 320 Z" fill="url(#hill-b)" />
+          <rect width="1440" height="320" fill="url(#fog)" />
+        </svg>
       </div>
     </section>
 
-    <!-- Fitur Unggulan Grid -->
-    <section id="features" class="py-24 bg-[#F6F8FB]">
-      <div class="mx-auto w-full max-w-7xl px-6">
-        <div class="text-center max-w-3xl mx-auto mb-16 reveal">
-          <span class="text-[13px] font-bold uppercase tracking-widest text-[#1D4ED8] mb-3 block">Fitur Utama</span>
-          <h2 class="text-3xl sm:text-4xl font-bold text-[#0F172A] leading-tight">
-            Dirancang untuk kesederhanaan, fokus pada dampak nyata
-          </h2>
+    <!-- 2. Problem: centered headline + three sky cards with floating UI -->
+    <section class="bg-[#F4F5F0] px-6 pt-20 pb-16 sm:pt-24 lg:pt-28">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="mx-auto max-w-3xl text-center reveal">
+          <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">Value di dinding.<br />Di mana di tim?</h2>
+          <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Core values sering hanya dibaca saat onboarding. Kebiasaan tumbuh dari apa yang dibicarakan dan dipraktikkan setiap hari.</p>
         </div>
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-1">
-            <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Core values yang benar-benar milik tim</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Definisikan value dan perilaku yang relevan dengan cara kerja organisasi Anda.</p>
-          </div>
-
-          <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-2">
-            <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Challenge harian yang kontekstual</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Ubah value menjadi pertanyaan praktis untuk refleksi, bukan sekadar hafalan.</p>
-          </div>
-
-          <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-3">
-            <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Scoring berbasis contoh nyata</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Beri skor 0–10 dengan konteks yang jelas agar feedback terasa adil dan berguna.</p>
-          </div>
-
-          <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-4">
-            <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Leaderboard yang membangun momentum</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Lihat konsistensi partisipasi dan beri apresiasi dengan cara yang sehat.</p>
-          </div>
-
-          <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-5">
-            <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">History untuk melihat perkembangan</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Simpan perjalanan challenge agar percakapan budaya tidak hilang setelah meeting.</p>
-          </div>
-
-          <div class="card-interactive bg-white p-8 rounded-3xl border border-[#DCE4F0] shadow-sm reveal-scale stagger-6">
-            <div class="w-12 h-12 bg-[#EEF4FF] text-[#1D4ED8] rounded-2xl flex items-center justify-center mb-6 font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2h3a2 2 0 002-2zm0 0V9a2 2 0 012-2h3a2 2 0 012 2v10m-6 0a2 2 0 002 2h3a2 2 0 002-2m0 0V5a2 2 0 012-2h3a2 2 0 012 2v14a2 2 0 01-2 2h-3a2 2 0 01-2-2z"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[#0F172A] mb-2">Insights untuk keputusan yang lebih baik</h3>
-            <p class="text-[#64748B] text-[15px] leading-relaxed">Temukan value yang sudah kuat dan area yang perlu dibicarakan lebih sering.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Preview -->
-    <section id="product-preview" class="py-24 bg-white border-t border-slate-100">
-      <div class="mx-auto w-full max-w-7xl px-6">
-        <div class="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 lg:gap-20 items-center">
-          <div class="reveal-left">
-            <span class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-3 block">Preview</span>
-            <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">Satu ruang untuk menggerakkan budaya kerja.</h2>
-            <p class="mt-5 text-base sm:text-lg leading-relaxed text-slate-600">Mulai dari pertanyaan harian hingga insight perkembangan tim—semua tersaji dalam alur yang ringan dan mudah dipahami.</p>
-            <div class="mt-8 flex flex-wrap gap-3">
-              <a href="/preview" class="btn-interactive inline-flex items-center rounded-full bg-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700">Lihat preview lengkap</a>
-              <a href="/fitur" class="btn-interactive inline-flex items-center rounded-full border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700">Pelajari fitur</a>
-            </div>
-          </div>
-          <div class="reveal-right rounded-3xl border border-slate-200 bg-slate-50 p-3 sm:p-5 shadow-xl">
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span><span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span></div>
-                <span class="text-xs font-semibold text-slate-400">Workspace / Dashboard</span>
-              </div>
-              <div class="grid sm:grid-cols-[150px_1fr]">
-                <aside class="hidden sm:block border-r border-slate-100 bg-slate-50 p-4"><div class="mb-7 text-sm font-bold text-slate-900">ValueLoop</div><div class="space-y-3 text-xs text-slate-400"><div class="rounded-lg bg-indigo-50 px-3 py-2 font-semibold text-indigo-700">Dashboard</div><div class="px-3">Challenge</div><div class="px-3">Leaderboard</div><div class="px-3">Insights</div></div></aside>
-                <div class="p-5 sm:p-7"><div class="flex items-end justify-between"><div><p class="text-xs font-semibold text-slate-400">SELAMAT PAGI, RIAN</p><h3 class="mt-1 text-xl font-bold text-slate-900">Bagaimana kabar value tim?</h3></div><span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Minggu ke-12</span></div><div class="mt-6 grid grid-cols-2 gap-3"><div class="rounded-xl bg-indigo-50 p-4"><p class="text-xs text-indigo-600">Partisipasi</p><p class="mt-2 text-2xl font-bold text-indigo-900">86%</p></div><div class="rounded-xl bg-emerald-50 p-4"><p class="text-xs text-emerald-700">Skor rata-rata</p><p class="mt-2 text-2xl font-bold text-emerald-900">8,4</p></div></div><div class="mt-4 rounded-xl border border-slate-100 p-4"><div class="flex items-center justify-between text-xs"><span class="font-semibold text-slate-700">Progress challenge minggu ini</span><span class="font-bold text-indigo-600">4/5</span></div><div class="mt-3 h-2 rounded-full bg-slate-100"><div class="h-2 w-4/5 rounded-full bg-indigo-600"></div></div></div></div>
+        <div class="mt-14 grid gap-4 md:grid-cols-3">
+          <div class="reveal stagger-1">
+            <div class="sky-soft relative flex aspect-[4/3.4] items-center overflow-hidden rounded-xl p-6">
+              <div class="w-[115%] rounded-2xl bg-white p-6 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
+                <p class="font-mono text-[11px] uppercase tracking-wider text-[#999]">Lobby · Lantai 3</p>
+                <p class="mt-3 text-2xl font-medium leading-tight tracking-tight text-[#111]">"Integrity. Ownership. Customer First."</p>
+                <p class="mt-4 text-xs text-[#999]">Terakhir dibaca: saat dipasang</p>
               </div>
             </div>
+            <h3 class="mt-4 font-medium text-[#111]">{problems[0].title}</h3>
+            <p class="mt-1 max-w-sm text-[15px] text-[#999]">{problems[0].body}</p>
+          </div>
+
+          <div class="reveal stagger-2">
+            <div class="sky-soft relative flex aspect-[4/3.4] items-center overflow-hidden rounded-xl p-6">
+              <div class="w-full rounded-xl bg-white p-4 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
+                <p class="mb-2 text-xs text-[#999]">Onboarding_Handbook_v7_FINAL.pdf · 48 halaman</p>
+                {['Bab 1 · Sejarah perusahaan', 'Bab 2 · Visi & misi', 'Bab 3 · Core values', 'Bab 4 · Kebijakan cuti'].map((row, index) => (
+                  <div class="flex items-center justify-between border-t border-[#F4F4F4] py-2 text-sm">
+                    <span class="text-[#111]">{row}</span>
+                    <span class={`text-xs ${index === 2 ? 'text-[#111]' : 'text-[#999]'}`}>{index === 2 ? 'dibuka 1×' : '—'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <h3 class="mt-4 font-medium text-[#111]">{problems[1].title}</h3>
+            <p class="mt-1 max-w-sm text-[15px] text-[#999]">{problems[1].body}</p>
+          </div>
+
+          <div class="reveal stagger-3">
+            <div class="sky-soft relative flex aspect-[4/3.4] items-center justify-end overflow-hidden rounded-xl py-6 pl-10">
+              <div class="relative w-full rounded-l-2xl bg-white p-6 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-[#F4F5F0] px-2.5 py-1 text-xs font-medium text-[#111]"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ownership</span>
+                <p class="mt-3 text-xl font-medium leading-snug tracking-tight text-[#111]">Kapan terakhir kamu menyelesaikan masalah yang bukan tugasmu?</p>
+                <div class="absolute -bottom-3 right-6 rounded-xl bg-[#262626] px-4 py-2.5 text-sm text-white shadow-lg">Rian · <span class="text-emerald-400">9/10</span></div>
+              </div>
+            </div>
+            <h3 class="mt-4 font-medium text-[#111]">{problems[2].title}</h3>
+            <p class="mt-1 max-w-sm text-[15px] text-[#999]">{problems[2].body}</p>
           </div>
         </div>
+
+        <p class="mt-16 text-center text-[15px] text-[#999] reveal">Kalau value tidak dipraktikkan, kebiasaan lain yang akan tumbuh.</p>
       </div>
     </section>
 
-    <!-- FAQ -->
-    <section id="faq" class="py-24 bg-slate-50 border-t border-slate-100">
-      <div class="mx-auto w-full max-w-4xl px-6">
-        <div class="text-center reveal"><span class="text-xs font-bold uppercase tracking-widest text-indigo-600">Pertanyaan umum</span><h2 class="mt-3 text-3xl sm:text-4xl font-bold text-slate-900">Mulai dengan pemahaman yang jelas.</h2><p class="mt-4 text-slate-600">Hal-hal yang biasanya ingin diketahui tim sebelum mulai.</p></div>
-        <div class="mt-12 space-y-3 reveal">
-          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Bagaimana cara kerja ValueLoop?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Organisasi membuat core values dan pertanyaan, lalu tim menjalankan challenge secara berkala. Jawaban dapat diberi skor manual untuk membentuk leaderboard dan insight.</p></details>
-          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Berapa lama setup organisasi?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Setup awal dirancang singkat: masukkan profil organisasi, definisikan value, dan undang anggota. Setelah itu pertanyaan bisa terus disempurnakan sesuai ritme tim.</p></details>
-          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Apa peran member, facilitator, dan admin?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Member menjawab challenge, facilitator menjalankan sesi dan memberi skor, sedangkan admin mengelola anggota, value, pertanyaan, serta laporan organisasi.</p></details>
-          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Bagaimana scoring dilakukan?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Scoring dilakukan oleh facilitator atau admin menggunakan skala 0–10 berdasarkan kejelasan, relevansi, dan contoh nyata dalam jawaban.</p></details>
-          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Apakah data organisasi aman?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Setiap organisasi memiliki konteks dan data yang terisolasi. Akses juga dibatasi berdasarkan autentikasi dan role yang dimiliki pengguna.</p></details>
-          <details class="group rounded-2xl border border-slate-200 bg-white px-6"><summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-semibold text-slate-900"><span>Apakah ValueLoop cocok untuk tim kecil?</span><span class="text-xl text-indigo-600 transition-transform group-open:rotate-45">+</span></summary><p class="pb-5 leading-relaxed text-slate-600">Ya. ValueLoop dapat dimulai dari ritual sederhana untuk beberapa orang dan berkembang ketika organisasi siap menambah value, pertanyaan, atau tim.</p></details>
+    <!-- 3. Features carousel -->
+    <section id="features" class="bg-white pt-24 sm:pt-28">
+      <div class="mx-auto flex max-w-[1440px] items-center justify-between px-6">
+        <h2 class="text-lg font-medium text-[#111]">Dibuat berbeda.</h2>
+        <div class="flex gap-2">
+          <button type="button" data-carousel-prev aria-label="Geser ke kiri" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F9F9F9] text-[#111] transition-colors hover:bg-[#E9E9E9] disabled:cursor-default disabled:opacity-30">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 12H5m0 0 6-6m-6 6 6 6"/></svg>
+          </button>
+          <button type="button" data-carousel-next aria-label="Geser ke kanan" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F9F9F9] text-[#111] transition-colors hover:bg-[#E9E9E9] disabled:cursor-default disabled:opacity-30">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>
+          </button>
         </div>
-        <div class="mt-10 text-center"><a href="/bantuan" class="font-semibold text-indigo-700 hover:text-indigo-900">Lihat pusat bantuan <span aria-hidden="true">→</span></a></div>
+      </div>
+
+      <div data-carousel class="no-scrollbar mt-6 flex snap-x snap-mandatory scroll-px-6 gap-2.5 overflow-x-auto scroll-smooth px-6 pb-4">
+        {features.map((feature, index) => (
+          <article class="w-[min(430px,82vw)] shrink-0 snap-start">
+            <div class="sky-soft relative flex aspect-[430/495] items-center overflow-hidden rounded-xl">
+              {index === 0 && (
+                <div class="mx-auto flex h-12 w-[85%] items-center rounded-full bg-white pl-5 pr-1.5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
+                  <span class="flex-1 truncate text-sm text-[#111]">Kapan kamu mengambil ownership penuh?<span class="ml-0.5 animate-pulse">|</span></span>
+                  <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[#111] text-white"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></span>
+                </div>
+              )}
+              {index === 1 && (
+                <div class="ml-auto w-[88%] rounded-l-2xl bg-white p-6 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
+                  <p class="text-xs text-[#999]">Rian · Support · Ownership</p>
+                  <p class="mt-2 text-6xl font-normal tracking-tighter text-[#111]">9<span class="text-3xl text-[#999]">/10</span></p>
+                  <p class="mt-1 text-sm font-medium text-emerald-600">Sangat baik</p>
+                  <div class="mt-5 flex gap-1">{Array.from({ length: 10 }, (_, i) => <span class={`h-6 flex-1 rounded ${i < 9 ? 'bg-[#111]' : 'bg-[#E5E5E5]'}`}></span>)}</div>
+                </div>
+              )}
+              {index === 2 && (
+                <div class="mx-auto w-[85%] rounded-2xl bg-white p-5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
+                  <p class="mb-3 text-sm font-medium text-[#111]">Leaderboard · Oktober</p>
+                  {[['Rian Pratama', '86'], ['Sari Wulandari', '79'], ['Dimas Arya', '71'], ['Nadia Putri', '64']].map(([name, points], i) => (
+                    <div class="flex items-center gap-3 border-t border-[#F4F4F4] py-2.5 text-sm">
+                      <span class="w-4 font-mono text-xs text-[#999]">{i + 1}</span>
+                      <span class="flex-1 text-[#111]">{name}</span>
+                      <span class="font-medium text-[#111]">{points}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {index === 3 && (
+                <div class="mx-auto flex w-[85%] flex-wrap justify-center gap-2">
+                  {[['Ownership', 'bg-emerald-500'], ['Customer Obsession', 'bg-sky-500'], ['Integritas', 'bg-amber-400'], ['Kolaborasi', 'bg-rose-400'], ['Craft', 'bg-violet-500'], ['+ Tambah value', 'bg-[#999]']].map(([name, dot]) => (
+                    <span class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-medium text-[#111] shadow-[0_0_0_4px_rgb(255_255_255_/_0.35)]"><span class={`h-2 w-2 rounded-full ${dot}`}></span>{name}</span>
+                  ))}
+                </div>
+              )}
+              {index === 4 && (
+                <div class="ml-auto w-[88%] rounded-l-2xl bg-white p-5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
+                  {[['31 Okt', 'Customer Obsession', 'Menunggu skor'], ['30 Okt', 'Ownership', '9/10'], ['29 Okt', 'Integritas', '8/10'], ['28 Okt', 'Kolaborasi', '7/10']].map(([date, value, status]) => (
+                    <div class="flex items-center justify-between border-b border-[#F4F4F4] py-2.5 text-sm last:border-0">
+                      <span class="w-14 font-mono text-xs text-[#999]">{date}</span>
+                      <span class="flex-1 text-[#111]">{value}</span>
+                      <span class="text-xs text-[#666]">{status}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {index === 5 && (
+                <div class="mx-auto w-[85%] rounded-2xl bg-white p-5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
+                  <p class="mb-4 text-sm font-medium text-[#111]">Rata-rata skor per value</p>
+                  {[['Ownership', 'w-[86%]', '8,6'], ['Integritas', 'w-[80%]', '8,0'], ['Customer', 'w-[72%]', '7,2'], ['Kolaborasi', 'w-[58%]', '5,8']].map(([name, width, score]) => (
+                    <div class="mb-3">
+                      <div class="mb-1 flex justify-between text-xs"><span class="text-[#666]">{name}</span><span class="text-[#111]">{score}</span></div>
+                      <div class="h-2 rounded-full bg-[#F4F4F4]"><div class={`h-2 rounded-full bg-[#111] ${width}`}></div></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p class="mt-4 text-[15px] leading-snug"><span class="font-medium text-[#111]">{feature.title}</span> <span class="text-[#999]">{feature.body}</span></p>
+          </article>
+        ))}
       </div>
     </section>
 
-    <!-- Final CTA Section -->
-    <section class="py-28 text-center bg-white border-t border-slate-100">
-      <div class="mx-auto w-full max-w-5xl px-6 reveal">
-        <div class="rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 p-10 sm:p-16 text-white shadow-2xl relative overflow-hidden">
-          <div class="relative z-10 max-w-3xl mx-auto">
-            <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
-              Mulai hidupkan budaya kerja tim Anda hari ini.
-            </h2>
-            <p class="text-slate-300 text-base sm:text-xl mb-10 leading-relaxed">
-              Jadikan core values pegangan nyata dalam rutinitas kerja, tingkatkan engagement tim, dan bangun kebiasaan yang berakar kuat.
-            </p>
-            <div class="flex flex-wrap justify-center gap-4">
-              <a class="btn-shimmer btn-interactive inline-flex items-center gap-2 rounded-full bg-indigo-600 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-500" href="/signup">
-                Buat Akun Organisasi
-              </a>
-              <a class="btn-interactive inline-flex items-center gap-2 rounded-full bg-slate-800 border border-slate-700 px-8 py-4 font-semibold text-slate-200 hover:bg-slate-700" href="/login">
-                Masuk ke Dashboard
-              </a>
+    <!-- 4. Engine: toggle headline + sky panel with tabs and app mockup -->
+    <section id="how-it-works" class="bg-white px-4 pt-24 sm:px-6 sm:pt-32">
+      <div class="mx-auto max-w-3xl text-center reveal">
+        <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">
+          Ritual budaya yang
+          <span class="relative inline-flex h-[0.6em] w-[1.15em] translate-y-[0.02em] items-center rounded-full bg-emerald-500 p-[0.07em] align-middle" aria-hidden="true"><span class="ml-auto h-[0.46em] w-[0.46em] rounded-full bg-white"></span></span>
+          <br />selalu jalan
+        </h2>
+        <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Dari menyiapkan value sampai membaca insight, ValueLoop menjaga ritmenya untuk Anda.</p>
+      </div>
+
+      <div class="sky mx-auto mt-14 max-w-[1440px] overflow-hidden rounded-2xl px-4 pt-12 text-center text-white sm:px-12">
+        <div role="tablist" aria-label="Alur ValueLoop" class="inline-flex rounded-full bg-white/30 p-1 backdrop-blur-md">
+          {engineTabs.map((tab, index) => (
+            <button type="button" role="tab" data-engine-tab={tab.key} aria-selected={index === 0 ? 'true' : 'false'} class="rounded-full px-4 py-2 text-sm font-medium text-[#111] transition-colors aria-selected:bg-white sm:px-5">{tab.label}</button>
+          ))}
+        </div>
+
+        {engineTabs.map((tab, index) => (
+          <div data-engine-panel={tab.key} class={index === 0 ? '' : 'hidden'}>
+            <h3 class="mx-auto mt-6 max-w-2xl text-4xl font-medium leading-[1.05] tracking-tighter sm:text-6xl">{tab.title}</h3>
+            <p class="mx-auto mt-4 max-w-lg text-[15px] text-white/90">{tab.body}</p>
+            <a href={tab.href} class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full bg-white px-6 text-sm font-medium text-black transition-colors hover:bg-white/90">{tab.cta}</a>
+          </div>
+        ))}
+
+        <div class="mx-auto mt-14 max-w-[1300px] overflow-hidden rounded-t-[22px] bg-[#0e0e0e] p-2 pb-0 text-left">
+          <div class="flex items-center gap-3 px-3 py-2.5">
+            <div class="flex gap-1.5"><span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span></div>
+            <div class="mx-auto hidden w-1/2 rounded-full bg-white/5 py-1.5 text-center text-xs text-white/80 sm:block">app.valueloop.id/challenge</div>
+          </div>
+          <div class="grid h-[360px] grid-cols-1 gap-2 sm:h-[440px] sm:grid-cols-[220px_1fr]">
+            <aside class="hidden rounded-t-xl bg-[#1a1a1a] p-3 sm:block">
+              <div class="flex items-center gap-2 border-b border-white/5 px-1 pb-3 text-xs text-white"><span class="flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] text-white">A</span>Acme Studio</div>
+              <div class="mt-3 space-y-0.5 text-xs text-white/50">
+                {['Core Values', 'Daily Challenge', 'Scoring', 'Insights'].map((label, i) => (
+                  <div class={`rounded-md px-2 py-1.5 ${i === 1 ? 'bg-white/10 text-white' : ''}`}>{label}</div>
+                ))}
+              </div>
+            </aside>
+            <div class="rounded-t-xl bg-[#1a1a1a] p-5 sm:p-8">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div><p class="text-[10px] uppercase tracking-wider text-white/40">Challenge #38 · 31 Okt</p><p class="mt-1 text-sm text-white">Dipilih oleh randomizer</p></div>
+                <span class="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">● Menunggu jawaban</span>
+              </div>
+              <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-xl bg-white/[0.04] p-4"><p class="text-[10px] uppercase tracking-wider text-white/40">Member terpilih</p><p class="mt-1 text-base text-white">Sari Wulandari</p><p class="text-xs text-white/40">Tim Customer Success</p></div>
+                <div class="rounded-xl bg-white/[0.04] p-4"><p class="text-[10px] uppercase tracking-wider text-white/40">Value</p><p class="mt-1 flex items-center gap-2 text-base text-white"><span class="h-2 w-2 rounded-full bg-sky-500"></span>Customer Obsession</p><p class="text-xs text-white/40">9 pertanyaan aktif</p></div>
+              </div>
+              <div class="mt-3 rounded-xl bg-white p-5 text-[#111]"><p class="text-[10px] uppercase tracking-wider text-[#999]">Pertanyaan</p><p class="mt-2 text-lg font-medium leading-snug tracking-tight sm:text-xl">"Ceritakan momen kamu menolong customer tanpa diminta. Apa dampaknya?"</p></div>
+              <div class="mt-3 flex items-center justify-between rounded-xl bg-white/[0.04] p-4 text-xs"><span class="text-white/50">Jawaban member</span><span class="rounded-full bg-white px-3 py-1 font-medium text-black">Catat jawaban</span></div>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- 5. Who it's for: big role list + sky visual -->
+    <section class="bg-white px-6 py-24 sm:py-32">
+      <div class="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-2 lg:items-start">
+        <div>
+          <p class="text-[15px] font-medium text-[#111]">Dirancang untuk tim yang serius soal budaya kerja.</p>
+          <div role="tablist" aria-label="Tipe tim" class="mt-6 flex flex-col items-start">
+            {roles.map((role, index) => (
+              <button type="button" role="tab" data-role-tab={index} aria-selected={index === 0 ? 'true' : 'false'} class="text-left text-3xl font-medium leading-[1.25] tracking-tight text-[#bdbdbd] transition-colors duration-300 hover:text-[#666] aria-selected:text-[#111] sm:text-[32px]">{role.name}</button>
+            ))}
+          </div>
+          {roles.map((role, index) => (
+            <div data-role-panel={index} class={index === 0 ? '' : 'hidden'}>
+              <p class="mt-10 max-w-sm text-[15px] leading-relaxed text-[#666]">{role.body}</p>
+            </div>
+          ))}
+          <a href="/bantuan" class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full border border-[#E5E5E5] px-6 text-sm font-medium text-[#111] transition-colors hover:bg-[#f5f5f5]">Hubungi kami</a>
+        </div>
+
+        <div class="sky relative flex min-h-[420px] flex-col justify-between gap-10 overflow-hidden rounded-xl p-6 sm:aspect-[4/3.6] sm:p-10">
+          <div class="space-y-3">
+            <div class="ml-auto w-fit max-w-[80%] rounded-2xl rounded-br-md bg-white/90 px-4 py-3 text-sm text-[#111] backdrop-blur">Minggu lalu klien minta revisi jam 11 malam. Saya kerjakan, lalu besoknya saya buat checklist supaya tidak terulang.</div>
+            <div class="w-fit rounded-2xl rounded-bl-md bg-[#111]/85 px-4 py-3 text-sm text-white backdrop-blur">Ownership · Skor 9/10 · "Contoh konkret dan ada perbaikan sistem."</div>
+          </div>
+          <div class="relative flex h-14 w-full items-center rounded-full bg-white pl-5 pr-1.5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.35)]">
+            <span class="flex-1 truncate text-[15px] text-[#111]">Bagaimana kamu menjaga kualitas saat deadline?</span>
+            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#111] text-white"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Compounding: headline + illustrative chart with toggle -->
+    <section class="bg-white px-6 pb-24 sm:pb-32">
+      <div class="mx-auto max-w-3xl text-center reveal">
+        <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">Seperti menabung,<br />mulai lebih awal.</h2>
+        <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Setiap challenge adalah satu percakapan tentang value. Kebiasaan yang dibangun hari ini terasa di bulan-bulan berikutnya.</p>
+      </div>
+
+      <div class="mx-auto mt-14 max-w-[900px] rounded-3xl border border-[#E5E5E5] p-6 sm:p-8 reveal">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex gap-10">
+            <div><p class="text-sm text-[#111]">Partisipasi</p><p data-chart-stat="participation" class="mt-1 text-4xl font-normal tracking-tight text-[#111]">86%</p></div>
+            <div><p class="text-sm text-[#999]">Skor rata-rata</p><p data-chart-stat="score" class="mt-1 text-4xl font-normal tracking-tight text-[#999]">8,4</p></div>
+          </div>
+          <span class="rounded-full bg-[#F9F9F9] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#999]">Ilustrasi</span>
+        </div>
+        <div class="mt-6 border-t border-[#E5E5E5] pt-6">
+          <svg viewBox="0 0 800 260" class="h-auto w-full" fill="none" aria-label="Ilustrasi pertumbuhan partisipasi">
+            <defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111" stop-opacity=".08" /><stop offset="1" stop-color="#111" stop-opacity="0" /></linearGradient></defs>
+            {[40, 100, 160, 220].map((y) => <line x1="0" x2="740" y1={y} y2={y} stroke="#EDEDED" />)}
+            {['100%', '66%', '33%', '0'].map((label, i) => <text x="752" y={44 + i * 60} fill="#999" font-size="12">{label}</text>)}
+            <g data-chart-line="with">
+              <path d="M0 214 C 80 206 140 196 210 178 C 290 158 350 128 430 104 C 520 78 600 58 740 44 L740 220 L0 220 Z" fill="url(#chart-fill)" />
+              <path d="M0 214 C 80 206 140 196 210 178 C 290 158 350 128 430 104 C 520 78 600 58 740 44" stroke="#111" stroke-width="2.5" />
+            </g>
+            <g data-chart-line="without" class="hidden">
+              <path d="M0 200 C 80 170 120 150 170 172 C 230 198 300 210 380 196 C 460 182 520 206 600 210 C 660 213 700 205 740 208 L740 220 L0 220 Z" fill="url(#chart-fill)" />
+              <path d="M0 200 C 80 170 120 150 170 172 C 230 198 300 210 380 196 C 460 182 520 206 600 210 C 660 213 700 205 740 208" stroke="#999" stroke-width="2.5" />
+            </g>
+            {['Jan', 'Apr', 'Jul', 'Okt'].map((label, i) => <text x={i * 230 + 4} y="248" fill="#999" font-size="12">{label}</text>)}
+          </svg>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-center">
+        <div role="tablist" aria-label="Bandingkan" class="inline-flex rounded-full bg-[#F4F4F4] p-1">
+          <button type="button" role="tab" data-chart-tab="with" aria-selected="true" class="rounded-full px-5 py-2 text-sm font-medium text-[#999] transition-colors aria-selected:bg-white aria-selected:text-[#111]">Dengan ValueLoop</button>
+          <button type="button" role="tab" data-chart-tab="without" aria-selected="false" class="rounded-full px-5 py-2 text-sm font-medium text-[#999] transition-colors aria-selected:bg-white aria-selected:text-[#111]">Tanpa ValueLoop</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. FAQ -->
+    <section id="faq" class="bg-white px-6 pb-24 sm:pb-32">
+      <h2 class="text-center text-6xl font-normal tracking-tighter text-[#111] sm:text-7xl reveal">FAQ</h2>
+      <div class="mx-auto mt-14 max-w-[672px] divide-y divide-[#E5E5E5] border-b border-[#E5E5E5]">
+        {faqs.map((faq) => (
+          <details class="group">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-[15px] font-medium text-[#111] [&::-webkit-details-marker]:hidden">
+              <span>{faq.q}</span>
+              <svg class="h-4 w-4 shrink-0 text-[#999] transition-transform duration-300 group-open:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.5" d="M12 5v14M5 12h14"></path></svg>
+            </summary>
+            <p class="pb-4 pr-8 text-[15px] leading-relaxed text-[#666]">{faq.a}</p>
+          </details>
+        ))}
       </div>
     </section>
   </main>
-  
+
   <PublicFooter />
 
-  <!-- Scroll-reveal Intersection Observer (Off-thread, buttery smooth) -->
   <script>
     function initRevealAnimations() {
-      const revealSelectors = '.reveal, .reveal-scale, .reveal-left, .reveal-right';
-      const elements = document.querySelectorAll(revealSelectors);
-
+      const elements = document.querySelectorAll('.reveal, .reveal-scale, .reveal-left, .reveal-right');
       if (!elements.length) return;
-
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        elements.forEach(el => el.classList.add('is-visible'));
+        elements.forEach((el) => el.classList.add('is-visible'));
         return;
       }
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        {
-          threshold: 0.1,
-          rootMargin: '0px 0px -40px 0px',
-        }
-      );
-
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
       elements.forEach((el) => observer.observe(el));
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initRevealAnimations);
-    } else {
-      initRevealAnimations();
+    function initHeroTypewriter() {
+      const input = document.querySelector<HTMLInputElement>('#hero-question');
+      if (!input || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const prompts = [
+        'Ceritakan momen kamu menolong customer tanpa diminta',
+        'Kapan terakhir kamu mengambil ownership penuh?',
+        'Apa satu hal yang kamu perbaiki minggu ini?',
+      ];
+      let promptIndex = 0;
+      let charIndex = 0;
+      let deleting = false;
+      const tick = () => {
+        const text = prompts[promptIndex];
+        charIndex += deleting ? -1 : 1;
+        input.placeholder = `${text.slice(0, charIndex)}|`;
+        let delay = deleting ? 28 : 55;
+        if (!deleting && charIndex === text.length) { deleting = true; delay = 1800; }
+        if (deleting && charIndex === 0) { deleting = false; promptIndex = (promptIndex + 1) % prompts.length; delay = 400; }
+        window.setTimeout(tick, delay);
+      };
+      tick();
     }
 
-    document.addEventListener('astro:after-swap', initRevealAnimations);
+    // Generic tab switcher: buttons carry data-<name>-tab, panels carry data-<name>-panel.
+    function initTabs(name: string, onChange?: (key: string) => void) {
+      const tabs = document.querySelectorAll<HTMLElement>(`[data-${name}-tab]`);
+      tabs.forEach((tab) => tab.addEventListener('click', () => {
+        const key = tab.getAttribute(`data-${name}-tab`) ?? '';
+        tabs.forEach((other) => other.setAttribute('aria-selected', String(other === tab)));
+        document.querySelectorAll<HTMLElement>(`[data-${name}-panel]`).forEach((panel) => {
+          panel.classList.toggle('hidden', panel.getAttribute(`data-${name}-panel`) !== key);
+        });
+        onChange?.(key);
+      }));
+    }
+
+    function initCarousel() {
+      const track = document.querySelector<HTMLElement>('[data-carousel]');
+      const prev = document.querySelector<HTMLButtonElement>('[data-carousel-prev]');
+      const next = document.querySelector<HTMLButtonElement>('[data-carousel-next]');
+      if (!track || !prev || !next) return;
+      const step = () => (track.querySelector('article')?.clientWidth ?? 400) + 10;
+      const sync = () => {
+        prev.disabled = track.scrollLeft <= 4;
+        next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+      };
+      prev.addEventListener('click', () => track.scrollBy({ left: -step() }));
+      next.addEventListener('click', () => track.scrollBy({ left: step() }));
+      track.addEventListener('scroll', sync, { passive: true });
+      sync();
+    }
+
+    initRevealAnimations();
+    initHeroTypewriter();
+    initCarousel();
+    initTabs('engine');
+    initTabs('role');
+    initTabs('chart', (key) => {
+      document.querySelectorAll<SVGGElement>('[data-chart-line]').forEach((line) => {
+        line.classList.toggle('hidden', line.dataset.chartLine !== key);
+      });
+      const withValueLoop = key === 'with';
+      const participation = document.querySelector('[data-chart-stat="participation"]');
+      const score = document.querySelector('[data-chart-stat="score"]');
+      if (participation) participation.textContent = withValueLoop ? '86%' : '18%';
+      if (score) score.textContent = withValueLoop ? '8,4' : '—';
+    });
   </script>
 </BaseLayout>

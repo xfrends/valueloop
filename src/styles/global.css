@@ -1,9 +1,66 @@
 @import "tailwindcss";
 
-/* ─── Emil Kowalski Design Engineering System for ValueLoop ─── */
+/* ─── ValueLoop design system: monochrome ink, warm paper, pill actions ─── */
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Headings and labels read lighter; hierarchy comes from size and tracking. */
+  --font-weight-semibold: 550;
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 650;
+
+  /* Neutral scale (replaces cool slate across every page). */
+  --color-slate-50: #f9f9f9;
+  --color-slate-100: #f4f4f4;
+  --color-slate-200: #e5e5e5;
+  --color-slate-300: #d4d4d4;
+  --color-slate-400: #999999;
+  --color-slate-500: #666666;
+  --color-slate-600: #525252;
+  --color-slate-700: #3d3d3d;
+  --color-slate-800: #262626;
+  --color-slate-900: #111111;
+  --color-slate-950: #0a0a0a;
+
+  /* Brand accent is ink, not violet: soft tints sit on warm paper. */
+  --color-indigo-50: #f4f5f0;
+  --color-indigo-100: #ebece6;
+  --color-indigo-200: #dadbd3;
+  --color-indigo-300: #bdbdb5;
+  --color-indigo-400: #8c8c86;
+  --color-indigo-500: #3d3d3d;
+  --color-indigo-600: #111111;
+  --color-indigo-700: #000000;
+  --color-indigo-800: #111111;
+  --color-indigo-900: #111111;
+  --color-indigo-950: #000000;
+
+  --color-paper: #f4f5f0;
+  --color-ink: #111111;
+
+  --shadow-xs: 0 1px 1px 0 rgb(0 0 0 / 0.02);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 7px 29px 0 rgb(100 100 111 / 0.1);
+  --shadow-xl: 0 7px 29px 0 rgb(100 100 111 / 0.16);
+  --shadow-2xl: 0 7px 29px 0 rgb(100 100 111 / 0.22);
+}
+
+@layer base {
+  h1, h2, h3 {
+    letter-spacing: -0.025em;
+  }
+}
+
+/* Primary actions are pills. Unlayered so it wins over rounded-* utilities. */
+:is(a, button).bg-indigo-600,
+:is(a, button).bg-slate-900,
+button[type="submit"].bg-indigo-600 {
+  border-radius: 9999px;
 }
 
 /*
@@ -13,17 +70,17 @@
  * - ease-spring: Natural spring physics approximation
  */
 :root {
-  --vl-background: #F8FAFC;
+  --vl-background: #F9F9F9;
   --vl-surface: #FFFFFF;
-  --vl-surface-soft: #F1F5F9;
-  --vl-primary: #4F46E5;
-  --vl-primary-hover: #4338CA;
-  --vl-primary-soft: #E0E7FF;
-  --vl-secondary: #0F172A;
+  --vl-surface-soft: #F4F5F0;
+  --vl-primary: #111111;
+  --vl-primary-hover: #000000;
+  --vl-primary-soft: #F4F5F0;
+  --vl-secondary: #111111;
   --vl-accent: #10B981;
-  --vl-text: #0F172A;
-  --vl-text-muted: #64748B;
-  --vl-border: #E2E8F0;
+  --vl-text: #111111;
+  --vl-text-muted: #666666;
+  --vl-border: #E5E5E5;
 
   --ease-out-custom: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-custom: cubic-bezier(0.77, 0, 0.175, 1);
@@ -217,10 +274,10 @@ html.js-ready .reveal-right.is-visible {
 
 /* ─── Public marketing pages: one shared visual language ─── */
 .public-main {
-  --public-ink: #0f172a;
-  --public-muted: #64748b;
-  --public-border: #e2e8f0;
-  --public-indigo: #4f46e5;
+  --public-ink: #111111;
+  --public-muted: #666666;
+  --public-border: #e5e5e5;
+  --public-indigo: #111111;
   background: transparent;
 }
 
@@ -242,16 +299,16 @@ html.js-ready .reveal-right.is-visible {
 
 .public-surface {
   border: 1px solid var(--public-border);
-  border-radius: 1.5rem;
-  background: rgb(255 255 255 / 0.92);
-  box-shadow: 0 18px 50px rgb(15 23 42 / 0.06);
+  border-radius: 1rem;
+  background: #fff;
 }
 
 .public-kicker {
-  color: var(--public-indigo);
+  color: var(--public-muted);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -261,7 +318,9 @@ html.js-ready .reveal-right.is-visible {
 
 .public-title {
   color: var(--public-ink);
-  letter-spacing: -0.045em;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
 }
 
 .public-lead {
@@ -275,21 +334,21 @@ html.js-ready .reveal-right.is-visible {
 
 .public-primary {
   background-color: var(--public-ink);
-  box-shadow: 0 16px 32px rgb(15 23 42 / 0.12);
+  box-shadow: none;
 }
 
 .public-primary:hover {
-  background-color: #1e293b;
+  background-color: #000;
 }
 
 .public-secondary {
   border-color: var(--public-border);
-  background: rgb(255 255 255 / 0.86);
+  background: #fff;
 }
 
 .public-secondary:hover {
-  border-color: #c7d2fe;
-  color: #4338ca;
+  background: #f5f5f5;
+  color: var(--public-ink);
 }
 
 .public-main .bg-slate-950 {
@@ -306,4 +365,95 @@ html.js-ready .reveal-right.is-visible {
 @media (min-width: 768px) {
   .public-container { padding-inline: 2rem; }
   .public-hero { padding-block: 7rem; }
+}
+
+/* Soft film grain for dark hero/footer surfaces (no image asset needed). */
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Daylight sky surfaces (hero, feature cards, footer), built from layered gradients. */
+.sky {
+  background:
+    radial-gradient(ellipse 55% 20% at 18% 24%, rgb(255 255 255 / 0.34), transparent 70%),
+    radial-gradient(ellipse 45% 16% at 78% 16%, rgb(255 255 255 / 0.3), transparent 70%),
+    radial-gradient(ellipse 65% 22% at 52% 62%, rgb(255 255 255 / 0.26), transparent 70%),
+    radial-gradient(ellipse 40% 14% at 6% 78%, rgb(255 255 255 / 0.22), transparent 70%),
+    linear-gradient(180deg, #8fa5bb 0%, #a8b9c9 40%, #c3ced6 75%, #d5dadb 100%);
+}
+.sky-soft {
+  background:
+    radial-gradient(ellipse 60% 25% at 30% 30%, rgb(255 255 255 / 0.4), transparent 70%),
+    radial-gradient(ellipse 50% 22% at 75% 70%, rgb(255 255 255 / 0.35), transparent 70%),
+    linear-gradient(180deg, #b4c4d1 0%, #c9d3da 55%, #dde1df 100%);
+}
+.hero-sky {
+  background: linear-gradient(180deg, #8fa5bb 0%, #a6b8c9 30%, #bfcbd5 55%, #d4d9d9 75%, #e2e0d8 100%);
+}
+.hero-sky-clouds {
+  background:
+    radial-gradient(ellipse 38% 14% at 18% 22%, rgb(255 255 255 / 0.32), transparent 70%),
+    radial-gradient(ellipse 30% 10% at 72% 16%, rgb(255 255 255 / 0.28), transparent 70%),
+    radial-gradient(ellipse 50% 16% at 55% 42%, rgb(255 255 255 / 0.22), transparent 70%),
+    radial-gradient(ellipse 34% 12% at 8% 52%, rgb(255 255 255 / 0.2), transparent 70%),
+    radial-gradient(ellipse 40% 12% at 92% 48%, rgb(255 255 255 / 0.18), transparent 70%);
+  filter: blur(6px);
+}
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Public header: transparent over the sky hero, solid white once scrolled. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  color: #111;
+  background: rgb(255 255 255 / 0.92);
+  border-bottom: 1px solid rgb(0 0 0 / 0.05);
+  backdrop-filter: blur(12px);
+  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
+}
+.site-header[data-tone="sky"] {
+  position: fixed;
+  inset-inline: 0;
+  color: #fff;
+  background: transparent;
+  border-color: transparent;
+  backdrop-filter: none;
+}
+.site-header[data-tone="sky"][data-scrolled="true"] {
+  color: #111;
+  background: #fff;
+  border-color: rgb(0 0 0 / 0.05);
+}
+@layer components {
+  .hdr-btn {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    padding-inline: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: opacity 300ms ease, background-color 300ms ease, color 300ms ease, border-color 300ms ease;
+  }
+  .hdr-btn:hover { opacity: 0.8; }
+  .hdr-btn-solid { background: #111; color: #fff; }
+  .hdr-btn-ghost { background: #111; color: #fff; }
+  .site-header[data-tone="sky"]:not([data-scrolled="true"]) .hdr-btn-solid { background: #fff; color: #000; }
+  .site-header[data-tone="sky"]:not([data-scrolled="true"]) .hdr-btn-ghost { background: transparent; color: #fff; box-shadow: inset 0 0 0 1px #fff; }
 }

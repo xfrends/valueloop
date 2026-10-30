@@ -33,16 +33,17 @@ const verifyEmailHref = `/verify-email?email=${encodeURIComponent(email)}`;
       <div class="mx-auto w-full max-w-sm lg:w-full">
         <!-- Brand / Back to Home -->
         <a class="flex items-center gap-3 group mb-10 w-max" href="/">
-          <div class="w-10 h-10 rounded-xl bg-[#0F172A] border border-slate-700 flex items-center justify-center text-white font-bold text-xl shadow-sm transition-transform duration-200 group-active:scale-95">
-            V
-          </div>
-          <span class="text-xl font-bold tracking-tight text-[#0F172A]">ValueLoop</span>
+          <svg class="h-7 w-7 text-[#111]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.25" stroke="currentColor" stroke-width="1.5" />
+            <path d="M7.5 8.5 12 16l4.5-7.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="text-xl font-medium tracking-tight text-[#111]">ValueLoop</span>
         </a>
         
         <!-- Header -->
         <div class="mb-8">
-          <h1 class="text-3xl font-bold tracking-tight text-[#0F172A]">Masuk</h1>
-          <p class="mt-2 text-[15px] text-[#64748B]">Masuk ke akun Anda untuk melanjutkan perjalanan.</p>
+          <h1 class="text-3xl font-bold tracking-tight text-[#111111]">Masuk</h1>
+          <p class="mt-2 text-[15px] text-[#666666]">Masuk ke akun Anda untuk melanjutkan perjalanan.</p>
         </div>
 
         {!bootstrapReady && (
@@ -76,20 +77,20 @@ const verifyEmailHref = `/verify-email?email=${encodeURIComponent(email)}`;
         )}
 
         <!-- Google SSO -->
-        <a href="/api/auth/google/start" aria-disabled={!bootstrapReady || !googleReady ? 'true' : 'false'} class={`btn-interactive flex w-full items-center justify-center gap-3 rounded-xl border border-[#DCE4F0] bg-white px-4 py-3 font-semibold text-[#0F172A] shadow-sm hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-all ${bootstrapReady && googleReady ? '' : 'opacity-50 pointer-events-none'}`}>
+        <a href="/api/auth/google/start" aria-disabled={!bootstrapReady || !googleReady ? 'true' : 'false'} class={`btn-interactive flex w-full items-center justify-center gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 font-semibold text-[#111111] shadow-sm hover:bg-[#F9F9F9] hover:border-[#D4D4D4] transition-all ${bootstrapReady && googleReady ? '' : 'opacity-50 pointer-events-none'}`}>
           <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
           Lanjutkan dengan Google
         </a>
 
         <div class="my-6 flex items-center gap-3">
-          <div class="h-px flex-1 bg-[#DCE4F0]"></div>
-          <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Atau Email</span>
-          <div class="h-px flex-1 bg-[#DCE4F0]"></div>
+          <div class="h-px flex-1 bg-[#E5E5E5]"></div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-[#666666]">Atau Email</span>
+          <div class="h-px flex-1 bg-[#E5E5E5]"></div>
         </div>
 
         <form method="post" action="/api/auth/login" class={`space-y-4 ${bootstrapReady ? '' : 'opacity-50 pointer-events-none'}`}>
           <div class="space-y-1.5">
-            <label class="text-[14px] font-semibold text-[#0F172A]">Alamat Email</label>
+            <label class="text-[14px] font-semibold text-[#111111]">Alamat Email</label>
             <input
               id="email"
               name="email"
@@ -99,12 +100,12 @@ const verifyEmailHref = `/verify-email?email=${encodeURIComponent(email)}`;
               placeholder="nama@perusahaan.com"
               aria-invalid={fieldErrors.email ? 'true' : 'false'}
               aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-              class={`w-full rounded-xl bg-[#F6F8FB] px-4 py-3 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 ${fieldErrors.email ? 'border border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-[#DCE4F0] focus:border-[#0F172A] focus:ring-slate-900/10'}`}
+              class={`w-full rounded-xl bg-[#F4F5F0] px-4 py-3 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 ${fieldErrors.email ? 'border border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-[#E5E5E5] focus:border-[#111111] focus:ring-slate-900/10'}`}
             />
             {fieldErrors.email && <p id="email-error" class="text-sm text-red-600 font-medium">{fieldErrors.email}</p>}
           </div>
           <div class="space-y-1.5">
-            <label class="text-[14px] font-semibold text-[#0F172A]">Kata Sandi</label>
+            <label class="text-[14px] font-semibold text-[#111111]">Kata Sandi</label>
             <input
               id="password"
               name="password"
@@ -113,34 +114,34 @@ const verifyEmailHref = `/verify-email?email=${encodeURIComponent(email)}`;
               placeholder="••••••••"
               aria-invalid={fieldErrors.password ? 'true' : 'false'}
               aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-              class={`w-full rounded-xl bg-[#F6F8FB] px-4 py-3 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 ${fieldErrors.password ? 'border border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-[#DCE4F0] focus:border-[#0F172A] focus:ring-slate-900/10'}`}
+              class={`w-full rounded-xl bg-[#F4F5F0] px-4 py-3 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 ${fieldErrors.password ? 'border border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-[#E5E5E5] focus:border-[#111111] focus:ring-slate-900/10'}`}
             />
             {fieldErrors.password && <p id="password-error" class="text-sm text-red-600 font-medium">{fieldErrors.password}</p>}
           </div>
           <div class="pt-2">
-            <label class="flex items-center gap-3 text-[14px] text-[#64748B] cursor-pointer group w-max">
+            <label class="flex items-center gap-3 text-[14px] text-[#666666] cursor-pointer group w-max">
               <div class="relative flex items-center">
                 <input
                   name="rememberMe"
                   type="checkbox"
                   value="on"
                   checked={rememberMe}
-                  class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-[#DCE4F0] bg-[#F6F8FB] checked:border-[#0F172A] checked:bg-[#0F172A] focus:outline-none focus:ring-2 focus:ring-slate-900/20 transition-all"
+                  class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-[#E5E5E5] bg-[#F4F5F0] checked:border-[#111111] checked:bg-[#111111] focus:outline-none focus:ring-2 focus:ring-slate-900/20 transition-all"
                 />
                 <svg class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
               </div>
-              <span class="font-medium group-hover:text-[#0F172A] transition-colors">Ingat saya selama 1 bulan</span>
+              <span class="font-medium group-hover:text-[#111111] transition-colors">Ingat saya selama 1 bulan</span>
             </label>
           </div>
-          <button type="submit" class="btn-interactive mt-4 w-full rounded-xl bg-[#0F172A] px-4 py-3 text-white font-semibold shadow-xl shadow-slate-900/10 hover:bg-[#1E293B]">Masuk ke Akun</button>
+          <button type="submit" class="btn-interactive mt-4 w-full rounded-xl bg-[#111111] px-4 py-3 text-white font-semibold shadow-xl shadow-slate-900/10 hover:bg-[#262626]">Masuk ke Akun</button>
         </form>
         
-        <p class="mt-8 text-center text-[15px] text-[#64748B]">Belum punya akun? <a href="/signup" class="font-semibold text-[#0F172A] hover:underline underline-offset-4">Buat akun baru</a></p>
+        <p class="mt-8 text-center text-[15px] text-[#666666]">Belum punya akun? <a href="/signup" class="font-semibold text-[#111111] hover:underline underline-offset-4">Buat akun baru</a></p>
       </div>
     </div>
 
     <!-- Bagian Kanan: Ilustrasi Visual Bersih -->
-    <div class="relative hidden lg:flex lg:flex-1 bg-[#F8FAFC] border-l border-[#DCE4F0] overflow-hidden items-center justify-center">
+    <div class="relative hidden lg:flex lg:flex-1 bg-[#F9F9F9] border-l border-[#E5E5E5] overflow-hidden items-center justify-center">
       <!-- Pola Titik (Dot Pattern) yang rapi -->
       <div class="absolute inset-0 pattern-dots opacity-40"></div>
       
@@ -149,10 +150,10 @@ const verifyEmailHref = `/verify-email?email=${encodeURIComponent(email)}`;
           Dari nilai jadi kebiasaan
         </div>
         
-        <h2 class="text-4xl font-bold tracking-tight text-[#0F172A] mb-4 leading-tight">
+        <h2 class="text-4xl font-bold tracking-tight text-[#111111] mb-4 leading-tight">
           Pusat kendali <br />budaya kerja tim Anda.
         </h2>
-        <p class="text-[#64748B] text-lg leading-relaxed mb-12">
+        <p class="text-[#666666] text-lg leading-relaxed mb-12">
           Lacak performa nilai perusahaan, bangun interaksi yang lebih baik, dan dapatkan analisis transparan.
         </p>
 
@@ -164,7 +165,7 @@ const verifyEmailHref = `/verify-email?email=${encodeURIComponent(email)}`;
             </div>
             <div>
               <div class="text-[13px] font-semibold text-slate-500 uppercase tracking-wide">Tantangan AI Terjawab</div>
-              <div class="font-bold text-[#0F172A] text-lg">Skor Rata-rata: 9.4</div>
+              <div class="font-bold text-[#111111] text-lg">Skor Rata-rata: 9.4</div>
             </div>
           </div>
           <div class="space-y-3">
@@ -178,7 +179,7 @@ const verifyEmailHref = `/verify-email?email=${encodeURIComponent(email)}`;
   </main>
   <style>
     .pattern-dots {
-      background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
+      background-image: radial-gradient(#D4D4D4 1px, transparent 1px);
       background-size: 24px 24px;
     }
   </style>

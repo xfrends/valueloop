@@ -1,30 +1,49 @@
 ---
+type Props = {
+  variant?: 'light' | 'dark';
+};
+
+const { variant = 'light' } = Astro.props;
 const isLoggedIn = !!Astro.locals.user;
+const navItems = [
+  { label: 'Cara Kerja', href: '/#how-it-works' },
+  { label: 'Fitur', href: '/fitur' },
+  { label: 'Preview', href: '/preview' },
+  { label: 'Blog', href: '/blog' },
+];
 ---
-<header class="sticky top-0 z-50 w-full border-b border-[#DCE4F0]/50 bg-[#F6F8FB]/80 backdrop-blur-md transition-all duration-300">
-  <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
-    <a class="flex items-center gap-2 group" href="/">
-      <div class="w-9 h-9 rounded-lg bg-[#0F172A] border border-slate-700 flex items-center justify-center text-white font-bold text-lg shadow-sm transition-transform duration-200 group-active:scale-90">
-        V
-      </div>
-      <span class="text-[20px] font-bold tracking-tight text-[#0F172A]">ValueLoop</span>
+<header class="site-header" data-tone={variant === 'dark' ? 'sky' : 'light'}>
+  <div class="mx-auto grid w-full max-w-[1440px] grid-cols-[1fr_auto] items-center px-6 py-3 md:grid-cols-[1fr_auto_1fr]">
+    <a class="flex items-center gap-2 transition-opacity hover:opacity-70" href="/">
+      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9.25" stroke="currentColor" stroke-width="1.5" />
+        <path d="M7.5 8.5 12 16l4.5-7.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span class="text-lg font-medium tracking-tight">ValueLoop</span>
     </a>
-    <div class="flex items-center gap-4">
-      <nav class="hidden md:flex items-center gap-6 text-[15px] font-medium mr-2">
-        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/#how-it-works">Cara Kerja</a>
-        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/fitur">Fitur</a>
-        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/preview">Preview</a>
-        <a class="text-[#64748B] hover:text-[#1D4ED8] transition-colors" href="/blog">Blog</a>
-      </nav>
+    <nav class="hidden items-center gap-7 text-sm font-medium md:flex">
+      {navItems.map((item) => (
+        <a class="transition-opacity duration-300 hover:opacity-70" href={item.href}>{item.label}</a>
+      ))}
+    </nav>
+    <div class="flex items-center justify-end gap-2">
       {isLoggedIn ? (
-        <a class="btn-interactive rounded-full bg-[#1D4ED8] px-4 py-2 md:px-5 md:py-2.5 text-sm font-semibold text-white shadow-md hover:bg-[#1E40AF]" href="/dashboard">
-          Dashboard
-        </a>
+        <a class="hdr-btn hdr-btn-solid btn-interactive" href="/dashboard">Dashboard</a>
       ) : (
-        <a class="btn-interactive rounded-full bg-[#0F172A] px-4 py-2 md:px-5 md:py-2.5 text-sm font-semibold text-white shadow-md hover:bg-[#1E293B]" href="/signup">
-          Coba Sekarang
-        </a>
+        <>
+          <a class="hdr-btn hdr-btn-ghost btn-interactive hidden sm:inline-flex" href="/login">Masuk</a>
+          <a class="hdr-btn hdr-btn-solid btn-interactive" href="/signup">Coba Sekarang</a>
+        </>
       )}
     </div>
   </div>
 </header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header[data-tone="sky"]');
+  if (header) {
+    const sync = () => { header.dataset.scrolled = String(window.scrollY > 40); };
+    sync();
+    window.addEventListener('scroll', sync, { passive: true });
+  }
+</script>
