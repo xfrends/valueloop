@@ -1,9 +1,14 @@
 import { dbAll, dbFirst } from '../db/client';
-import { startOfMonthIso } from '../utils/date';
+import { formatOrgDate } from '../utils/date';
+
+async function getOrgToday(db: D1Database, organizationId: string): Promise<string> {
+  const org = await dbFirst<{ timezone: string }>(db, `select timezone from organizations where id = ?`, [organizationId]);
+  return formatOrgDate(new Date(), org?.timezone || 'Asia/Jakarta');
+}
 
 export async function getDashboardSummary(db: D1Database, organizationId: string) {
-  const today = new Date().toISOString().slice(0, 10);
-  const monthStart = startOfMonthIso();
+  const today = await getOrgToday(db, organizationId);
+  const monthStart = `${today.slice(0, 7)}-01`;
 
   const stats = await dbFirst<{
     active_members: number;
@@ -19,7 +24,7 @@ export async function getDashboardSummary(db: D1Database, organizationId: string
        (select round(avg(score), 2) from challenge_sessions where organization_id = ? and status = 'scored' and session_date >= ?) as average_score_this_month,
        (select count(*) from challenge_sessions where organization_id = ? and status in ('answered', 'scored') and session_date >= ?) as answered_this_month,
        (select count(*) from challenge_sessions where organization_id = ? and session_date = ?) as today_sessions`,
-    [organizationId, organizationId, monthStart.slice(0, 10), organizationId, monthStart.slice(0, 10), organizationId, monthStart.slice(0, 10), organizationId, today]
+    [organizationId, organizationId, monthStart, organizationId, monthStart, organizationId, monthStart, organizationId, today]
   );
 
   const leaderboard = await dbAll(
@@ -36,7 +41,7 @@ export async function getDashboardSummary(db: D1Database, organizationId: string
      where cs.organization_id = ? and cs.session_date >= ?
      group by cv.id
      order by total desc`,
-    [organizationId, monthStart.slice(0, 10)]
+    [organizationId, monthStart]
   );
 
   const participation = await dbFirst<{ rate: number }>(
@@ -48,7 +53,7 @@ export async function getDashboardSummary(db: D1Database, organizationId: string
      ) as rate
      from challenge_sessions
      where organization_id = ? and session_date >= ?`,
-    [organizationId, organizationId, monthStart.slice(0, 10)]
+    [organizationId, organizationId, monthStart]
   );
 
   const todayChallenge = await dbFirst(
@@ -139,7 +144,7 @@ export async function getHistorySummary(db: D1Database, organizationId: string) 
 }
 
 export async function getInsightsSummary(db: D1Database, organizationId: string) {
-  const monthStart = startOfMonthIso().slice(0, 10);
+  const monthStart = `${(await getOrgToday(db, organizationId)).slice(0, 7)}-01`;
 
   const valueScores = await dbAll<{
     value_name: string;
