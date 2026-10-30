@@ -6,6 +6,7 @@ import { dbFirst } from '../lib/db/client';
 import { getOrganizationReadiness, getOrganizationSettings } from '../lib/services/shared';
 import { canRerollChallenge, canRunChallenge, canScoreChallenge, canSubmitChallengeAnswer } from '../lib/permissions';
 import { formatOrgDateTime } from '../lib/utils/date';
+import { getOrganizationAiSettings } from '../lib/services/ai-settings';
 
 type ChallengeSessionView = {
   id: string;
@@ -27,6 +28,7 @@ const membership = Astro.locals.membership;
 const runtime = getCloudflareRuntime(Astro);
 const readiness = organization && runtime?.env?.DB ? await getOrganizationReadiness(runtime.env.DB, organization.id) : null;
 const settings = organization && runtime?.env?.DB ? await getOrganizationSettings(runtime.env.DB, organization.id) : null;
+const aiConfigured = Boolean(organization && runtime?.env?.DB && (await getOrganizationAiSettings(runtime.env.DB, organization.id))?.isEnabled);
 const challengeReady = Boolean(
   readiness
   && readiness.activeMembers > 0
@@ -191,7 +193,7 @@ const error = Astro.url.searchParams.get('error') || '';
             )}
 
             {canScore ? (
-            <form class="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-5" method="post" action={`/api/challenge/${challenge.id}/score`}>
+            <form id="score-form" data-challenge-id={challenge.id} class="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-5" method="post" action={`/api/challenge/${challenge.id}/score`}>
               <input type="hidden" name="score" id="score-input" value={challenge.score ?? ''} />
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
@@ -202,17 +204,19 @@ const error = Astro.url.searchParams.get('error') || '';
 
                 <div class="flex gap-2 flex-wrap">
                   {[0,1,2,3,4,5,6,7,8,9,10].map((score) => (
-                    <button type="button" disabled={challenge.status !== 'answered'} onclick={`document.getElementById('score-input').value='${score}'`} class="w-10 h-10 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 hover:border-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 focus:bg-indigo-700 focus:text-white focus:border-indigo-700 transition-colors disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400">
+                    <button type="button" data-score-option={score} disabled={challenge.status !== 'answered'} onclick={`document.getElementById('score-input').value='${score}'`} class="w-10 h-10 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 hover:border-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 focus:bg-indigo-700 focus:text-white focus:border-indigo-700 transition-colors disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400">
                       {score}
                     </button>
                   ))}
                 </div>
+                {aiConfigured && challenge.status === 'answered' && <div id="ai-score-alert" class="hidden rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700" role="status" aria-live="polite">AI sedang membaca jawaban dan menyiapkan rekomendasi...</div>}
               </div>
 
               <div class="space-y-3">
                 <label class="block text-sm font-bold text-slate-900">Evaluator Note (Optional)</label>
                   <input
                     type="text"
+                    id="evaluator-note"
                     name="evaluatorNote"
                     value={challenge.evaluator_note || ''}
                   class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
@@ -242,3 +246,18 @@ const error = Astro.url.searchParams.get('error') || '';
     </div>
   </div>
 </AppLayout>
+
+<script is:inline>
+  const scoreForm = document.querySelector('#score-form');
+  const scoreInput = document.querySelector('#score-input');
+  const noteInput = document.querySelector('#evaluator-note');
+  const aiScoreAlert = document.querySelector('#ai-score-alert');
+  const selectScore = (score) => { scoreInput.value = String(score); document.querySelectorAll('[data-score-option]').forEach((button) => { const selected = button.dataset.scoreOption === String(score); button.classList.toggle('bg-white', !selected); button.classList.toggle('text-slate-700', !selected); button.classList.toggle('border-slate-300', !selected); button.classList.toggle('bg-indigo-700', selected); button.classList.toggle('text-white', selected); button.classList.toggle('border-indigo-700', selected); button.setAttribute('aria-pressed', selected ? 'true' : 'false'); }); };
+  document.querySelectorAll('[data-score-option]').forEach((button) => button.addEventListener('click', () => selectScore(button.dataset.scoreOption)));
+  if (scoreForm && aiScoreAlert && scoreForm.dataset.challengeId) {
+    fetch(`/api/challenge/${scoreForm.dataset.challengeId}/ai-recommend-score`, { method: 'POST' })
+      .then((response) => response.json().then((result) => ({ response, result })))
+      .then(({ response, result }) => { if (!response.ok || !result.ok) throw new Error(result.message || 'Rekomendasi skor AI gagal dibuat.'); selectScore(result.recommendation.score); noteInput.value = result.recommendation.note; aiScoreAlert.className = 'rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700'; aiScoreAlert.textContent = `Rekomendasi AI: ${result.recommendation.score}/10. Silakan review dan revisi bila diperlukan.`; })
+      .catch((error) => { aiScoreAlert.className = 'rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800'; aiScoreAlert.textContent = error instanceof Error ? `${error.message} Anda tetap dapat menilai secara manual.` : 'Rekomendasi AI gagal dibuat. Anda tetap dapat menilai secara manual.'; });
+  }
+</script>

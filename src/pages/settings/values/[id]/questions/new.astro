@@ -5,6 +5,7 @@ import QuestionForm from '../../../../../components/QuestionForm.astro';
 import { getCloudflareRuntime } from '../../../../../lib/cloudflare/bindings';
 import { canManageValues } from '../../../../../lib/permissions';
 import { getCoreValue } from '../../../../../lib/services/values';
+import { getOrganizationAiSettings } from '../../../../../lib/services/ai-settings';
 import { parseJsonRecord } from '../../../../../lib/utils/form-errors';
 
 const valueId = Astro.params.id || '';
@@ -12,6 +13,7 @@ const organization = Astro.locals.organization;
 const runtime = getCloudflareRuntime(Astro);
 const allowed = canManageValues(Astro.locals.membership?.role);
 const coreValue = organization && runtime?.env?.DB ? await getCoreValue(runtime.env.DB, organization.id, valueId) : null;
+const aiConfigured = Boolean(organization && runtime?.env?.DB && (await getOrganizationAiSettings(runtime.env.DB, organization.id))?.isEnabled);
 const error = Astro.url.searchParams.get('error') || '';
 const fieldErrors = parseJsonRecord(Astro.url.searchParams.get('fieldErrors'));
 const questionText = Astro.url.searchParams.get('questionText') || '';
@@ -37,6 +39,8 @@ const questionText = Astro.url.searchParams.get('questionText') || '';
     ) : !allowed ? (
       <DependencyAlert title="Akses terbatas" message="Hanya owner atau admin yang dapat menambahkan question." tone="danger" />
     ) : (
+      <div>
+      {aiConfigured && <section class="mb-5 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-5"><div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 class="font-bold text-slate-900">Buat question dengan AI</h2><p class="mt-1 text-sm text-slate-600">AI akan membuat draft berdasarkan core value ini. Anda tetap dapat mengeditnya sebelum menyimpan.</p></div><button id="generate-question-ai" data-core-value-id={valueId} type="button" class="inline-flex shrink-0 items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">✦ Generate dengan AI</button></div><div id="question-ai-message" class="mt-3 hidden rounded-xl border px-4 py-3 text-sm font-medium" role="alert" aria-live="polite"></div></section>}
       <QuestionForm
         action="/api/settings/questions"
         coreValueId={valueId}
@@ -44,6 +48,25 @@ const questionText = Astro.url.searchParams.get('questionText') || '';
         fieldErrors={fieldErrors}
         submitLabel="Add Question"
       />
+      </div>
     )}
   </div>
 </AppLayout>
+
+<script is:inline>
+  const aiButton = document.querySelector('#generate-question-ai');
+  const aiMessage = document.querySelector('#question-ai-message');
+  aiButton?.addEventListener('click', async () => {
+    aiButton.disabled = true; aiButton.textContent = 'Membuat draft...'; aiMessage.className = 'mt-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700'; aiMessage.textContent = 'AI sedang menyusun question...';
+    try {
+      const response = await fetch('/api/settings/questions/ai-generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coreValueId: aiButton.dataset.coreValueId }) });
+      const result = await response.json();
+      if (!result.ok) throw new Error(result.message || 'Question AI gagal dibuat.');
+      document.querySelector('#questionText').value = result.draft.questionText;
+      document.querySelector('#difficulty').value = result.draft.difficulty;
+      document.querySelector('#suggestedRubricNote').value = result.draft.suggestedRubricNote;
+      aiMessage.className = 'mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700'; aiMessage.textContent = 'Draft berhasil dibuat. Silakan review sebelum menyimpan.';
+    } catch (error) { aiMessage.className = 'mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700'; aiMessage.textContent = error instanceof Error ? error.message : 'Question AI gagal dibuat.'; }
+    aiButton.disabled = false; aiButton.textContent = '✦ Generate dengan AI';
+  });
+</script>
