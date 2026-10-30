@@ -9,9 +9,9 @@
 		"binding": "ASSETS"
 	},
 	"vars": {
-		"PUBLIC_APP_URL": "http://localhost:4321",
+		"PUBLIC_APP_URL": "https://valueloop.frendi1207.workers.dev",
 		"PUBLIC_TURNSTILE_SITE_KEY": "",
-		"TURNSTILE_HOSTNAMES": "localhost,127.0.0.1",
+		"TURNSTILE_HOSTNAMES": "valueloop.frendi1207.workers.dev",
 		"GOOGLE_CLIENT_ID": "",
 		"AUTH_EMAIL_FROM": "ValueLoop <no-reply@valueloop.local>",
 		"SMTP_HOST": "",
@@ -26,14 +26,15 @@
 		{
 			"binding": "DB",
 			"database_name": "valueloop",
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			"database_id": "157dc095-1c3c-4287-bcc8-8157c30524c0",
+			"preview_database_id": "00000000-0000-0000-0000-000000000000",
 			"migrations_dir": "migrations"
 		}
 	],
 	"kv_namespaces": [
 		{
 			"binding": "KV",
-			"id": "00000000000000000000000000000000",
+			"id": "a6a9c62650ee4e169b964814c2369598",
 			"preview_id": "00000000000000000000000000000000"
 		}
 	],
