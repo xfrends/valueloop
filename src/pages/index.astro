@@ -48,6 +48,10 @@ const faqs = [
   { q: 'Apakah ValueLoop cocok untuk tim kecil?', a: 'Ya. ValueLoop dapat dimulai dari ritual sederhana untuk beberapa orang dan berkembang ketika organisasi siap menambah value, pertanyaan, atau tim.' },
 ];
 
+// Hero motion video (file in public/, e.g. '/videos/hero.mp4'). null keeps the static app mockup.
+const heroVideoSrc: string | null = null;
+const heroVideoPoster: string | null = null;
+
 const heroIcons = [
   { title: 'Challenge', tone: 'text-[#111]', path: 'M13 10V3L4 14h7v7l9-11h-7z' },
   { title: 'Skor', tone: 'text-emerald-600', path: 'M5 13l4 4L19 7' },
@@ -62,147 +66,172 @@ const heroIcons = [
 >
   <script is:inline>document.documentElement.classList.add('js-ready');</script>
 
-  <PublicHeader variant="dark" />
+  <PublicHeader variant="wall" />
 
   <main class="bg-white">
-    <!-- 1. Hero: hazy sky, centered display type, glass question bar, app rising out of the hills -->
-    <section class="hero-sky relative overflow-hidden text-white">
-      <div aria-hidden="true" class="hero-sky-clouds pointer-events-none absolute inset-0"></div>
+    <!-- 1. Hero: fullscreen office wall + floor. On scroll the framed values poster falls off its nail
+         and the ValueLoop motion grows out of the spot where it hung (see initHeroSequence). -->
+    <section data-hero-scroll class="hero-sequence relative">
+      <div data-hero-stage class="hero-stage hero-wall overflow-hidden text-[#111]">
+        <div aria-hidden="true" class="hero-floor"></div>
 
-      {!bootstrapReady && (
-        <div class="relative mx-auto mt-24 w-full max-w-3xl px-6">
-          <div class="flex items-center gap-3 rounded-full border border-white/30 bg-white/15 px-5 py-3 text-sm text-white backdrop-blur-md">
-            <span class="flex h-2 w-2 shrink-0 rounded-full bg-amber-300"></span>
-            <p>Instalasi baru terdeteksi. Jalankan <code class="rounded bg-white/20 px-1.5 py-0.5 font-mono">npm run setup</code> di terminal untuk inisialisasi user root & organisasi pertama.</p>
+        {!bootstrapReady && (
+          <div class="absolute inset-x-0 top-20 z-30 mx-auto w-full max-w-3xl px-6">
+            <div class="flex items-center gap-3 rounded-full border border-black/10 bg-white/60 px-5 py-3 text-sm text-[#111] backdrop-blur-md">
+              <span class="flex h-2 w-2 shrink-0 rounded-full bg-amber-400"></span>
+              <p>Instalasi baru terdeteksi. Jalankan <code class="rounded bg-black/5 px-1.5 py-0.5 font-mono">npm run setup</code> di terminal untuk inisialisasi user root & organisasi pertama.</p>
+            </div>
+          </div>
+        )}
+
+        <div class="hero-content relative z-10 mx-auto flex w-full max-w-7xl items-center px-6 text-center">
+          <div class="grid w-full items-center gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+            <div data-hero-copy class="flex flex-col items-center lg:items-start lg:text-left">
+              <h1 class="hero-animate-delay-1 text-[3.25rem] font-normal leading-[0.9] tracking-[-0.05em] sm:text-[4.5rem] md:text-[6rem] lg:text-[4.75rem] xl:text-[5.5rem]">
+                Dari bingkai<br />ke kebiasaan.
+              </h1>
+
+              <form action="/signup" method="get" class="hero-animate-delay-2 mt-8 flex h-14 w-full max-w-[560px] items-center rounded-full border border-black/10 bg-white/70 pl-6 pr-2 shadow-sm backdrop-blur-md sm:mt-10 sm:h-16">
+                <label for="hero-question" class="sr-only">Contoh pertanyaan challenge</label>
+                <input id="hero-question" type="text" readonly tabindex="-1" class="min-w-0 flex-1 cursor-default bg-transparent text-left text-base text-[#111]/70 outline-none placeholder:text-[#111]/70" placeholder="Ceritakan momen kamu menolong customer|" />
+                <button type="submit" aria-label="Mulai sekarang" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#111] text-white transition-transform hover:scale-105">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"></path></svg>
+                </button>
+              </form>
+
+              <p class="hero-animate-delay-3 mt-8 hidden max-w-xl text-xl leading-snug text-[#111]/75 sm:block sm:text-2xl">
+                Ubah core values jadi kebiasaan kerja nyata
+                <span class="whitespace-nowrap">– lewat
+                  <span class="inline-flex translate-y-1 items-center -space-x-1 align-baseline">
+                    {heroIcons.map((icon) => (
+                      <span class={`flex h-8 w-8 items-center justify-center rounded-full bg-white ring-2 ring-[#E9E4DA] ${icon.tone}`} title={icon.title}>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icon.path} /></svg>
+                      </span>
+                    ))}
+                  </span>
+                </span>
+              </p>
+
+              <div class="hero-animate-delay-3 mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+                <a class="btn-interactive inline-flex h-11 items-center rounded-full bg-[#111] px-6 text-sm font-medium text-white transition-colors hover:bg-[#111]/85" href="/signup">Mulai Gratis</a>
+                <a class="btn-interactive inline-flex h-11 items-center gap-2 rounded-full border border-black/10 bg-white pl-5 pr-6 text-sm font-medium text-[#111] transition-colors hover:bg-white/80" href="/preview">
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></svg>
+                  Lihat preview
+                </a>
+              </div>
+            </div>
+
+            <figure class="hero-animate-delay-2 flex flex-col items-center pt-10 lg:pt-0">
+              <div class="relative">
+                <span aria-hidden="true" data-hero-nail class="wall-nail"></span>
+                <div data-hero-fall class="hero-fall">
+                  <div class="wall-frame wall-frame--loose w-[200px] p-3 sm:w-[300px] sm:p-4 lg:w-[360px] lg:p-5">
+                    <div class="border border-[#E4DED3] px-4 py-5 saturate-50 sm:px-6 sm:py-6">
+                      <p class="font-mono text-[9px] uppercase tracking-[0.3em] text-[#8a8177]">Our Core Values</p>
+                      <div class="mt-3 space-y-1 font-serif text-base leading-tight text-[#3d3832] sm:text-xl lg:text-2xl">
+                        <p>Integrity</p>
+                        <p>Ownership</p>
+                        <p>Customer First</p>
+                      </div>
+                      <div class="mx-auto mt-4 h-px w-10 bg-[#cfc6b6]"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <figcaption data-hero-plaque class="mt-5 rounded-sm bg-[#D6CEBF] px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-[#6f665b] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.5)]">Dipasang 2019 · Terakhir dibaca: saat dipasang</figcaption>
+            </figure>
           </div>
         </div>
-      )}
 
-      <div class="relative mx-auto flex w-full max-w-7xl flex-col items-center px-6 pt-36 text-center sm:pt-40">
-        <h1 class="hero-animate-delay-1 text-[3.25rem] font-normal leading-[0.9] tracking-[-0.05em] sm:text-[4.5rem] md:text-[6rem] lg:text-[7.5rem]">
-          Value hidup.<br />Setiap hari.
-        </h1>
-
-        <form action="/signup" method="get" class="hero-animate-delay-2 mt-10 flex h-16 w-full max-w-[660px] items-center rounded-full border border-white/25 bg-white/15 pl-6 pr-2 backdrop-blur-md">
-          <label for="hero-question" class="sr-only">Contoh pertanyaan challenge</label>
-          <input id="hero-question" type="text" readonly tabindex="-1" class="min-w-0 flex-1 cursor-default bg-transparent text-left text-base text-white/85 outline-none placeholder:text-white/85" placeholder="Ceritakan momen kamu menolong customer|" />
-          <button type="submit" aria-label="Mulai sekarang" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-105">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"></path></svg>
-          </button>
-        </form>
-
-        <p class="hero-animate-delay-3 mt-10 max-w-2xl text-xl leading-snug text-white/85 sm:text-2xl">
-          Ubah core values jadi kebiasaan kerja nyata
-          <span class="whitespace-nowrap">– lewat
-            <span class="inline-flex translate-y-1 items-center -space-x-1 align-baseline">
-              {heroIcons.map((icon) => (
-                <span class={`flex h-8 w-8 items-center justify-center rounded-full bg-white ring-2 ring-white/40 ${icon.tone}`} title={icon.title}>
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icon.path} /></svg>
-                </span>
-              ))}
-            </span>
-          </span>
-        </p>
-
-        <div class="hero-animate-delay-3 mt-10 flex flex-wrap justify-center gap-3">
-          <a class="btn-interactive inline-flex h-11 items-center rounded-full bg-white px-6 text-sm font-medium text-black transition-colors hover:bg-white/90" href="/signup">Mulai Gratis</a>
-          <a class="btn-interactive inline-flex h-11 items-center gap-2 rounded-full bg-white pl-5 pr-6 text-sm font-medium text-black transition-colors hover:bg-white/85" href="/preview">
-            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></svg>
-            Lihat preview
-          </a>
-        </div>
-
-        <div class="hero-animate-delay-4 relative mt-16 w-full max-w-[1024px] sm:mt-20">
-          <div class="overflow-hidden rounded-t-2xl border border-b-0 border-white/10 bg-[#0e0e0e] text-left shadow-[0_-10px_60px_rgb(0_0_0_/_0.2)]">
-            <div class="flex items-center gap-3 border-b border-white/5 px-4 py-3">
-              <div class="flex gap-1.5"><span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span></div>
-              <div class="mx-auto hidden w-1/2 rounded-md bg-white/5 py-1 text-center text-xs text-white/70 sm:block">app.valueloop.id</div>
-            </div>
-            <div class="grid h-[340px] grid-cols-1 sm:h-[420px] sm:grid-cols-[180px_1fr]">
-              <aside class="hidden border-r border-white/5 bg-[#131314] p-3 sm:block">
-                <div class="mb-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-white/90"><span class="flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] font-semibold text-white">A</span>Acme Studio</div>
-                <div class="space-y-0.5 text-xs text-white/50">
-                  <div class="rounded-md bg-white/10 px-2 py-1.5 text-white">Dashboard</div>
-                  <div class="px-2 py-1.5">Daily Challenge</div>
-                  <div class="px-2 py-1.5">Leaderboard</div>
-                  <div class="px-2 py-1.5">History</div>
-                  <div class="px-2 py-1.5">Insights</div>
-                </div>
-                <p class="mt-5 px-2 text-[10px] uppercase tracking-wider text-white/30">Terbaru</p>
-                <div class="mt-1 space-y-2 px-2 text-[11px] text-white/70">
-                  <p>Rian · Ownership<br /><span class="text-emerald-400/80">● Dinilai 9/10</span></p>
-                  <p>Sari · Customer Obsession<br /><span class="text-amber-300/80">● Menunggu skor</span></p>
-                  <p>Dimas · Integritas<br /><span class="text-emerald-400/80">● Dinilai 8/10</span></p>
-                </div>
-              </aside>
-              <div class="p-5 sm:p-8">
-                <div class="flex items-center justify-between gap-3">
-                  <div class="flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">A</span>
-                    <div><p class="text-sm font-medium text-white">Acme Studio</p><p class="text-xs text-white/50">Challenge hari ini siap dimulai</p></div>
+        <!-- Product motion: set heroVideoSrc to swap the static app mockup for a video -->
+        <div data-hero-media class="hero-media z-20">
+          {heroVideoSrc ? (
+            <video data-hero-video class="h-full w-full rounded-2xl bg-[#0e0e0e] object-cover" src={heroVideoSrc} poster={heroVideoPoster ?? undefined} autoplay muted loop playsinline preload="metadata" aria-label="Demo ValueLoop"></video>
+          ) : (
+            <div class="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0e0e0e] text-left">
+              <div class="flex items-center gap-3 border-b border-white/5 px-4 py-3">
+                <div class="flex gap-1.5"><span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span></div>
+                <div class="mx-auto hidden w-1/2 rounded-md bg-white/5 py-1 text-center text-xs text-white/70 sm:block">app.valueloop.id</div>
+              </div>
+              <div class="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-[180px_1fr]">
+                <aside class="hidden border-r border-white/5 bg-[#131314] p-3 sm:block">
+                  <div class="mb-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-white/90"><span class="flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] font-semibold text-white">A</span>Acme Studio</div>
+                  <div class="space-y-0.5 text-xs text-white/50">
+                    <div class="rounded-md bg-white/10 px-2 py-1.5 text-white">Dashboard</div>
+                    <div class="px-2 py-1.5">Daily Challenge</div>
+                    <div class="px-2 py-1.5">Leaderboard</div>
+                    <div class="px-2 py-1.5">History</div>
+                    <div class="px-2 py-1.5">Insights</div>
                   </div>
-                  <span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-black">Mulai challenge</span>
-                </div>
-                <div class="mt-6 grid grid-cols-2 rounded-xl border border-white/5 sm:grid-cols-4 sm:divide-x sm:divide-white/5">
-                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Member aktif</p><p class="mt-1 text-xl text-white">24</p><p class="text-[10px] text-white/40">5 tim</p></div>
-                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Challenge</p><p class="mt-1 text-xl text-white">38</p><p class="text-[10px] text-white/40">Bulan ini</p></div>
-                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Rata-rata</p><p class="mt-1 text-xl text-white">8,4</p><p class="text-[10px] text-white/40">Skor 0–10</p></div>
-                  <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Partisipasi</p><p class="mt-1 text-xl text-white">86%</p><p class="text-[10px] text-white/40">Member menjawab</p></div>
-                </div>
-                <p class="mt-6 text-sm text-white">Core values</p>
-                <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  {[['Ownership', '12 pertanyaan', 'bg-emerald-500', 'w-4/5'], ['Customer Obsession', '9 pertanyaan', 'bg-sky-500', 'w-3/5'], ['Integritas', '7 pertanyaan', 'bg-amber-400', 'w-2/5']].map(([name, count, color, width]) => (
-                    <div class="rounded-lg bg-white/[0.04] p-3">
-                      <p class="text-xs text-white">{name}</p>
-                      <p class="text-[10px] text-white/40">{count}</p>
-                      <div class="mt-6 h-1 rounded-full bg-white/10"><div class={`h-1 rounded-full ${color} ${width}`}></div></div>
+                  <p class="mt-5 px-2 text-[10px] uppercase tracking-wider text-white/30">Terbaru</p>
+                  <div class="mt-1 space-y-2 px-2 text-[11px] text-white/70">
+                    <p>Rian · Ownership<br /><span class="text-emerald-400/80">● Dinilai 9/10</span></p>
+                    <p>Sari · Customer Obsession<br /><span class="text-amber-300/80">● Menunggu skor</span></p>
+                    <p>Dimas · Integritas<br /><span class="text-emerald-400/80">● Dinilai 8/10</span></p>
+                  </div>
+                </aside>
+                <div class="p-5 sm:p-8">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">A</span>
+                      <div><p class="text-sm font-medium text-white">Acme Studio</p><p class="text-xs text-white/50">Challenge hari ini siap dimulai</p></div>
                     </div>
-                  ))}
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-black">Mulai challenge</span>
+                  </div>
+                  <div class="mt-6 grid grid-cols-2 rounded-xl border border-white/5 sm:grid-cols-4 sm:divide-x sm:divide-white/5">
+                    <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Member aktif</p><p class="mt-1 text-xl text-white">24</p><p class="text-[10px] text-white/40">5 tim</p></div>
+                    <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Challenge</p><p class="mt-1 text-xl text-white">38</p><p class="text-[10px] text-white/40">Bulan ini</p></div>
+                    <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Rata-rata</p><p class="mt-1 text-xl text-white">8,4</p><p class="text-[10px] text-white/40">Skor 0–10</p></div>
+                    <div class="p-4 text-center"><p class="text-[10px] uppercase tracking-wider text-white/40">Partisipasi</p><p class="mt-1 text-xl text-white">86%</p><p class="text-[10px] text-white/40">Member menjawab</p></div>
+                  </div>
+                  <p class="mt-6 text-sm text-white">Core values</p>
+                  <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {[['Ownership', '12 pertanyaan', 'bg-emerald-500', 'w-4/5'], ['Customer Obsession', '9 pertanyaan', 'bg-sky-500', 'w-3/5'], ['Integritas', '7 pertanyaan', 'bg-amber-400', 'w-2/5']].map(([name, count, color, width]) => (
+                      <div class="rounded-lg bg-white/[0.04] p-3">
+                        <p class="text-xs text-white">{name}</p>
+                        <p class="text-[10px] text-white/40">{count}</p>
+                        <div class="mt-6 h-1 rounded-full bg-white/10"><div class={`h-1 rounded-full ${color} ${width}`}></div></div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      </div>
 
-      <!-- Rolling hills + fog covering the bottom of the mockup -->
-      <div aria-hidden="true" class="pointer-events-none relative -mt-40 h-64 sm:-mt-52 sm:h-80">
-        <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" fill="none">
-          <defs>
-            <linearGradient id="hill-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9aae6c" /><stop offset="1" stop-color="#5f7a3e" /></linearGradient>
-            <linearGradient id="hill-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7f9a52" /><stop offset="1" stop-color="#4e6a33" /></linearGradient>
-            <linearGradient id="fog" x1="0" y1="0" x2="0" y2="1"><stop offset="0.35" stop-color="#F4F5F0" stop-opacity="0" /><stop offset="1" stop-color="#F4F5F0" /></linearGradient>
-          </defs>
-          <path d="M0 120 C 160 60 300 70 420 110 C 520 140 620 150 720 138 C 840 124 940 132 1060 110 C 1180 70 1300 50 1440 90 L1440 320 L0 320 Z" fill="url(#hill-a)" />
-          <path d="M0 200 C 220 130 420 140 640 190 C 860 240 1080 170 1260 150 C 1350 140 1410 150 1440 160 L1440 320 L0 320 Z" fill="url(#hill-b)" />
-          <rect width="1440" height="320" fill="url(#fog)" />
-        </svg>
+        <div aria-hidden="true" data-hero-hint class="hero-hint absolute inset-x-0 bottom-6 z-10 flex flex-col items-center gap-1 text-xs font-medium text-[#5c5348]">
+          <span>Scroll</span>
+          <svg class="h-4 w-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
+        </div>
       </div>
     </section>
 
-    <!-- 2. Problem: centered headline + three sky cards with floating UI -->
-    <section class="bg-[#F4F5F0] px-6 pt-20 pb-16 sm:pt-24 lg:pt-28">
+    <!-- 2. Problem: centered headline + three wall cards (framed poster, PDF, ValueLoop ritual) -->
+    <section class="bg-[#F3F0EA] px-6 pt-24 pb-16 sm:pt-32">
       <div class="mx-auto max-w-[1440px]">
         <div class="mx-auto max-w-3xl text-center reveal">
-          <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">Value di dinding.<br />Di mana di tim?</h2>
-          <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Core values sering hanya dibaca saat onboarding. Kebiasaan tumbuh dari apa yang dibicarakan dan dipraktikkan setiap hari.</p>
+          <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">Terpajang di dinding.<br />Terlupa saat bekerja.</h2>
+          <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Di banyak perusahaan, core values hanya dibaca sekali saat onboarding. Padahal budaya kerja terbentuk dari apa yang dibahas dan dilakukan tim setiap hari.</p>
         </div>
 
         <div class="mt-14 grid gap-4 md:grid-cols-3">
           <div class="reveal stagger-1">
-            <div class="sky-soft relative flex aspect-[4/3.4] items-center overflow-hidden rounded-xl p-6">
-              <div class="w-[115%] rounded-2xl bg-white p-6 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
-                <p class="font-mono text-[11px] uppercase tracking-wider text-[#999]">Lobby · Lantai 3</p>
-                <p class="mt-3 text-2xl font-medium leading-tight tracking-tight text-[#111]">"Integrity. Ownership. Customer First."</p>
-                <p class="mt-4 text-xs text-[#999]">Terakhir dibaca: saat dipasang</p>
+            <div class="wall-soft flex aspect-[4/3.4] flex-col items-center justify-center overflow-hidden rounded-xl p-6 pt-14">
+              <div class="wall-frame w-[72%] p-3 opacity-90 saturate-50">
+                <div class="border border-[#E4DED3] px-4 py-5 text-center">
+                  <p class="font-mono text-[9px] uppercase tracking-[0.3em] text-[#8a8177]">Our Values</p>
+                  <p class="mt-2 font-serif text-lg leading-snug text-[#3d3832]">Integrity.<br />Ownership.<br />Customer First.</p>
+                </div>
               </div>
+              <p class="mt-5 rounded-sm bg-[#D6CEBF] px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-[#6f665b]">Lobby · Lantai 3 · Terakhir dibaca: saat dipasang</p>
             </div>
             <h3 class="mt-4 font-medium text-[#111]">{problems[0].title}</h3>
             <p class="mt-1 max-w-sm text-[15px] text-[#999]">{problems[0].body}</p>
           </div>
 
           <div class="reveal stagger-2">
-            <div class="sky-soft relative flex aspect-[4/3.4] items-center overflow-hidden rounded-xl p-6">
+            <div class="wall-soft flex aspect-[4/3.4] items-center overflow-hidden rounded-xl p-6">
               <div class="w-full rounded-xl bg-white p-4 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
                 <p class="mb-2 text-xs text-[#999]">Onboarding_Handbook_v7_FINAL.pdf · 48 halaman</p>
                 {['Bab 1 · Sejarah perusahaan', 'Bab 2 · Visi & misi', 'Bab 3 · Core values', 'Bab 4 · Kebijakan cuti'].map((row, index) => (
@@ -218,9 +247,9 @@ const heroIcons = [
           </div>
 
           <div class="reveal stagger-3">
-            <div class="sky-soft relative flex aspect-[4/3.4] items-center justify-end overflow-hidden rounded-xl py-6 pl-10">
+            <div class="wall-soft flex aspect-[4/3.4] items-center justify-end overflow-hidden rounded-xl py-6 pl-10">
               <div class="relative w-full rounded-l-2xl bg-white p-6 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-[#F4F5F0] px-2.5 py-1 text-xs font-medium text-[#111]"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ownership</span>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-[#F3F0EA] px-2.5 py-1 text-xs font-medium text-[#111]"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ownership</span>
                 <p class="mt-3 text-xl font-medium leading-snug tracking-tight text-[#111]">Kapan terakhir kamu menyelesaikan masalah yang bukan tugasmu?</p>
                 <div class="absolute -bottom-3 right-6 rounded-xl bg-[#262626] px-4 py-2.5 text-sm text-white shadow-lg">Rian · <span class="text-emerald-400">9/10</span></div>
               </div>
@@ -251,7 +280,7 @@ const heroIcons = [
       <div data-carousel class="no-scrollbar mt-6 flex snap-x snap-mandatory scroll-px-6 gap-2.5 overflow-x-auto scroll-smooth px-6 pb-4">
         {features.map((feature, index) => (
           <article class="w-[min(430px,82vw)] shrink-0 snap-start">
-            <div class="sky-soft relative flex aspect-[430/495] items-center overflow-hidden rounded-xl">
+            <div class="wall-soft flex aspect-[430/495] items-center overflow-hidden rounded-xl">
               {index === 0 && (
                 <div class="mx-auto flex h-12 w-[85%] items-center rounded-full bg-white pl-5 pr-1.5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
                   <span class="flex-1 truncate text-sm text-[#111]">Kapan kamu mengambil ownership penuh?<span class="ml-0.5 animate-pulse">|</span></span>
@@ -314,7 +343,7 @@ const heroIcons = [
       </div>
     </section>
 
-    <!-- 4. Engine: toggle headline + sky panel with tabs and app mockup -->
+    <!-- 4. Engine: toggle headline + wall panel with tabs and app mockup -->
     <section id="how-it-works" class="bg-white px-4 pt-24 sm:px-6 sm:pt-32">
       <div class="mx-auto max-w-3xl text-center reveal">
         <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">
@@ -325,18 +354,18 @@ const heroIcons = [
         <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Dari menyiapkan value sampai membaca insight, ValueLoop menjaga ritmenya untuk Anda.</p>
       </div>
 
-      <div class="sky mx-auto mt-14 max-w-[1440px] overflow-hidden rounded-2xl px-4 pt-12 text-center text-white sm:px-12">
-        <div role="tablist" aria-label="Alur ValueLoop" class="inline-flex rounded-full bg-white/30 p-1 backdrop-blur-md">
+      <div class="wall mx-auto mt-14 max-w-[1440px] overflow-hidden rounded-2xl px-4 pt-12 text-center text-[#111] sm:px-12">
+        <div role="tablist" aria-label="Alur ValueLoop" class="inline-flex rounded-full bg-black/5 p-1">
           {engineTabs.map((tab, index) => (
-            <button type="button" role="tab" data-engine-tab={tab.key} aria-selected={index === 0 ? 'true' : 'false'} class="rounded-full px-4 py-2 text-sm font-medium text-[#111] transition-colors aria-selected:bg-white sm:px-5">{tab.label}</button>
+            <button type="button" role="tab" data-engine-tab={tab.key} aria-selected={index === 0 ? 'true' : 'false'} class="rounded-full px-4 py-2 text-sm font-medium text-[#111] transition-colors aria-selected:bg-white aria-selected:shadow-sm sm:px-5">{tab.label}</button>
           ))}
         </div>
 
         {engineTabs.map((tab, index) => (
           <div data-engine-panel={tab.key} class={index === 0 ? '' : 'hidden'}>
             <h3 class="mx-auto mt-6 max-w-2xl text-4xl font-medium leading-[1.05] tracking-tighter sm:text-6xl">{tab.title}</h3>
-            <p class="mx-auto mt-4 max-w-lg text-[15px] text-white/90">{tab.body}</p>
-            <a href={tab.href} class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full bg-white px-6 text-sm font-medium text-black transition-colors hover:bg-white/90">{tab.cta}</a>
+            <p class="mx-auto mt-4 max-w-lg text-[15px] text-[#111]/70">{tab.body}</p>
+            <a href={tab.href} class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full bg-[#111] px-6 text-sm font-medium text-white transition-colors hover:bg-[#111]/85">{tab.cta}</a>
           </div>
         ))}
 
@@ -371,7 +400,7 @@ const heroIcons = [
       </div>
     </section>
 
-    <!-- 5. Who it's for: big role list + sky visual -->
+    <!-- 5. Who it's for: big role list + wall visual -->
     <section class="bg-white px-6 py-24 sm:py-32">
       <div class="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-2 lg:items-start">
         <div>
@@ -389,7 +418,7 @@ const heroIcons = [
           <a href="/bantuan" class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full border border-[#E5E5E5] px-6 text-sm font-medium text-[#111] transition-colors hover:bg-[#f5f5f5]">Hubungi kami</a>
         </div>
 
-        <div class="sky relative flex min-h-[420px] flex-col justify-between gap-10 overflow-hidden rounded-xl p-6 sm:aspect-[4/3.6] sm:p-10">
+        <div class="wall flex min-h-[420px] flex-col justify-between gap-10 overflow-hidden rounded-xl p-6 sm:aspect-[4/3.6] sm:p-10">
           <div class="space-y-3">
             <div class="ml-auto w-fit max-w-[80%] rounded-2xl rounded-br-md bg-white/90 px-4 py-3 text-sm text-[#111] backdrop-blur">Minggu lalu klien minta revisi jam 11 malam. Saya kerjakan, lalu besoknya saya buat checklist supaya tidak terulang.</div>
             <div class="w-fit rounded-2xl rounded-bl-md bg-[#111]/85 px-4 py-3 text-sm text-white backdrop-blur">Ownership · Skor 9/10 · "Contoh konkret dan ada perbaikan sistem."</div>
@@ -532,7 +561,113 @@ const heroIcons = [
       sync();
     }
 
+    // Scroll-pinned hero: the values frame swings off its nail and falls to the floor, then the
+    // product motion grows out of the spot where the frame hung (FLIP from the frame's rect).
+    function initHeroSequence() {
+      const wrapper = document.querySelector<HTMLElement>('[data-hero-scroll]');
+      const stage = document.querySelector<HTMLElement>('[data-hero-stage]');
+      const fall = document.querySelector<HTMLElement>('[data-hero-fall]');
+      const media = document.querySelector<HTMLElement>('[data-hero-media]');
+      if (!wrapper || !stage || !fall || !media) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const copy = document.querySelector<HTMLElement>('[data-hero-copy]');
+      const plaque = document.querySelector<HTMLElement>('[data-hero-plaque]');
+      const nail = document.querySelector<HTMLElement>('[data-hero-nail]');
+      const hint = document.querySelector<HTMLElement>('[data-hero-hint]');
+      const floor = stage.querySelector<HTMLElement>('.hero-floor');
+      const video = media.querySelector<HTMLVideoElement>('[data-hero-video]');
+
+      const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+      const range = (p: number, start: number, end: number) => clamp((p - start) / (end - start));
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+      const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+      const easeIn = (t: number) => t * t;
+
+      // Geometry measured with transforms cleared, relative to the stage.
+      let dropY = 0;
+      let flip = { x: 0, y: 0, s: 0.3 };
+      const measure = () => {
+        fall.style.transform = '';
+        media.style.transform = '';
+        const frameRect = fall.getBoundingClientRect();
+        const mediaRect = media.getBoundingClientRect();
+        const floorTop = floor ? floor.getBoundingClientRect().top : window.innerHeight * 0.8;
+        // Land with the frame's bottom edge just past the skirting board.
+        dropY = Math.max(0, floorTop + 18 - frameRect.bottom);
+        flip = {
+          x: frameRect.left + frameRect.width / 2 - (mediaRect.left + mediaRect.width / 2),
+          y: frameRect.top + frameRect.height / 2 - (mediaRect.top + mediaRect.height / 2),
+          s: frameRect.width / mediaRect.width,
+        };
+      };
+
+      const progress = () => {
+        const rect = wrapper.getBoundingClientRect();
+        return clamp(-rect.top / Math.max(1, rect.height - window.innerHeight));
+      };
+
+      let playing = false;
+      const render = (p: number) => {
+        // Swing around the nail (0.03–0.24), then fall with gravity and a small bounce (0.24–0.52).
+        const swing = range(p, 0.03, 0.24);
+        const angleSwing = Math.sin(swing * Math.PI * 2) * 4 * (1 - swing * 0.4);
+        const drop = range(p, 0.24, 0.44);
+        const bounce = range(p, 0.44, 0.52);
+        const y = easeIn(drop) * dropY - Math.sin(bounce * Math.PI) * 12;
+        const angle = angleSwing + easeIn(drop) * 8;
+        fall.style.transform = `translate3d(0, ${y}px, 0) rotate(${angle}deg)`;
+        fall.style.opacity = String(1 - range(p, 0.5, 0.6));
+
+        const fade = range(p, 0.2, 0.42);
+        if (copy) {
+          copy.style.opacity = String(1 - fade);
+          copy.style.transform = `translate3d(0, ${-24 * fade}px, 0)`;
+        }
+        if (plaque) plaque.style.opacity = String(1 - range(p, 0.16, 0.3));
+        if (nail) nail.style.opacity = String(1 - range(p, 0.52, 0.62));
+        if (hint) hint.style.opacity = String(1 - range(p, 0, 0.04));
+
+        // Media grows out of the frame's original spot (0.42–0.86), fading in on the way.
+        const grow = easeInOut(range(p, 0.42, 0.86));
+        const scale = lerp(flip.s, 1, grow);
+        media.style.transform = `translate3d(${lerp(flip.x, 0, grow)}px, ${lerp(flip.y, 0, grow)}px, 0) scale(${scale})`;
+        media.style.opacity = String(range(p, 0.42, 0.52));
+        media.style.pointerEvents = p > 0.8 ? 'auto' : 'none';
+
+        if (video) {
+          const shouldPlay = p > 0.44;
+          if (shouldPlay !== playing) {
+            playing = shouldPlay;
+            if (shouldPlay) video.play().catch(() => {});
+            else video.pause();
+          }
+        }
+      };
+
+      // Ease the rendered progress toward the scroll position so fast flicks still read as motion.
+      let current = progress();
+      let frame = 0;
+      const tick = () => {
+        const target = progress();
+        current += (target - current) * 0.12;
+        if (Math.abs(target - current) < 0.0005) current = target;
+        render(current);
+        frame = current === target ? 0 : requestAnimationFrame(tick);
+      };
+      const schedule = () => { if (!frame) frame = requestAnimationFrame(tick); };
+      const remeasure = () => { measure(); render(current); };
+
+      if (video) video.pause();
+      remeasure();
+      // The hero load animation shifts the frame for ~1s; measure again once it settles.
+      window.setTimeout(remeasure, 1000);
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', remeasure);
+    }
+
     initRevealAnimations();
+    initHeroSequence();
     initHeroTypewriter();
     initCarousel();
     initTabs('engine');

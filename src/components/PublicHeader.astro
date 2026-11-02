@@ -1,6 +1,6 @@
 ---
 type Props = {
-  variant?: 'light' | 'dark';
+  variant?: 'light' | 'wall';
 };
 
 const { variant = 'light' } = Astro.props;
@@ -12,7 +12,7 @@ const navItems = [
   { label: 'Blog', href: '/blog' },
 ];
 ---
-<header class="site-header" data-tone={variant === 'dark' ? 'sky' : 'light'}>
+<header class="site-header" data-tone={variant === 'wall' ? 'wall' : 'light'}>
   <div class="mx-auto grid w-full max-w-[1440px] grid-cols-[1fr_auto] items-center px-6 py-3 md:grid-cols-[1fr_auto_1fr]">
     <a class="flex items-center gap-2 transition-opacity hover:opacity-70" href="/">
       <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -40,7 +40,7 @@ const navItems = [
 </header>
 
 <script>
-  const header = document.querySelector<HTMLElement>('.site-header[data-tone="sky"]');
+  const header = document.querySelector<HTMLElement>('.site-header[data-tone="wall"]');
   if (header) {
     const sync = () => { header.dataset.scrolled = String(window.scrollY > 40); };
     sync();
