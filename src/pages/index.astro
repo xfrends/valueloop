@@ -49,8 +49,9 @@ const faqs = [
 ];
 
 // Hero motion video (file in public/, e.g. '/videos/hero.mp4'). null keeps the static app mockup.
-const heroVideoSrc: string | null = '/media/hero-motion.mp4';
-const heroVideoWebm: string | null = '/media/hero-motion.webm';
+// Served from R2 via /api/assets (supports Range requests, which Safari needs for video).
+const heroVideoSrc: string | null = '/api/assets/media/hero-motion.mp4';
+const heroVideoWebm: string | null = '/api/assets/media/hero-motion.webm';
 const heroVideoPoster: string | null = '/media/hero-motion-poster.jpg';
 
 const heroIcons = [
