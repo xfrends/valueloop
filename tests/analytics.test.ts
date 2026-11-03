@@ -146,10 +146,16 @@ describe('analytics services', () => {
     expect(insights.valueScores).toEqual([
       {
         value_name: 'Ownership',
+        color: '#2563EB',
         total_asked: 1,
+        total_scored: 1,
         average_score: 8,
       },
     ]);
+    // Charts: this week's bucket holds the one scored session, and score 8 appears once in the distribution.
+    expect(insights.weekly).toHaveLength(12);
+    expect(insights.weekly.at(-1)).toMatchObject({ total: 1, scored: 1, averageScore: 8 });
+    expect(insights.scoreDistribution.find((row) => row.score === 8)?.total).toBe(1);
     expect(insights.teamScores).toEqual([
       {
         team_name: 'Culture Team',

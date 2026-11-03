@@ -1,0 +1,45 @@
+---
+// Horizontal bar list: one row per category, value labelled at the bar end.
+type Row = {
+  label: string;
+  value: number | null;
+  display: string;
+  meta?: string;
+  dotColor?: string;
+  tip: string;
+};
+
+type Props = {
+  rows: Row[];
+  max: number;
+  color?: string;
+  emptyText?: string;
+};
+
+const { rows, max, color = '#2a78d6', emptyText = 'Belum ada data.' } = Astro.props;
+const scaleMax = max > 0 ? max : 1;
+---
+{rows.length ? (
+  <ul class="space-y-4">
+    {rows.map((row) => (
+      <li tabindex="0" data-tip={row.tip} class="group rounded-md outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+        <div class="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
+          <span class="flex min-w-0 items-center gap-2 text-slate-900">
+            {row.dotColor && <span class="h-2.5 w-2.5 shrink-0 rounded-full" style={`background:${row.dotColor}`}></span>}
+            <span class="truncate font-medium">{row.label}</span>
+            {row.meta && <span class="shrink-0 text-xs text-slate-500">{row.meta}</span>}
+          </span>
+          <span class="shrink-0 font-semibold tabular-nums text-slate-900">{row.display}</span>
+        </div>
+        <div class="h-2.5 rounded-full bg-slate-100">
+          <div
+            class="h-2.5 rounded-full transition-opacity group-hover:opacity-80"
+            style={`width:${row.value ? Math.max(2, (row.value / scaleMax) * 100) : 0}%;background:${color}`}
+          ></div>
+        </div>
+      </li>
+    ))}
+  </ul>
+) : (
+  <p class="py-8 text-center text-sm text-slate-500">{emptyText}</p>
+)}

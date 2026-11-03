@@ -1,0 +1,84 @@
+---
+// Single-series line on a fixed 0–max scale. Gaps (null) break the line instead of dropping to zero.
+// The line is a stretched SVG; dots, labels and hover columns are HTML so they don't distort.
+type Props = {
+  labels: string[];
+  values: (number | null)[];
+  tips: string[];
+  max?: number;
+  color?: string;
+  height?: string;
+  emptyText?: string;
+};
+
+const { labels, values, tips, max = 10, color = '#2a78d6', height = 'h-48', emptyText = 'Belum ada data.' } = Astro.props;
+const count = values.length;
+const x = (index: number) => (count > 1 ? (index / (count - 1)) * 100 : 50);
+const y = (value: number) => 100 - (value / max) * 100;
+// Each hover column is centred on its point.
+const step = count > 1 ? 100 / (count - 1) : 100;
+
+const segments: string[] = [];
+let current: string[] = [];
+values.forEach((value, index) => {
+  if (value === null) {
+    if (current.length) segments.push(current.join(' '));
+    current = [];
+    return;
+  }
+  current.push(`${current.length ? 'L' : 'M'}${x(index)} ${y(value)}`);
+});
+if (current.length) segments.push(current.join(' '));
+
+const lastIndex = values.findLastIndex((value) => value !== null);
+const hasData = lastIndex >= 0;
+const ticks = [max, max / 2, 0];
+---
+{hasData ? (
+  <div class="flex gap-2">
+    <div class={`relative w-6 shrink-0 ${height}`}>
+      {ticks.map((tick, index) => (
+        <span class="absolute right-0 -translate-y-1/2 text-[10px] tabular-nums text-slate-400" style={`top:${index * 50}%`}>{tick}</span>
+      ))}
+    </div>
+    <div class="min-w-0 flex-1 px-1">
+      <div class={`relative ${height}`}>
+        {ticks.map((_, index) => (
+          <div class={`absolute inset-x-0 border-t ${index === 2 ? 'border-slate-300' : 'border-slate-100'}`} style={`top:${index * 50}%`}></div>
+        ))}
+        <svg class="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {segments.map((d) => (
+            <path d={d} fill="none" stroke={color} stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+          ))}
+        </svg>
+        {values.map((value, index) => value !== null && (
+          <span
+            class="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white"
+            style={`left:${x(index)}%;top:${y(value)}%;background:${color}`}
+          ></span>
+        ))}
+        <span
+          class="pointer-events-none absolute -translate-x-full -translate-y-[160%] whitespace-nowrap rounded bg-white/90 px-1 text-xs font-semibold tabular-nums text-slate-900"
+          style={`left:${x(lastIndex)}%;top:${y(values[lastIndex] as number)}%`}
+        >{values[lastIndex]}</span>
+        {values.map((_, index) => (
+          <div
+            tabindex="0"
+            data-tip={tips[index]}
+            class="group absolute inset-y-0 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            style={`left:${x(index) - step / 2}%;width:${step}%`}
+          >
+            <span class="absolute inset-y-0 left-1/2 border-l border-dashed border-slate-300 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"></span>
+          </div>
+        ))}
+      </div>
+      <div class="relative mt-2 h-4">
+        {labels.map((label, index) => (
+          <span class={`absolute -translate-x-1/2 whitespace-nowrap text-[10px] text-slate-500 ${index % 2 === 1 ? 'hidden' : ''}`} style={`left:${x(index)}%`}>{label}</span>
+        ))}
+      </div>
+    </div>
+  </div>
+) : (
+  <p class="py-12 text-center text-sm text-slate-500">{emptyText}</p>
+)}

@@ -3,12 +3,67 @@ import AppLayout from '../layouts/AppLayout.astro';
 import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
 import { canViewInsights } from '../lib/permissions';
 import { getInsightsSummary } from '../lib/services/analytics';
+import BarList from '../components/charts/BarList.astro';
+import ColumnChart from '../components/charts/ColumnChart.astro';
+import LineChart from '../components/charts/LineChart.astro';
+import ChartTooltip from '../components/charts/ChartTooltip.astro';
 
 const organization = Astro.locals.organization;
 const membership = Astro.locals.membership;
 const runtime = getCloudflareRuntime(Astro);
 const allowed = canViewInsights(membership?.role);
 const insights = allowed && organization && runtime?.env?.DB ? await getInsightsSummary(runtime.env.DB, organization.id) : null;
+
+// Chart colors: blue for single-series magnitude; blue + orange for the scored/unscored stack (validated pair).
+const SERIES_BLUE = '#2a78d6';
+const SERIES_ORANGE = '#eb6834';
+
+const weekFormatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const formatWeek = (isoDate: string) => weekFormatter.format(new Date(`${isoDate}T00:00:00Z`));
+const weekRange = (isoDate: string) => {
+  const end = new Date(`${isoDate}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 6);
+  return `${formatWeek(isoDate)} – ${weekFormatter.format(end)}`;
+};
+
+const weekly = insights?.weekly ?? [];
+const weekLabels = weekly.map((week) => formatWeek(week.weekStart));
+const trendTips = weekly.map((week) => `Week of ${weekRange(week.weekStart)}\n${week.averageScore === null ? 'No scored challenges' : `Average score: ${week.averageScore}\nScored challenges: ${week.scored}`}`);
+const volumeTips = weekly.map((week) => `Week of ${weekRange(week.weekStart)}\nScored: ${week.scored}\nNot scored yet: ${week.total - week.scored}\nTotal: ${week.total}`);
+
+const distribution = insights?.scoreDistribution ?? [];
+const totalScored = distribution.reduce((sum, row) => sum + row.total, 0);
+const distributionTips = distribution.map((row) => `Score ${row.score}\n${row.total} answers${totalScored ? ` (${Math.round((row.total / totalScored) * 100)}%)` : ''}`);
+
+const valueScores = insights?.valueScores ?? [];
+const valueScoreRows = valueScores.map((row) => ({
+  label: row.value_name,
+  value: row.average_score,
+  display: row.average_score === null ? '-' : String(row.average_score),
+  meta: `${row.total_scored} scored`,
+  dotColor: row.color,
+  tip: `${row.value_name}\nAverage score: ${row.average_score ?? '-'}\nScored: ${row.total_scored} of ${row.total_asked} asked`,
+}));
+const totalAsked = valueScores.reduce((sum, row) => sum + Number(row.total_asked), 0);
+const valueFrequencyRows = [...valueScores]
+  .sort((a, b) => b.total_asked - a.total_asked)
+  .map((row) => ({
+    label: row.value_name,
+    value: row.total_asked,
+    display: String(row.total_asked),
+    meta: totalAsked ? `${Math.round((row.total_asked / totalAsked) * 100)}%` : undefined,
+    dotColor: row.color,
+    tip: `${row.value_name}\nAsked ${row.total_asked} times${totalAsked ? ` (${Math.round((row.total_asked / totalAsked) * 100)}% of all challenges)` : ''}`,
+  }));
+const maxAsked = Math.max(0, ...valueScores.map((row) => Number(row.total_asked)));
+
+const teamRows = (insights?.teamScores ?? []).map((row) => ({
+  label: row.team_name,
+  value: row.average_score,
+  display: row.average_score === null ? '-' : String(row.average_score),
+  meta: `${row.total_answered} scored`,
+  tip: `${row.team_name}\nAverage score: ${row.average_score ?? '-'}\nScored answers: ${row.total_answered}`,
+}));
 ---
 
 <AppLayout title="Insights - ValueLoop" currentPath="/insights">
@@ -44,40 +99,66 @@ const insights = allowed && organization && runtime?.env?.DB ? await getInsights
         </div>
       </div>
 
-      <div class="grid gap-8 lg:grid-cols-2">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100">
-            <h2 class="font-bold text-slate-900">Average Score by Value</h2>
+      <div class="grid gap-6 lg:grid-cols-2">
+        <div class="min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div class="px-6 pt-5">
+            <h2 class="font-bold text-slate-900">Average Score Trend</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Weekly average of scored answers, last 12 weeks (0–10).</p>
           </div>
-          <div class="divide-y divide-slate-100">
-            {insights?.valueScores.map((row) => (
-              <div class="px-6 py-4 flex items-center justify-between gap-4">
-                <div>
-                  <p class="font-medium text-slate-900">{row.value_name}</p>
-                  <p class="text-xs text-slate-500">{row.total_asked} asked</p>
-                </div>
-                <span class="font-bold text-slate-900">{row.average_score ?? '-'}</span>
-              </div>
-            ))}
+          <div class="p-6">
+            <LineChart labels={weekLabels} values={weekly.map((week) => week.averageScore)} tips={trendTips} max={10} color={SERIES_BLUE} emptyText="Belum ada challenge yang dinilai dalam 12 minggu terakhir." />
           </div>
         </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100">
-            <h2 class="font-bold text-slate-900">Average Score by Team</h2>
+        <div class="min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div class="px-6 pt-5">
+            <h2 class="font-bold text-slate-900">Challenges per Week</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Challenges run each week, split by scoring status.</p>
           </div>
-          <div class="divide-y divide-slate-100">
-            {insights?.teamScores.length ? insights.teamScores.map((row) => (
-              <div class="px-6 py-4 flex items-center justify-between gap-4">
-                <div>
-                  <p class="font-medium text-slate-900">{row.team_name}</p>
-                  <p class="text-xs text-slate-500">{row.total_answered} scored answers</p>
-                </div>
-                <span class="font-bold text-slate-900">{row.average_score ?? '-'}</span>
-              </div>
-            )) : (
-              <p class="px-6 py-10 text-center text-slate-500">Belum ada tim.</p>
+          <div class="p-6">
+            <ColumnChart labels={weekLabels} tips={volumeTips} thinLabels series={[
+              { name: 'Scored', color: SERIES_BLUE, values: weekly.map((week) => week.scored) },
+              { name: 'Not scored yet', color: SERIES_ORANGE, values: weekly.map((week) => week.total - week.scored) },
+            ]} />
+          </div>
+        </div>
+        <div class="min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div class="px-6 pt-5">
+            <h2 class="font-bold text-slate-900">Score Distribution</h2>
+            <p class="mt-0.5 text-xs text-slate-500">How scored answers spread across the 0–10 scale, all time.</p>
+          </div>
+          <div class="p-6">
+            {totalScored ? (
+              <ColumnChart labels={distribution.map((row) => String(row.score))} tips={distributionTips} series={[{ name: 'Answers', color: SERIES_BLUE, values: distribution.map((row) => row.total) }]} />
+            ) : (
+              <p class="py-12 text-center text-sm text-slate-500">Belum ada jawaban yang dinilai.</p>
             )}
+          </div>
+        </div>
+        <div class="min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div class="px-6 pt-5">
+            <h2 class="font-bold text-slate-900">Value Coverage</h2>
+            <p class="mt-0.5 text-xs text-slate-500">How often each core value has been asked, all time.</p>
+          </div>
+          <div class="p-6">
+            <BarList rows={valueFrequencyRows} max={maxAsked} color={SERIES_BLUE} emptyText="Belum ada core value." />
+          </div>
+        </div>
+        <div class="min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div class="px-6 pt-5">
+            <h2 class="font-bold text-slate-900">Average Score by Value</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Average score of scored answers per core value.</p>
+          </div>
+          <div class="p-6">
+            <BarList rows={valueScoreRows} max={10} color={SERIES_BLUE} emptyText="Belum ada core value." />
+          </div>
+        </div>
+        <div class="min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div class="px-6 pt-5">
+            <h2 class="font-bold text-slate-900">Average Score by Team</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Average score of scored answers per team.</p>
+          </div>
+          <div class="p-6">
+            <BarList rows={teamRows} max={10} color={SERIES_BLUE} emptyText="Belum ada tim." />
           </div>
         </div>
 
@@ -97,6 +178,7 @@ const insights = allowed && organization && runtime?.env?.DB ? await getInsights
           </div>
         </div>
       </div>
+      <ChartTooltip />
     </>
   )}
   </div>

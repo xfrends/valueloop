@@ -1,0 +1,33 @@
+---
+// One shared tooltip for every chart on the page. Marks opt in with data-tip="line 1\nline 2".
+---
+<div id="chart-tooltip" role="tooltip" class="pointer-events-none fixed left-0 top-0 z-50 hidden max-w-[240px] whitespace-pre-line rounded-lg bg-slate-900 px-3 py-2 text-xs leading-relaxed text-white shadow-lg"></div>
+
+<script>
+  const tooltip = document.querySelector<HTMLElement>('#chart-tooltip');
+  if (tooltip) {
+    const place = (x: number, y: number) => {
+      const { width, height } = tooltip.getBoundingClientRect();
+      const left = Math.min(window.innerWidth - width - 8, Math.max(8, x - width / 2));
+      const top = y - height - 12 < 8 ? y + 16 : y - height - 12;
+      tooltip.style.transform = `translate(${left}px, ${top}px)`;
+    };
+    const show = (target: HTMLElement, x: number, y: number) => {
+      tooltip.textContent = target.dataset.tip ?? '';
+      tooltip.classList.remove('hidden');
+      place(x, y);
+    };
+    const hide = () => tooltip.classList.add('hidden');
+
+    document.querySelectorAll<HTMLElement>('[data-tip]').forEach((target) => {
+      target.addEventListener('pointerenter', (event) => show(target, event.clientX, event.clientY));
+      target.addEventListener('pointermove', (event) => place(event.clientX, event.clientY));
+      target.addEventListener('pointerleave', hide);
+      target.addEventListener('focus', () => {
+        const rect = target.getBoundingClientRect();
+        show(target, rect.left + rect.width / 2, rect.top);
+      });
+      target.addEventListener('blur', hide);
+    });
+  }
+</script>

@@ -143,18 +143,79 @@ export async function getHistorySummary(db: D1Database, organizationId: string) 
   );
 }
 
+const INSIGHT_WEEKS = 12;
+
+function addDays(isoDate: string, days: number): string {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+// Monday of the week containing isoDate (dates are already in the organization's timezone).
+function weekStart(isoDate: string): string {
+  const day = new Date(`${isoDate}T00:00:00Z`).getUTCDay();
+  return addDays(isoDate, -((day + 6) % 7));
+}
+
 export async function getInsightsSummary(db: D1Database, organizationId: string) {
-  const monthStart = `${(await getOrgToday(db, organizationId)).slice(0, 7)}-01`;
+  const today = await getOrgToday(db, organizationId);
+  const monthStart = `${today.slice(0, 7)}-01`;
+  const firstWeek = addDays(weekStart(today), -7 * (INSIGHT_WEEKS - 1));
+
+  const recentSessions = await dbAll<{ session_date: string; status: string; score: number | null }>(
+    db,
+    `select session_date, status, score
+     from challenge_sessions
+     where organization_id = ? and session_date >= ? and status != 'cancelled'`,
+    [organizationId, firstWeek]
+  );
+
+  const weekly = Array.from({ length: INSIGHT_WEEKS }, (_, index) => ({
+    weekStart: addDays(firstWeek, index * 7),
+    total: 0,
+    scored: 0,
+    scoreSum: 0,
+    averageScore: null as number | null,
+  }));
+  for (const session of recentSessions) {
+    const bucket = weekly.find((week) => week.weekStart === weekStart(session.session_date));
+    if (!bucket) continue;
+    bucket.total += 1;
+    if (session.status === 'scored' && session.score !== null) {
+      bucket.scored += 1;
+      bucket.scoreSum += Number(session.score);
+    }
+  }
+  for (const week of weekly) {
+    week.averageScore = week.scored > 0 ? Math.round((week.scoreSum / week.scored) * 100) / 100 : null;
+  }
+
+  const scoreRows = await dbAll<{ score: number; total: number }>(
+    db,
+    `select score, count(*) as total
+     from challenge_sessions
+     where organization_id = ? and status = 'scored' and score is not null
+     group by score`,
+    [organizationId]
+  );
+  const scoreDistribution = Array.from({ length: 11 }, (_, score) => ({
+    score,
+    total: Number(scoreRows.find((row) => Number(row.score) === score)?.total ?? 0),
+  }));
 
   const valueScores = await dbAll<{
     value_name: string;
+    color: string;
     total_asked: number;
+    total_scored: number;
     average_score: number | null;
   }>(
     db,
     `select
        cv.name as value_name,
+       cv.color as color,
        count(cs.id) as total_asked,
+       count(case when cs.status = 'scored' then 1 end) as total_scored,
        round(avg(case when cs.status = 'scored' then cs.score end), 2) as average_score
      from core_values cv
      left join challenge_sessions cs on cs.core_value_id = cv.id and cs.organization_id = cv.organization_id
@@ -239,6 +300,8 @@ export async function getInsightsSummary(db: D1Database, organizationId: string)
   return {
     valueScores,
     teamScores,
+    weekly: weekly.map(({ weekStart: start, total, scored, averageScore }) => ({ weekStart: start, total, scored, averageScore })),
+    scoreDistribution,
     notSelectedThisRound,
     currentRound: currentRound?.round_no ?? 1,
     monthStats: {
