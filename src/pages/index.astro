@@ -49,8 +49,9 @@ const faqs = [
 ];
 
 // Hero motion video (file in public/, e.g. '/videos/hero.mp4'). null keeps the static app mockup.
-const heroVideoSrc: string | null = null;
-const heroVideoPoster: string | null = null;
+const heroVideoSrc: string | null = '/media/hero-motion.mp4';
+const heroVideoWebm: string | null = '/media/hero-motion.webm';
+const heroVideoPoster: string | null = '/media/hero-motion-poster.jpg';
 
 const heroIcons = [
   { title: 'Challenge', tone: 'text-[#111]', path: 'M13 10V3L4 14h7v7l9-11h-7z' },
@@ -58,11 +59,40 @@ const heroIcons = [
   { title: 'Leaderboard', tone: 'text-amber-500', path: 'M8 21h8m-4-4v4m-5-17h10v5a5 5 0 0 1-10 0V4Zm10 2h3a3 3 0 0 1-3 3M7 6H4a3 3 0 0 0 3 3' },
   { title: 'Insights', tone: 'text-sky-600', path: 'M4 19h16M7 15v-4m5 4V7m5 8v-6' },
 ];
+
+const siteOrigin = Astro.url.origin;
+const structuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'ValueLoop',
+    url: siteOrigin,
+    logo: `${siteOrigin}/icon-512.png`,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'ValueLoop',
+    url: siteOrigin,
+    inLanguage: 'id-ID',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'ValueLoop',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    url: siteOrigin,
+    description: 'Ubah core value perusahaan menjadi kebiasaan tim lewat challenge harian, scoring, leaderboard, dan insight.',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'IDR' },
+  },
+];
 ---
 
 <BaseLayout
   title="ValueLoop - Ubah Core Value Menjadi Kebiasaan Tim Setiap Hari"
   description="Platform SaaS untuk menghidupkan core value perusahaan lewat daily reflection challenge, scoring berbasis contoh nyata, leaderboard, dan insight."
+  jsonLd={structuredData}
 >
   <script is:inline>document.documentElement.classList.add('js-ready');</script>
 
@@ -146,7 +176,18 @@ const heroIcons = [
         <!-- Product motion: set heroVideoSrc to swap the static app mockup for a video -->
         <div data-hero-media class="hero-media z-20">
           {heroVideoSrc ? (
-            <video data-hero-video class="h-full w-full rounded-2xl bg-[#0e0e0e] object-cover" src={heroVideoSrc} poster={heroVideoPoster ?? undefined} autoplay muted loop playsinline preload="metadata" aria-label="Demo ValueLoop"></video>
+            <div class="relative h-full w-full">
+              <video data-hero-video class="h-full w-full rounded-2xl bg-[#E9E4DA] object-cover shadow-[0_40px_80px_-30px_rgba(40,30,20,0.45)] ring-1 ring-black/5" poster={heroVideoPoster ?? undefined} muted loop playsinline preload="metadata" aria-label="Motion ValueLoop: dari bingkai ke kebiasaan">
+                {heroVideoWebm && <source src={heroVideoWebm} type="video/webm" />}
+                <source src={heroVideoSrc} type="video/mp4" />
+              </video>
+              <!-- Browsers only autoplay muted video, so sound is opt-in via this toggle. -->
+              <button type="button" data-hero-sound aria-pressed="false" aria-label="Nyalakan suara" class="absolute bottom-2 right-2 z-10 inline-flex items-center gap-2 rounded-full bg-[#111]/85 p-2 sm:bottom-4 sm:right-4 sm:px-3.5 sm:py-2 text-xs font-medium text-white shadow-lg transition hover:bg-[#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]">
+                <svg data-icon-muted class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="m22 9-6 6m0-6 6 6"/></svg>
+                <svg data-icon-sound class="hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+                <span data-sound-label class="hidden sm:inline">Suara</span>
+              </button>
+            </div>
           ) : (
             <div class="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0e0e0e] text-left">
               <div class="flex items-center gap-3 border-b border-white/5 px-4 py-3">
@@ -569,7 +610,13 @@ const heroIcons = [
       const fall = document.querySelector<HTMLElement>('[data-hero-fall]');
       const media = document.querySelector<HTMLElement>('[data-hero-media]');
       if (!wrapper || !stage || !fall || !media) return;
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        // No scroll sequence and no autoplay: let the viewer start the motion themselves.
+        const staticVideo = media.querySelector<HTMLVideoElement>('[data-hero-video]');
+        if (staticVideo) staticVideo.controls = true;
+        media.querySelector<HTMLElement>('[data-hero-sound]')?.classList.add('hidden');
+        return;
+      }
 
       const copy = document.querySelector<HTMLElement>('[data-hero-copy]');
       const plaque = document.querySelector<HTMLElement>('[data-hero-plaque]');
@@ -577,6 +624,20 @@ const heroIcons = [
       const hint = document.querySelector<HTMLElement>('[data-hero-hint]');
       const floor = stage.querySelector<HTMLElement>('.hero-floor');
       const video = media.querySelector<HTMLVideoElement>('[data-hero-video]');
+      const soundButton = media.querySelector<HTMLButtonElement>('[data-hero-sound]');
+      if (video && soundButton) {
+        soundButton.addEventListener('click', () => {
+          video.muted = !video.muted;
+          const on = !video.muted;
+          soundButton.setAttribute('aria-pressed', String(on));
+          soundButton.setAttribute('aria-label', on ? 'Matikan suara' : 'Nyalakan suara');
+          soundButton.querySelector('[data-icon-muted]')?.classList.toggle('hidden', on);
+          soundButton.querySelector('[data-icon-sound]')?.classList.toggle('hidden', !on);
+          const label = soundButton.querySelector('[data-sound-label]');
+          if (label) label.textContent = on ? 'Bisukan' : 'Suara';
+          if (on && video.paused) video.play().catch(() => {});
+        });
+      }
 
       const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
       const range = (p: number, start: number, end: number) => clamp((p - start) / (end - start));
@@ -639,7 +700,11 @@ const heroIcons = [
           const shouldPlay = p > 0.44;
           if (shouldPlay !== playing) {
             playing = shouldPlay;
-            if (shouldPlay) video.play().catch(() => {});
+            if (shouldPlay) {
+              // The motion tells a story from its first frame, so restart it each time it grows in.
+              video.currentTime = 0;
+              video.play().catch(() => {});
+            }
             else video.pause();
           }
         }
