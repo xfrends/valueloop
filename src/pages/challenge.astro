@@ -213,15 +213,15 @@ const error = Astro.url.searchParams.get('error') || '';
               </div>
 
               <div class="space-y-3">
-                <label class="block text-sm font-bold text-slate-900">Evaluator Note (Optional)</label>
-                  <input
-                    type="text"
-                    id="evaluator-note"
-                    name="evaluatorNote"
-                    value={challenge.evaluator_note || ''}
-                  class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                <label for="evaluator-note" class="block text-sm font-bold text-slate-900">Evaluator Note (Optional)</label>
+                <textarea
+                  id="evaluator-note"
+                  name="evaluatorNote"
+                  rows="4"
+                  maxlength="2000"
+                  class="w-full resize-y rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                   placeholder="Any private notes about why this score was given..."
-                />
+                >{challenge.evaluator_note || ''}</textarea>
               </div>
 
               <div class="pt-2 flex justify-end gap-3">
