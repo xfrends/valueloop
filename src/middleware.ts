@@ -49,6 +49,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname === '/api/health' ||
     pathname.startsWith('/_astro') ||
     pathname.startsWith('/favicon') ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/site.webmanifest' ||
+    pathname === '/og-image.png' ||
+    pathname === '/apple-touch-icon.png' ||
+    pathname.startsWith('/icon-') ||
+    pathname.startsWith('/media/') ||
     pathname.startsWith('/assets');
 
   if (context.locals.user && (pathname === '/' || pathname === '/login' || pathname === '/signup')) {
