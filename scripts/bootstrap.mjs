@@ -170,7 +170,7 @@ async function main() {
       'plan-free',
       'free',
       'Free',
-      json_object('maxMembers', 25, 'maxActiveValues', 10, 'maxChallengesPerMonth', 31, 'exports', 0, 'insights', 1),
+      json_object('maxMembers', 25, 'maxActiveValues', 10, 'maxChallengesPerMonth', 750, 'exports', 0, 'insights', 1),
       json_object('exports', 0, 'insights', 1, 'selfScoring', 0),
       1,
       datetime('now')
@@ -182,7 +182,7 @@ async function main() {
       'plan-pro',
       'pro',
       'Pro',
-      json_object('maxMembers', 500, 'maxActiveValues', 100, 'maxChallengesPerMonth', 1000, 'exports', 1, 'insights', 1),
+      json_object('maxMembers', 500, 'maxActiveValues', 100, 'maxChallengesPerMonth', 15000, 'exports', 1, 'insights', 1),
       json_object('exports', 1, 'insights', 1, 'selfScoring', 1),
       1,
       datetime('now')
@@ -451,7 +451,9 @@ async function main() {
     const sqlFile = resolve(tempDir, 'bootstrap.sql');
 
     try {
-      await writeFile(sqlFile, `${setupStatements.join(';\n')};\n`, 'utf8');
+      // Strip trailing semicolons first: remote D1 rejects the empty statement a doubled `;;` creates.
+      const sql = setupStatements.map((statement) => statement.trim().replace(/;+$/, '')).join(';\n');
+      await writeFile(sqlFile, `${sql};\n`, 'utf8');
       runWrangler(['d1', 'execute', args.database, args.mode, '--yes', '--file', sqlFile]);
     } finally {
       await rm(tempDir, { recursive: true, force: true });
