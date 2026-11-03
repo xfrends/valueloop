@@ -529,10 +529,16 @@ html.js-ready .reveal-right.is-visible {
   box-shadow: 0 40px 80px -24px rgb(40 30 20 / 0.45), 0 2px 6px rgb(0 0 0 / 0.12);
 }
 .hero-hint { display: none; }
+/* Static (mobile/tablet) hero: no full-screen copy block; the video sits on the wall just above the floor. */
+@media (max-width: 1023px) {
+  .hero-content { min-height: 0; padding-bottom: 2.5rem; }
+  .hero-media { margin-bottom: calc(var(--hero-floor-h) + 1.5rem); }
+}
 @media (min-width: 1024px) {
   .hero-stage { --hero-floor-h: 20svh; }
 }
-@media (prefers-reduced-motion: no-preference) {
+/* Scroll sequence only on desktop; phones and tablets get the static hero. Keep in sync with HERO_SEQUENCE_QUERY. */
+@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
   html.js-ready .hero-sequence { height: 420svh; }
   html.js-ready .hero-stage {
     position: sticky;

@@ -152,7 +152,8 @@ const structuredData = [
               </div>
             </div>
 
-            <figure class="hero-animate-delay-2 flex flex-col items-center pt-10 lg:pt-0">
+            <!-- Frame only on desktop, where it drives the scroll sequence; mobile goes straight from copy to video. -->
+            <figure class="hero-animate-delay-2 hidden flex-col items-center lg:flex">
               <div class="relative">
                 <span aria-hidden="true" data-hero-nail class="wall-nail"></span>
                 <div data-hero-fall class="hero-fall">
@@ -603,29 +604,28 @@ const structuredData = [
       sync();
     }
 
-    // Scroll-pinned hero: the values frame swings off its nail and falls to the floor, then the
-    // product motion grows out of the spot where the frame hung (FLIP from the frame's rect).
+    // Scroll-pinned hero (desktop only): the values frame swings off its nail and falls to the floor,
+    // then the product motion grows out of the spot where the frame hung (FLIP from the frame's rect).
+    // Below 1024px the hero is static and the video simply autoplays (muted) while on screen.
+    // Keep this query in sync with the hero sequence media query in global.css.
+    const HERO_SEQUENCE_QUERY = '(prefers-reduced-motion: no-preference) and (min-width: 1024px)';
+
     function initHeroSequence() {
       const wrapper = document.querySelector<HTMLElement>('[data-hero-scroll]');
       const stage = document.querySelector<HTMLElement>('[data-hero-stage]');
       const fall = document.querySelector<HTMLElement>('[data-hero-fall]');
       const media = document.querySelector<HTMLElement>('[data-hero-media]');
       if (!wrapper || !stage || !fall || !media) return;
+      const video = media.querySelector<HTMLVideoElement>('[data-hero-video]');
+      const soundButton = media.querySelector<HTMLButtonElement>('[data-hero-sound]');
+
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         // No scroll sequence and no autoplay: let the viewer start the motion themselves.
-        const staticVideo = media.querySelector<HTMLVideoElement>('[data-hero-video]');
-        if (staticVideo) staticVideo.controls = true;
-        media.querySelector<HTMLElement>('[data-hero-sound]')?.classList.add('hidden');
+        if (video) video.controls = true;
+        soundButton?.classList.add('hidden');
         return;
       }
 
-      const copy = document.querySelector<HTMLElement>('[data-hero-copy]');
-      const plaque = document.querySelector<HTMLElement>('[data-hero-plaque]');
-      const nail = document.querySelector<HTMLElement>('[data-hero-nail]');
-      const hint = document.querySelector<HTMLElement>('[data-hero-hint]');
-      const floor = stage.querySelector<HTMLElement>('.hero-floor');
-      const video = media.querySelector<HTMLVideoElement>('[data-hero-video]');
-      const soundButton = media.querySelector<HTMLButtonElement>('[data-hero-sound]');
       if (video && soundButton) {
         soundButton.addEventListener('click', () => {
           video.muted = !video.muted;
@@ -639,6 +639,13 @@ const structuredData = [
           if (on && video.paused) video.play().catch(() => {});
         });
       }
+
+      const copy = document.querySelector<HTMLElement>('[data-hero-copy]');
+      const plaque = document.querySelector<HTMLElement>('[data-hero-plaque]');
+      const nail = document.querySelector<HTMLElement>('[data-hero-nail]');
+      const hint = document.querySelector<HTMLElement>('[data-hero-hint]');
+      const floor = stage.querySelector<HTMLElement>('.hero-floor');
+      const animated = [fall, media, copy, plaque, nail, hint].filter((el): el is HTMLElement => !!el);
 
       const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
       const range = (p: number, start: number, end: number) => clamp((p - start) / (end - start));
@@ -712,8 +719,9 @@ const structuredData = [
       };
 
       // Ease the rendered progress toward the scroll position so fast flicks still read as motion.
-      let current = progress();
+      let current = 0;
       let frame = 0;
+      let settleTimer = 0;
       const tick = () => {
         const target = progress();
         current += (target - current) * 0.12;
@@ -724,12 +732,47 @@ const structuredData = [
       const schedule = () => { if (!frame) frame = requestAnimationFrame(tick); };
       const remeasure = () => { measure(); render(current); };
 
-      if (video) video.pause();
-      remeasure();
-      // The hero load animation shifts the frame for ~1s; measure again once it settles.
-      window.setTimeout(remeasure, 1000);
-      window.addEventListener('scroll', schedule, { passive: true });
-      window.addEventListener('resize', remeasure);
+      const startSequence = () => {
+        current = progress();
+        playing = false;
+        if (video) video.pause();
+        remeasure();
+        // The hero load animation shifts the frame for ~1s; measure again once it settles.
+        settleTimer = window.setTimeout(remeasure, 1000);
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', remeasure);
+      };
+      const stopSequence = () => {
+        window.removeEventListener('scroll', schedule);
+        window.removeEventListener('resize', remeasure);
+        window.clearTimeout(settleTimer);
+        cancelAnimationFrame(frame);
+        frame = 0;
+        for (const el of animated) el.removeAttribute('style');
+      };
+
+      // Static hero: autoplay the muted motion only while it is on screen.
+      let observer: IntersectionObserver | null = null;
+      const startStatic = () => {
+        if (!video) return;
+        observer = new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting) video.play().catch(() => {});
+          else video.pause();
+        }, { threshold: 0.35 });
+        observer.observe(video);
+      };
+      const stopStatic = () => {
+        observer?.disconnect();
+        observer = null;
+      };
+
+      const sequenceQuery = window.matchMedia(HERO_SEQUENCE_QUERY);
+      const apply = () => {
+        if (sequenceQuery.matches) { stopStatic(); startSequence(); }
+        else { stopSequence(); startStatic(); }
+      };
+      apply();
+      sequenceQuery.addEventListener('change', apply);
     }
 
     initRevealAnimations();
