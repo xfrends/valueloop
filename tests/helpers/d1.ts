@@ -7,6 +7,7 @@ import freePlanOnlyMigration from '../../migrations/0005_free_plan_only.sql?raw'
 import notificationsMigration from '../../migrations/0006_notifications.sql?raw';
 import membershipInvitationsMigration from '../../migrations/0007_membership_invitations.sql?raw';
 import aiSettingsMigration from '../../migrations/0008_ai_settings.sql?raw';
+import challengeLimitMigration from '../../migrations/0009_challenge_limit_per_member.sql?raw';
 
 export type TestD1 = {
   db: D1Database;
@@ -15,7 +16,7 @@ export type TestD1 = {
   dispose: () => Promise<void>;
 };
 
-const migrations = [initialMigration, googleAuthMigration, articlesMigration, singleOwnerMigration, freePlanOnlyMigration, notificationsMigration, membershipInvitationsMigration, aiSettingsMigration];
+const migrations = [initialMigration, googleAuthMigration, articlesMigration, singleOwnerMigration, freePlanOnlyMigration, notificationsMigration, membershipInvitationsMigration, aiSettingsMigration, challengeLimitMigration];
 
 function splitSqlStatements(sql: string): string[] {
   const statements: string[] = [];
