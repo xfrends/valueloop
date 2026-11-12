@@ -45,25 +45,25 @@ Jawaban bagus bukan yang panjang, tapi yang jelas dan bisa diterapkan.
 
 ## 6.3 Design Tokens
 
-Visual direction: monochrome ink on white and warm paper, oversized display headings with tight tracking, pill-shaped actions, flat cards with hairline borders, and dark grain surfaces for hero/footer moments.
+Visual direction: espresso ink on warm cream, emerald pill actions with white text, oversized display headings with tight tracking, flat off-white cards with hairline borders, and deep espresso grain surfaces for hero/footer moments.
 
 ```css
 :root {
-  --vl-background: #F9F9F9;
-  --vl-surface: #FFFFFF;
-  --vl-surface-soft: #F4F5F0; /* warm paper */
+  --vl-background: #EBE2D5;   /* warm cream page */
+  --vl-surface: #FAF6EF;      /* off-white cards */
+  --vl-surface-soft: #F3ECE1;
 
-  --vl-primary: #111111;      /* ink */
-  --vl-primary-hover: #000000;
-  --vl-primary-soft: #F4F5F0;
+  --vl-primary: #0C7C62;      /* emerald, paired with white text */
+  --vl-primary-hover: #0A6B54;
+  --vl-primary-soft: #E7F4EF;
 
-  --vl-secondary: #111111;
-  --vl-accent: #10B981;
+  --vl-secondary: #352015;    /* espresso ink */
+  --vl-accent: #0C7C62;
 
-  --vl-text: #111111;
-  --vl-text-muted: #666666;
-  --vl-text-subtle: #999999;
-  --vl-border: #E5E5E5;
+  --vl-text: #352015;
+  --vl-text-muted: #7A685B;
+  --vl-text-subtle: #A39384;
+  --vl-border: #DDD3C4;
 
   --vl-success: #10B981;
   --vl-warning: #F59E0B;
@@ -74,9 +74,10 @@ Visual direction: monochrome ink on white and warm paper, oversized display head
 
 Implementation notes (`src/styles/global.css`):
 
-- Tailwind `slate-*` is remapped to the neutral scale above and `indigo-*` to the ink accent, so existing utility classes inherit the system.
+- Tailwind `slate-*` is remapped to the cream-to-espresso neutral scale, `white` to the off-white surface, and `indigo-*` to emerald tints (50–500) with espresso ink from 600 up, so existing utility classes inherit the system.
 - Font weights are lightened (`semibold` 550, `bold`/`extrabold` 600); hierarchy comes from size and tracking.
-- Primary actions (`bg-indigo-600`, `bg-slate-900` links/buttons) render as pills.
+- Primary actions (`bg-indigo-600`, `bg-slate-900`, `bg-[#352015]` links/buttons) render as emerald pills with white text.
+- The logged-in app (`html.app-shell`, set in `AppLayout`) is brighter than the public pages: pure white cards on a soft warm page (`#F6F3EE`), and `indigo-600+` becomes emerald ink for labels and links. The sidebar keeps the cream wall colour. Public pages keep the cream surfaces.
 - `.grain` adds film-grain texture to dark surfaces.
 
 ## 6.4 Dynamic Core Value Colors

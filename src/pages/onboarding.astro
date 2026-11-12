@@ -12,18 +12,18 @@ const error = Astro.url.searchParams.get('error') || '';
         <!-- Brand -->
         <div class="flex justify-start mb-10">
           <div class="flex items-center gap-3 group w-max">
-            <svg class="h-7 w-7 text-[#111]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg class="h-7 w-7 text-[#352015]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="9.25" stroke="currentColor" stroke-width="1.5" />
               <path d="M7.5 8.5 12 16l4.5-7.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-            <span class="text-xl font-medium tracking-tight text-[#111]">ValueLoop</span>
+            <span class="text-xl font-medium tracking-tight text-[#352015]">ValueLoop</span>
           </div>
         </div>
 
         <div class="mb-8">
-          <p class="text-xs font-bold uppercase tracking-widest text-[#111111] mb-2">Onboarding</p>
-          <h1 class="text-3xl font-bold tracking-tight text-[#111111]">Ruang Kerja Baru</h1>
-          <p class="mt-2 text-[15px] text-[#666666]">Satu langkah lagi untuk mulai menanamkan budaya kerja yang terukur.</p>
+          <p class="text-xs font-bold uppercase tracking-widest text-[#352015] mb-2">Onboarding</p>
+          <h1 class="text-3xl font-bold tracking-tight text-[#352015]">Ruang Kerja Baru</h1>
+          <p class="mt-2 text-[15px] text-[#7A685B]">Satu langkah lagi untuk mulai menanamkan budaya kerja yang terukur.</p>
         </div>
         
         {error && (
@@ -34,19 +34,19 @@ const error = Astro.url.searchParams.get('error') || '';
         
         <form method="post" action="/api/organizations" class="space-y-6">
           <div class="space-y-1.5">
-            <label class="text-[14px] font-semibold text-[#111111]">Nama Organisasi</label>
-            <input name="name" type="text" placeholder="Contoh: PT Bangun Bangsa" class="w-full rounded-xl bg-[#F4F5F0] border border-[#E5E5E5] px-4 py-3 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-[#111111] focus:ring-2 focus:ring-indigo-500/20" required />
-            <p class="text-[13px] text-[#666666] mt-1">Alamat url (slug) dibuat otomatis dari nama ini.</p>
+            <label class="text-[14px] font-semibold text-[#352015]">Nama Organisasi</label>
+            <input name="name" type="text" placeholder="Contoh: PT Bangun Bangsa" class="w-full rounded-xl bg-[#F3ECE1] border border-[#DDD3C4] px-4 py-3 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-[#352015] focus:ring-2 focus:ring-indigo-500/20" required />
+            <p class="text-[13px] text-[#7A685B] mt-1">Alamat url (slug) dibuat otomatis dari nama ini.</p>
           </div>
           
           <div class="grid gap-6 md:grid-cols-2">
             <div class="space-y-1.5">
-              <label class="text-[14px] font-semibold text-[#111111]">Timezone</label>
-              <input name="timezone" type="text" value="Asia/Jakarta" class="w-full rounded-xl bg-[#F4F5F0] border border-[#E5E5E5] px-4 py-3 outline-none transition-all focus:bg-white focus:border-[#111111] focus:ring-2 focus:ring-indigo-500/20" required />
+              <label class="text-[14px] font-semibold text-[#352015]">Timezone</label>
+              <input name="timezone" type="text" value="Asia/Jakarta" class="w-full rounded-xl bg-[#F3ECE1] border border-[#DDD3C4] px-4 py-3 outline-none transition-all focus:bg-white focus:border-[#352015] focus:ring-2 focus:ring-indigo-500/20" required />
             </div>
             <div class="space-y-1.5">
-              <label class="text-[14px] font-semibold text-[#111111]">Template Budaya</label>
-              <select name="templateId" class="w-full rounded-xl bg-[#F4F5F0] border border-[#E5E5E5] px-4 py-3 outline-none transition-all focus:bg-white focus:border-[#111111] focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
+              <label class="text-[14px] font-semibold text-[#352015]">Template Budaya</label>
+              <select name="templateId" class="w-full rounded-xl bg-[#F3ECE1] border border-[#DDD3C4] px-4 py-3 outline-none transition-all focus:bg-white focus:border-[#352015] focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
                 <option value="">Blank (Kosong)</option>
                 <option value="template-good-values">5 Good Values</option>
                 <option value="template-leadership">Leadership Values</option>
@@ -56,8 +56,8 @@ const error = Astro.url.searchParams.get('error') || '';
             </div>
           </div>
           
-          <div class="pt-4 border-t border-[#E5E5E5]">
-            <button type="submit" class="btn-interactive w-full rounded-xl bg-[#111111] px-4 py-3 text-white font-semibold shadow-xl shadow-slate-900/10 hover:bg-[#262626]">Buat Ruang Kerja</button>
+          <div class="pt-4 border-t border-[#DDD3C4]">
+            <button type="submit" class="btn-interactive w-full rounded-xl bg-[#352015] px-4 py-3 text-white font-semibold shadow-xl shadow-slate-900/10 hover:bg-[#40291D]">Buat Ruang Kerja</button>
           </div>
         </form>
       </div>
@@ -97,8 +97,8 @@ const error = Astro.url.searchParams.get('error') || '';
   <style>
     .pattern-grid {
       background-size: 40px 40px;
-      background-image: linear-gradient(to right, #111111 1px, transparent 1px),
-        linear-gradient(to bottom, #111111 1px, transparent 1px);
+      background-image: linear-gradient(to right, #352015 1px, transparent 1px),
+        linear-gradient(to bottom, #352015 1px, transparent 1px);
     }
   </style>
 </BaseLayout>

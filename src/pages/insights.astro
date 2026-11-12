@@ -15,7 +15,7 @@ const allowed = canViewInsights(membership?.role);
 const insights = allowed && organization && runtime?.env?.DB ? await getInsightsSummary(runtime.env.DB, organization.id) : null;
 
 // Chart colors: blue for single-series magnitude; blue + orange for the scored/unscored stack (validated pair).
-const SERIES_BLUE = '#2a78d6';
+const SERIES_BLUE = '#0C7C62';
 const SERIES_ORANGE = '#eb6834';
 
 const weekFormatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });

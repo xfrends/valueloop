@@ -1,0 +1,51 @@
+{
+  "dashboard": {
+    "desktop": {
+      "src": "/media/preview/dashboard-desktop.webp",
+      "width": 2000,
+      "height": 1422
+    }
+  },
+  "challenge": {
+    "desktop": {
+      "src": "/media/preview/challenge-desktop.webp",
+      "width": 2000,
+      "height": 2050
+    }
+  },
+  "scoring": {
+    "desktop": {
+      "src": "/media/preview/scoring-desktop.webp",
+      "width": 2000,
+      "height": 2119
+    }
+  },
+  "leaderboard": {
+    "desktop": {
+      "src": "/media/preview/leaderboard-desktop.webp",
+      "width": 2000,
+      "height": 1711
+    }
+  },
+  "history": {
+    "desktop": {
+      "src": "/media/preview/history-desktop.webp",
+      "width": 2000,
+      "height": 2993
+    }
+  },
+  "insights": {
+    "desktop": {
+      "src": "/media/preview/insights-desktop.webp",
+      "width": 2000,
+      "height": 2504
+    }
+  },
+  "values": {
+    "desktop": {
+      "src": "/media/preview/values-desktop.webp",
+      "width": 2000,
+      "height": 1250
+    }
+  }
+}

@@ -11,7 +11,7 @@ type Props = {
   emptyText?: string;
 };
 
-const { labels, values, tips, max = 10, color = '#2a78d6', height = 'h-48', emptyText = 'Belum ada data.' } = Astro.props;
+const { labels, values, tips, max = 10, color = '#0C7C62', height = 'h-48', emptyText = 'Belum ada data.' } = Astro.props;
 const count = values.length;
 const x = (index: number) => (count > 1 ? (index / (count - 1)) * 100 : 50);
 const y = (value: number) => 100 - (value / max) * 100;

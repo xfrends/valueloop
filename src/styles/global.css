@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ─── ValueLoop design system: monochrome ink, warm paper, pill actions ─── */
+/* ─── ValueLoop design system: espresso ink on warm cream, emerald pill actions ─── */
 
 @theme {
   --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -12,42 +12,49 @@
   --font-weight-extrabold: 600;
   --font-weight-black: 650;
 
-  /* Neutral scale (replaces cool slate across every page). */
-  --color-slate-50: #f9f9f9;
-  --color-slate-100: #f4f4f4;
-  --color-slate-200: #e5e5e5;
-  --color-slate-300: #d4d4d4;
-  --color-slate-400: #999999;
-  --color-slate-500: #666666;
-  --color-slate-600: #525252;
-  --color-slate-700: #3d3d3d;
-  --color-slate-800: #262626;
-  --color-slate-900: #111111;
-  --color-slate-950: #0a0a0a;
+  /* Surfaces: "white" is a warm off-white so cards sit softly on the cream page. */
+  --color-white: #FAF6EF;
 
-  /* Brand accent is ink, not violet: soft tints sit on warm paper. */
-  --color-indigo-50: #f4f5f0;
-  --color-indigo-100: #ebece6;
-  --color-indigo-200: #dadbd3;
-  --color-indigo-300: #bdbdb5;
-  --color-indigo-400: #8c8c86;
-  --color-indigo-500: #3d3d3d;
-  --color-indigo-600: #111111;
-  --color-indigo-700: #000000;
-  --color-indigo-800: #111111;
-  --color-indigo-900: #111111;
-  --color-indigo-950: #000000;
+  /* Neutral scale: warm cream to espresso (replaces cool slate across every page). */
+  --color-slate-50: #F3ECE1;
+  --color-slate-100: #EBE2D5;
+  --color-slate-200: #DDD3C4;
+  --color-slate-300: #CBBFAD;
+  --color-slate-400: #A39384;
+  --color-slate-500: #7A685B;
+  --color-slate-600: #634D42;
+  --color-slate-700: #4E392D;
+  --color-slate-800: #40291D;
+  --color-slate-900: #352015;
+  --color-slate-950: #24140C;
 
-  --color-paper: #f4f5f0;
-  --color-ink: #111111;
+  /* Brand accent: emerald tints up to 500, espresso ink from 600 so accent text stays readable.
+     (Inside the app shell 600+ becomes emerald ink, see `html.app-shell` below.) */
+  --color-indigo-50: #E7F4EF;
+  --color-indigo-100: #D0EADF;
+  --color-indigo-200: #A6D8C5;
+  --color-indigo-300: #6FBFA4;
+  --color-indigo-400: #36A083;
+  --color-indigo-500: #0C7C62;
+  --color-indigo-600: #352015;
+  --color-indigo-700: #24140C;
+  --color-indigo-800: #352015;
+  --color-indigo-900: #352015;
+  --color-indigo-950: #24140C;
+
+  --color-paper: #EBE2D5;
+  --color-ink: #352015;
+  /* Primary action colour. The token keeps its historical name; the value is emerald. */
+  --color-sky: #0C7C62;
+  --color-sky-hover: #0A6B54;
 
   --shadow-xs: 0 1px 1px 0 rgb(0 0 0 / 0.02);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.05);
-  --shadow-lg: 0 7px 29px 0 rgb(100 100 111 / 0.1);
-  --shadow-xl: 0 7px 29px 0 rgb(100 100 111 / 0.16);
-  --shadow-2xl: 0 7px 29px 0 rgb(100 100 111 / 0.22);
+  --shadow-lg: 0 7px 29px 0 rgb(74 52 36 / 0.1);
+  --shadow-xl: 0 7px 29px 0 rgb(74 52 36 / 0.16);
+  --shadow-2xl: 0 7px 29px 0 rgb(74 52 36 / 0.22);
 }
 
 @layer base {
@@ -59,8 +66,34 @@
 /* Primary actions are pills. Unlayered so it wins over rounded-* utilities. */
 :is(a, button).bg-indigo-600,
 :is(a, button).bg-slate-900,
+:is(a, button).bg-\[\#352015\],
 button[type="submit"].bg-indigo-600 {
   border-radius: 9999px;
+}
+
+/* Primary actions are emerald with white text. */
+:is(a, button):is(.bg-indigo-600, .bg-slate-900, .bg-\[\#352015\]):not(:disabled) {
+  background-color: var(--color-sky);
+  color: #FFFFFF;
+}
+:is(a, button):is(.bg-indigo-600, .bg-slate-900, .bg-\[\#352015\]):not(:disabled):hover {
+  background-color: var(--color-sky-hover);
+}
+
+/*
+ * App shell (AppLayout): the logged-in workspace is brighter and higher-contrast than the
+ * public pages. White cards sit on a soft warm page, and accent text/labels use emerald ink.
+ * The sidebar keeps the cream "wall" colour so the app still belongs to the brand.
+ */
+html.app-shell {
+  --color-white: #FFFFFF;
+  --color-slate-50: #F6F3EE;
+  --color-slate-100: #EEE9E1;
+  --color-indigo-600: #0C7C62;
+  --color-indigo-700: #0A6650;
+  --color-indigo-800: #08523F;
+  --color-indigo-900: #06402F;
+  --color-indigo-950: #042B20;
 }
 
 /*
@@ -70,17 +103,17 @@ button[type="submit"].bg-indigo-600 {
  * - ease-spring: Natural spring physics approximation
  */
 :root {
-  --vl-background: #F9F9F9;
-  --vl-surface: #FFFFFF;
-  --vl-surface-soft: #F4F5F0;
-  --vl-primary: #111111;
-  --vl-primary-hover: #000000;
-  --vl-primary-soft: #F4F5F0;
-  --vl-secondary: #111111;
-  --vl-accent: #10B981;
-  --vl-text: #111111;
-  --vl-text-muted: #666666;
-  --vl-border: #E5E5E5;
+  --vl-background: #EBE2D5;
+  --vl-surface: #FAF6EF;
+  --vl-surface-soft: #F3ECE1;
+  --vl-primary: #0C7C62;
+  --vl-primary-hover: #0A6B54;
+  --vl-primary-soft: #E7F4EF;
+  --vl-secondary: #352015;
+  --vl-accent: #0C7C62;
+  --vl-text: #352015;
+  --vl-text-muted: #7A685B;
+  --vl-border: #DDD3C4;
 
   --ease-out-custom: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-custom: cubic-bezier(0.77, 0, 0.175, 1);
@@ -274,10 +307,10 @@ html.js-ready .reveal-right.is-visible {
 
 /* ─── Public marketing pages: one shared visual language ─── */
 .public-main {
-  --public-ink: #111111;
-  --public-muted: #666666;
-  --public-border: #e5e5e5;
-  --public-indigo: #111111;
+  --public-ink: #352015;
+  --public-muted: #7A685B;
+  --public-border: #DDD3C4;
+  --public-indigo: #352015;
   background: transparent;
 }
 
@@ -300,7 +333,7 @@ html.js-ready .reveal-right.is-visible {
 .public-surface {
   border: 1px solid var(--public-border);
   border-radius: 1rem;
-  background: #fff;
+  background: var(--color-white);
 }
 
 .public-kicker {
@@ -333,21 +366,22 @@ html.js-ready .reveal-right.is-visible {
 }
 
 .public-primary {
-  background-color: var(--public-ink);
+  background-color: var(--color-sky);
+  color: var(--public-ink);
   box-shadow: none;
 }
 
 .public-primary:hover {
-  background-color: #000;
+  background-color: var(--color-sky-hover);
 }
 
 .public-secondary {
   border-color: var(--public-border);
-  background: #fff;
+  background: var(--color-white);
 }
 
 .public-secondary:hover {
-  background: #f5f5f5;
+  background: #F3ECE1;
   color: var(--public-ink);
 }
 
@@ -407,19 +441,19 @@ html.js-ready .reveal-right.is-visible {
   background:
     radial-gradient(ellipse 90% 70% at 50% 0%, rgb(255 255 255 / 0.35), transparent 70%),
     radial-gradient(ellipse 120% 90% at 50% 50%, transparent 60%, rgb(90 75 55 / 0.12) 100%),
-    linear-gradient(180deg, #E9E4DA 0%, #DDD6C9 100%);
+    linear-gradient(180deg, #EBE2D5 0%, #DFD4C4 100%);
 }
 .wall-soft {
   background:
     radial-gradient(ellipse 80% 60% at 50% 0%, rgb(255 255 255 / 0.4), transparent 70%),
     radial-gradient(ellipse 120% 90% at 50% 50%, transparent 65%, rgb(90 75 55 / 0.08) 100%),
-    linear-gradient(180deg, #EFEBE3 0%, #E4DED3 100%);
+    linear-gradient(180deg, #F1EADF 0%, #E6DCCD 100%);
 }
 .hero-wall {
   background:
     radial-gradient(ellipse 50% 38% at 50% 0%, rgb(255 250 240 / 0.7), transparent 75%),
     radial-gradient(ellipse 120% 80% at 50% 40%, transparent 55%, rgb(90 75 55 / 0.14) 100%),
-    linear-gradient(180deg, #ECE7DE 0%, #E6E0D5 50%, #DDD6C9 100%);
+    linear-gradient(180deg, #EEE6DA 0%, #E8DFD1 50%, #DFD4C4 100%);
 }
 
 /* A framed poster hung on the wall: dark wood frame, cream mat, nail + hanging wire. */
@@ -567,8 +601,8 @@ html.js-ready .reveal-right.is-visible {
   top: 0;
   z-index: 50;
   width: 100%;
-  color: #111;
-  background: rgb(255 255 255 / 0.92);
+  color: #352015;
+  background: rgb(250 246 239 / 0.92);
   border-bottom: 1px solid rgb(0 0 0 / 0.05);
   backdrop-filter: blur(12px);
   transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
@@ -576,14 +610,14 @@ html.js-ready .reveal-right.is-visible {
 .site-header[data-tone="wall"] {
   position: fixed;
   inset-inline: 0;
-  color: #111;
+  color: #352015;
   background: transparent;
   border-color: transparent;
   backdrop-filter: none;
 }
 .site-header[data-tone="wall"][data-scrolled="true"] {
-  color: #111;
-  background: #fff;
+  color: #352015;
+  background: var(--color-white);
   border-color: rgb(0 0 0 / 0.05);
 }
 @layer components {
@@ -599,7 +633,7 @@ html.js-ready .reveal-right.is-visible {
     transition: opacity 300ms ease, background-color 300ms ease, color 300ms ease, border-color 300ms ease;
   }
   .hdr-btn:hover { opacity: 0.8; }
-  .hdr-btn-solid { background: #111; color: #fff; }
-  .hdr-btn-ghost { background: #111; color: #fff; }
-  .site-header[data-tone="wall"]:not([data-scrolled="true"]) .hdr-btn-ghost { background: transparent; color: #111; box-shadow: inset 0 0 0 1px #111; }
+  .hdr-btn-solid { background: var(--color-sky); color: #FFFFFF; }
+  .hdr-btn-ghost { background: #352015; color: var(--color-white); }
+  .site-header[data-tone="wall"]:not([data-scrolled="true"]) .hdr-btn-ghost { background: transparent; color: #352015; box-shadow: inset 0 0 0 1px #352015; }
 }

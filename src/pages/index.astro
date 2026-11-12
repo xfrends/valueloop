@@ -4,6 +4,7 @@ import PublicHeader from '../components/PublicHeader.astro';
 import PublicFooter from '../components/PublicFooter.astro';
 import { getCloudflareRuntime } from '../lib/cloudflare/bindings';
 import { hasAnyUsers } from '../lib/services/bootstrap';
+import shots from '../data/preview-shots.json';
 
 const runtime = getCloudflareRuntime(Astro);
 const bootstrapReady = runtime?.env?.DB ? await hasAnyUsers(runtime.env.DB) : true;
@@ -23,11 +24,12 @@ const features = [
   { title: 'Insights per value.', body: 'Lihat value yang sudah kuat dan area yang perlu lebih sering dibicarakan.' },
 ];
 
+// `shot` adalah screenshot asli app (lihat scripts/capture-preview.mjs).
 const engineTabs = [
-  { key: 'siapkan', label: 'Siapkan', title: 'Definisikan value yang benar-benar dipakai', body: 'Tulis core values, perilaku yang diharapkan, dan pertanyaan refleksi. Mulai dari template opsional atau dari nol.', cta: 'Mulai setup', href: '/signup' },
-  { key: 'challenge', label: 'Challenge', title: 'Satu pertanyaan, setiap hari', body: 'Randomizer memilih member, value, dan pertanyaan aktif. Hasilnya tersimpan, tidak berubah karena refresh.', cta: 'Lihat challenge', href: '/preview' },
-  { key: 'nilai', label: 'Nilai', title: 'Skor berbasis contoh nyata', body: 'Facilitator memberi skor 0–10 setelah member menjawab. Sesi yang sudah dinilai terkunci dari reroll.', cta: 'Pelajari scoring', href: '/fitur' },
-  { key: 'tumbuh', label: 'Tumbuh', title: 'Kebiasaan yang terlihat', body: 'Leaderboard, history, dan insights menunjukkan value mana yang hidup dan mana yang perlu didorong.', cta: 'Lihat insights', href: '/preview' },
+  { key: 'siapkan', shot: shots.values.desktop, path: 'settings/values', alt: 'Halaman Core Values di aplikasi ValueLoop', label: 'Siapkan', title: 'Definisikan value yang benar-benar dipakai', body: 'Tulis core values, perilaku yang diharapkan, dan pertanyaan refleksi. Mulai dari template opsional atau dari nol.', cta: 'Mulai setup', href: '/signup' },
+  { key: 'challenge', shot: shots.challenge.desktop, path: 'challenge', alt: 'Halaman Daily Challenge di aplikasi ValueLoop', label: 'Challenge', title: 'Satu pertanyaan, setiap hari', body: 'Randomizer memilih member, value, dan pertanyaan aktif. Hasilnya tersimpan, tidak berubah karena refresh.', cta: 'Lihat challenge', href: '/preview' },
+  { key: 'nilai', shot: shots.scoring.desktop, path: 'challenge', alt: 'Form penilaian jawaban di aplikasi ValueLoop', label: 'Nilai', title: 'Skor berbasis contoh nyata', body: 'Facilitator memberi skor 0–10 setelah member menjawab. Sesi yang sudah dinilai terkunci dari reroll.', cta: 'Pelajari scoring', href: '/fitur' },
+  { key: 'tumbuh', shot: shots.insights.desktop, path: 'insights', alt: 'Halaman Insights di aplikasi ValueLoop', label: 'Tumbuh', title: 'Kebiasaan yang terlihat', body: 'Leaderboard, history, dan insights menunjukkan value mana yang hidup dan mana yang perlu didorong.', cta: 'Lihat insights', href: '/preview' },
 ];
 
 const roles = [
@@ -55,7 +57,7 @@ const heroVideoWebm: string | null = '/api/assets/media/hero-motion.webm';
 const heroVideoPoster: string | null = '/media/hero-motion-poster.jpg';
 
 const heroIcons = [
-  { title: 'Challenge', tone: 'text-[#111]', path: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { title: 'Challenge', tone: 'text-[#352015]', path: 'M13 10V3L4 14h7v7l9-11h-7z' },
   { title: 'Skor', tone: 'text-emerald-600', path: 'M5 13l4 4L19 7' },
   { title: 'Leaderboard', tone: 'text-amber-500', path: 'M8 21h8m-4-4v4m-5-17h10v5a5 5 0 0 1-10 0V4Zm10 2h3a3 3 0 0 1-3 3M7 6H4a3 3 0 0 0 3 3' },
   { title: 'Insights', tone: 'text-sky-600', path: 'M4 19h16M7 15v-4m5 4V7m5 8v-6' },
@@ -103,12 +105,12 @@ const structuredData = [
     <!-- 1. Hero: fullscreen office wall + floor. On scroll the framed values poster falls off its nail
          and the ValueLoop motion grows out of the spot where it hung (see initHeroSequence). -->
     <section data-hero-scroll class="hero-sequence relative">
-      <div data-hero-stage class="hero-stage hero-wall overflow-hidden text-[#111]">
+      <div data-hero-stage class="hero-stage hero-wall overflow-hidden text-[#352015]">
         <div aria-hidden="true" class="hero-floor"></div>
 
         {!bootstrapReady && (
           <div class="absolute inset-x-0 top-20 z-30 mx-auto w-full max-w-3xl px-6">
-            <div class="flex items-center gap-3 rounded-full border border-black/10 bg-white/60 px-5 py-3 text-sm text-[#111] backdrop-blur-md">
+            <div class="flex items-center gap-3 rounded-full border border-black/10 bg-white/60 px-5 py-3 text-sm text-[#352015] backdrop-blur-md">
               <span class="flex h-2 w-2 shrink-0 rounded-full bg-amber-400"></span>
               <p>Instalasi baru terdeteksi. Jalankan <code class="rounded bg-black/5 px-1.5 py-0.5 font-mono">npm run setup</code> di terminal untuk inisialisasi user root & organisasi pertama.</p>
             </div>
@@ -124,18 +126,18 @@ const structuredData = [
 
               <form action="/signup" method="get" class="hero-animate-delay-2 mt-8 flex h-14 w-full max-w-[560px] items-center rounded-full border border-black/10 bg-white/70 pl-6 pr-2 shadow-sm backdrop-blur-md sm:mt-10 sm:h-16">
                 <label for="hero-question" class="sr-only">Contoh pertanyaan challenge</label>
-                <input id="hero-question" type="text" readonly tabindex="-1" class="min-w-0 flex-1 cursor-default bg-transparent text-left text-base text-[#111]/70 outline-none placeholder:text-[#111]/70" placeholder="Ceritakan momen kamu menolong customer|" />
-                <button type="submit" aria-label="Mulai sekarang" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#111] text-white transition-transform hover:scale-105">
+                <input id="hero-question" type="text" readonly tabindex="-1" class="min-w-0 flex-1 cursor-default bg-transparent text-left text-base text-[#352015]/70 outline-none placeholder:text-[#352015]/70" placeholder="Ceritakan momen kamu menolong customer|" />
+                <button type="submit" aria-label="Mulai sekarang" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#352015] text-white transition-transform hover:scale-105">
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"></path></svg>
                 </button>
               </form>
 
-              <p class="hero-animate-delay-3 mt-8 hidden max-w-xl text-xl leading-snug text-[#111]/75 sm:block sm:text-2xl">
+              <p class="hero-animate-delay-3 mt-8 hidden max-w-xl text-xl leading-snug text-[#352015]/75 sm:block sm:text-2xl">
                 Ubah core values jadi kebiasaan kerja nyata
                 <span class="whitespace-nowrap">– lewat
                   <span class="inline-flex translate-y-1 items-center -space-x-1 align-baseline">
                     {heroIcons.map((icon) => (
-                      <span class={`flex h-8 w-8 items-center justify-center rounded-full bg-white ring-2 ring-[#E9E4DA] ${icon.tone}`} title={icon.title}>
+                      <span class={`flex h-8 w-8 items-center justify-center rounded-full bg-white ring-2 ring-[#EBE2D5] ${icon.tone}`} title={icon.title}>
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icon.path} /></svg>
                       </span>
                     ))}
@@ -144,8 +146,8 @@ const structuredData = [
               </p>
 
               <div class="hero-animate-delay-3 mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
-                <a class="btn-interactive inline-flex h-11 items-center rounded-full bg-[#111] px-6 text-sm font-medium text-white transition-colors hover:bg-[#111]/85" href="/signup">Mulai Gratis</a>
-                <a class="btn-interactive inline-flex h-11 items-center gap-2 rounded-full border border-black/10 bg-white pl-5 pr-6 text-sm font-medium text-[#111] transition-colors hover:bg-white/80" href="/preview">
+                <a class="btn-interactive inline-flex h-11 items-center rounded-full bg-[#352015] px-6 text-sm font-medium text-white transition-colors hover:bg-[#352015]/85" href="/signup">Mulai Gratis</a>
+                <a class="btn-interactive inline-flex h-11 items-center gap-2 rounded-full border border-black/10 bg-white pl-5 pr-6 text-sm font-medium text-[#352015] transition-colors hover:bg-white/80" href="/preview">
                   <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></svg>
                   Lihat preview
                 </a>
@@ -158,7 +160,7 @@ const structuredData = [
                 <span aria-hidden="true" data-hero-nail class="wall-nail"></span>
                 <div data-hero-fall class="hero-fall">
                   <div class="wall-frame wall-frame--loose w-[200px] p-3 sm:w-[300px] sm:p-4 lg:w-[360px] lg:p-5">
-                    <div class="border border-[#E4DED3] px-4 py-5 saturate-50 sm:px-6 sm:py-6">
+                    <div class="border border-[#E6DCCD] px-4 py-5 saturate-50 sm:px-6 sm:py-6">
                       <p class="font-mono text-[9px] uppercase tracking-[0.3em] text-[#8a8177]">Our Core Values</p>
                       <div class="mt-3 space-y-1 font-serif text-base leading-tight text-[#3d3832] sm:text-xl lg:text-2xl">
                         <p>Integrity</p>
@@ -179,25 +181,25 @@ const structuredData = [
         <div data-hero-media class="hero-media z-20">
           {heroVideoSrc ? (
             <div class="relative h-full w-full">
-              <video data-hero-video class="h-full w-full rounded-2xl bg-[#E9E4DA] object-cover shadow-[0_40px_80px_-30px_rgba(40,30,20,0.45)] ring-1 ring-black/5" poster={heroVideoPoster ?? undefined} muted loop playsinline preload="metadata" aria-label="Motion ValueLoop: dari bingkai ke kebiasaan">
+              <video data-hero-video class="h-full w-full rounded-2xl bg-[#EBE2D5] object-cover shadow-[0_40px_80px_-30px_rgba(40,30,20,0.45)] ring-1 ring-black/5" poster={heroVideoPoster ?? undefined} muted loop playsinline preload="metadata" aria-label="Motion ValueLoop: dari bingkai ke kebiasaan">
                 {heroVideoWebm && <source src={heroVideoWebm} type="video/webm" />}
                 <source src={heroVideoSrc} type="video/mp4" />
               </video>
               <!-- Browsers only autoplay muted video, so sound is opt-in via this toggle. -->
-              <button type="button" data-hero-sound aria-pressed="false" aria-label="Nyalakan suara" class="absolute bottom-2 right-2 z-10 inline-flex items-center gap-2 rounded-full bg-[#111]/85 p-2 sm:bottom-4 sm:right-4 sm:px-3.5 sm:py-2 text-xs font-medium text-white shadow-lg transition hover:bg-[#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]">
+              <button type="button" data-hero-sound aria-pressed="false" aria-label="Nyalakan suara" class="absolute bottom-2 right-2 z-10 inline-flex items-center gap-2 rounded-full bg-[#352015]/85 p-2 sm:bottom-4 sm:right-4 sm:px-3.5 sm:py-2 text-xs font-medium text-white shadow-lg transition hover:bg-[#352015] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#352015]">
                 <svg data-icon-muted class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="m22 9-6 6m0-6 6 6"/></svg>
                 <svg data-icon-sound class="hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
                 <span data-sound-label class="hidden sm:inline">Suara</span>
               </button>
             </div>
           ) : (
-            <div class="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0e0e0e] text-left">
+            <div class="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#24140C] text-left">
               <div class="flex items-center gap-3 border-b border-white/5 px-4 py-3">
                 <div class="flex gap-1.5"><span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span></div>
                 <div class="mx-auto hidden w-1/2 rounded-md bg-white/5 py-1 text-center text-xs text-white/70 sm:block">app.valueloop.id</div>
               </div>
               <div class="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-[180px_1fr]">
-                <aside class="hidden border-r border-white/5 bg-[#131314] p-3 sm:block">
+                <aside class="hidden border-r border-white/5 bg-[#2B1A10] p-3 sm:block">
                   <div class="mb-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-white/90"><span class="flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] font-semibold text-white">A</span>Acme Studio</div>
                   <div class="space-y-0.5 text-xs text-white/50">
                     <div class="rounded-md bg-white/10 px-2 py-1.5 text-white">Dashboard</div>
@@ -251,70 +253,70 @@ const structuredData = [
     </section>
 
     <!-- 2. Problem: centered headline + three wall cards (framed poster, PDF, ValueLoop ritual) -->
-    <section class="bg-[#F3F0EA] px-6 pt-24 pb-16 sm:pt-32">
+    <section class="bg-[#EBE2D5] px-6 pt-24 pb-16 sm:pt-32">
       <div class="mx-auto max-w-[1440px]">
         <div class="mx-auto max-w-3xl text-center reveal">
-          <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">Terpajang di dinding.<br />Terlupa saat bekerja.</h2>
-          <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Di banyak perusahaan, core values hanya dibaca sekali saat onboarding. Padahal budaya kerja terbentuk dari apa yang dibahas dan dilakukan tim setiap hari.</p>
+          <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#352015] sm:text-6xl md:text-7xl">Terpajang di dinding.<br />Terlupa saat bekerja.</h2>
+          <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#7A685B] sm:text-lg">Di banyak perusahaan, core values hanya dibaca sekali saat onboarding. Padahal budaya kerja terbentuk dari apa yang dibahas dan dilakukan tim setiap hari.</p>
         </div>
 
         <div class="mt-14 grid gap-4 md:grid-cols-3">
           <div class="reveal stagger-1">
             <div class="wall-soft flex aspect-[4/3.4] flex-col items-center justify-center overflow-hidden rounded-xl p-6 pt-14">
               <div class="wall-frame w-[72%] p-3 opacity-90 saturate-50">
-                <div class="border border-[#E4DED3] px-4 py-5 text-center">
+                <div class="border border-[#E6DCCD] px-4 py-5 text-center">
                   <p class="font-mono text-[9px] uppercase tracking-[0.3em] text-[#8a8177]">Our Values</p>
                   <p class="mt-2 font-serif text-lg leading-snug text-[#3d3832]">Integrity.<br />Ownership.<br />Customer First.</p>
                 </div>
               </div>
               <p class="mt-5 rounded-sm bg-[#D6CEBF] px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-[#6f665b]">Lobby · Lantai 3 · Terakhir dibaca: saat dipasang</p>
             </div>
-            <h3 class="mt-4 font-medium text-[#111]">{problems[0].title}</h3>
-            <p class="mt-1 max-w-sm text-[15px] text-[#999]">{problems[0].body}</p>
+            <h3 class="mt-4 font-medium text-[#352015]">{problems[0].title}</h3>
+            <p class="mt-1 max-w-sm text-[15px] text-[#A39384]">{problems[0].body}</p>
           </div>
 
           <div class="reveal stagger-2">
             <div class="wall-soft flex aspect-[4/3.4] items-center overflow-hidden rounded-xl p-6">
               <div class="w-full rounded-xl bg-white p-4 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
-                <p class="mb-2 text-xs text-[#999]">Onboarding_Handbook_v7_FINAL.pdf · 48 halaman</p>
+                <p class="mb-2 text-xs text-[#A39384]">Onboarding_Handbook_v7_FINAL.pdf · 48 halaman</p>
                 {['Bab 1 · Sejarah perusahaan', 'Bab 2 · Visi & misi', 'Bab 3 · Core values', 'Bab 4 · Kebijakan cuti'].map((row, index) => (
-                  <div class="flex items-center justify-between border-t border-[#F4F4F4] py-2 text-sm">
-                    <span class="text-[#111]">{row}</span>
-                    <span class={`text-xs ${index === 2 ? 'text-[#111]' : 'text-[#999]'}`}>{index === 2 ? 'dibuka 1×' : '—'}</span>
+                  <div class="flex items-center justify-between border-t border-[#F3ECE1] py-2 text-sm">
+                    <span class="text-[#352015]">{row}</span>
+                    <span class={`text-xs ${index === 2 ? 'text-[#352015]' : 'text-[#A39384]'}`}>{index === 2 ? 'dibuka 1×' : '—'}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <h3 class="mt-4 font-medium text-[#111]">{problems[1].title}</h3>
-            <p class="mt-1 max-w-sm text-[15px] text-[#999]">{problems[1].body}</p>
+            <h3 class="mt-4 font-medium text-[#352015]">{problems[1].title}</h3>
+            <p class="mt-1 max-w-sm text-[15px] text-[#A39384]">{problems[1].body}</p>
           </div>
 
           <div class="reveal stagger-3">
             <div class="wall-soft flex aspect-[4/3.4] items-center justify-end overflow-hidden rounded-xl py-6 pl-10">
               <div class="relative w-full rounded-l-2xl bg-white p-6 shadow-[0_7px_29px_0_rgb(100_100_111_/_0.15)]">
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-[#F3F0EA] px-2.5 py-1 text-xs font-medium text-[#111]"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ownership</span>
-                <p class="mt-3 text-xl font-medium leading-snug tracking-tight text-[#111]">Kapan terakhir kamu menyelesaikan masalah yang bukan tugasmu?</p>
-                <div class="absolute -bottom-3 right-6 rounded-xl bg-[#262626] px-4 py-2.5 text-sm text-white shadow-lg">Rian · <span class="text-emerald-400">9/10</span></div>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-[#EBE2D5] px-2.5 py-1 text-xs font-medium text-[#352015]"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ownership</span>
+                <p class="mt-3 text-xl font-medium leading-snug tracking-tight text-[#352015]">Kapan terakhir kamu menyelesaikan masalah yang bukan tugasmu?</p>
+                <div class="absolute -bottom-3 right-6 rounded-xl bg-[#40291D] px-4 py-2.5 text-sm text-white shadow-lg">Rian · <span class="text-emerald-400">9/10</span></div>
               </div>
             </div>
-            <h3 class="mt-4 font-medium text-[#111]">{problems[2].title}</h3>
-            <p class="mt-1 max-w-sm text-[15px] text-[#999]">{problems[2].body}</p>
+            <h3 class="mt-4 font-medium text-[#352015]">{problems[2].title}</h3>
+            <p class="mt-1 max-w-sm text-[15px] text-[#A39384]">{problems[2].body}</p>
           </div>
         </div>
 
-        <p class="mt-16 text-center text-[15px] text-[#999] reveal">Kalau value tidak dipraktikkan, kebiasaan lain yang akan tumbuh.</p>
+        <p class="mt-16 text-center text-[15px] text-[#A39384] reveal">Kalau value tidak dipraktikkan, kebiasaan lain yang akan tumbuh.</p>
       </div>
     </section>
 
     <!-- 3. Features carousel -->
     <section id="features" class="bg-white pt-24 sm:pt-28">
       <div class="mx-auto flex max-w-[1440px] items-center justify-between px-6">
-        <h2 class="text-lg font-medium text-[#111]">Dibuat berbeda.</h2>
+        <h2 class="text-lg font-medium text-[#352015]">Dibuat berbeda.</h2>
         <div class="flex gap-2">
-          <button type="button" data-carousel-prev aria-label="Geser ke kiri" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F9F9F9] text-[#111] transition-colors hover:bg-[#E9E9E9] disabled:cursor-default disabled:opacity-30">
+          <button type="button" data-carousel-prev aria-label="Geser ke kiri" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#EBE2D5] text-[#352015] transition-colors hover:bg-[#E3D9CA] disabled:cursor-default disabled:opacity-30">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 12H5m0 0 6-6m-6 6 6 6"/></svg>
           </button>
-          <button type="button" data-carousel-next aria-label="Geser ke kanan" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#F9F9F9] text-[#111] transition-colors hover:bg-[#E9E9E9] disabled:cursor-default disabled:opacity-30">
+          <button type="button" data-carousel-next aria-label="Geser ke kanan" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#EBE2D5] text-[#352015] transition-colors hover:bg-[#E3D9CA] disabled:cursor-default disabled:opacity-30">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>
           </button>
         </div>
@@ -326,61 +328,61 @@ const structuredData = [
             <div class="wall-soft flex aspect-[430/495] items-center overflow-hidden rounded-xl">
               {index === 0 && (
                 <div class="mx-auto flex h-12 w-[85%] items-center rounded-full bg-white pl-5 pr-1.5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
-                  <span class="flex-1 truncate text-sm text-[#111]">Kapan kamu mengambil ownership penuh?<span class="ml-0.5 animate-pulse">|</span></span>
-                  <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[#111] text-white"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></span>
+                  <span class="flex-1 truncate text-sm text-[#352015]">Kapan kamu mengambil ownership penuh?<span class="ml-0.5 animate-pulse">|</span></span>
+                  <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[#352015] text-white"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></span>
                 </div>
               )}
               {index === 1 && (
                 <div class="ml-auto w-[88%] rounded-l-2xl bg-white p-6 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
-                  <p class="text-xs text-[#999]">Rian · Support · Ownership</p>
-                  <p class="mt-2 text-6xl font-normal tracking-tighter text-[#111]">9<span class="text-3xl text-[#999]">/10</span></p>
+                  <p class="text-xs text-[#A39384]">Rian · Support · Ownership</p>
+                  <p class="mt-2 text-6xl font-normal tracking-tighter text-[#352015]">9<span class="text-3xl text-[#A39384]">/10</span></p>
                   <p class="mt-1 text-sm font-medium text-emerald-600">Sangat baik</p>
-                  <div class="mt-5 flex gap-1">{Array.from({ length: 10 }, (_, i) => <span class={`h-6 flex-1 rounded ${i < 9 ? 'bg-[#111]' : 'bg-[#E5E5E5]'}`}></span>)}</div>
+                  <div class="mt-5 flex gap-1">{Array.from({ length: 10 }, (_, i) => <span class={`h-6 flex-1 rounded ${i < 9 ? 'bg-[#352015]' : 'bg-[#DDD3C4]'}`}></span>)}</div>
                 </div>
               )}
               {index === 2 && (
                 <div class="mx-auto w-[85%] rounded-2xl bg-white p-5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
-                  <p class="mb-3 text-sm font-medium text-[#111]">Leaderboard · Oktober</p>
+                  <p class="mb-3 text-sm font-medium text-[#352015]">Leaderboard · Oktober</p>
                   {[['Rian Pratama', '86'], ['Sari Wulandari', '79'], ['Dimas Arya', '71'], ['Nadia Putri', '64']].map(([name, points], i) => (
-                    <div class="flex items-center gap-3 border-t border-[#F4F4F4] py-2.5 text-sm">
-                      <span class="w-4 font-mono text-xs text-[#999]">{i + 1}</span>
-                      <span class="flex-1 text-[#111]">{name}</span>
-                      <span class="font-medium text-[#111]">{points}</span>
+                    <div class="flex items-center gap-3 border-t border-[#F3ECE1] py-2.5 text-sm">
+                      <span class="w-4 font-mono text-xs text-[#A39384]">{i + 1}</span>
+                      <span class="flex-1 text-[#352015]">{name}</span>
+                      <span class="font-medium text-[#352015]">{points}</span>
                     </div>
                   ))}
                 </div>
               )}
               {index === 3 && (
                 <div class="mx-auto flex w-[85%] flex-wrap justify-center gap-2">
-                  {[['Ownership', 'bg-emerald-500'], ['Customer Obsession', 'bg-sky-500'], ['Integritas', 'bg-amber-400'], ['Kolaborasi', 'bg-rose-400'], ['Craft', 'bg-violet-500'], ['+ Tambah value', 'bg-[#999]']].map(([name, dot]) => (
-                    <span class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-medium text-[#111] shadow-[0_0_0_4px_rgb(255_255_255_/_0.35)]"><span class={`h-2 w-2 rounded-full ${dot}`}></span>{name}</span>
+                  {[['Ownership', 'bg-emerald-500'], ['Customer Obsession', 'bg-sky-500'], ['Integritas', 'bg-amber-400'], ['Kolaborasi', 'bg-rose-400'], ['Craft', 'bg-violet-500'], ['+ Tambah value', 'bg-[#A39384]']].map(([name, dot]) => (
+                    <span class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-medium text-[#352015] shadow-[0_0_0_4px_rgb(255_255_255_/_0.35)]"><span class={`h-2 w-2 rounded-full ${dot}`}></span>{name}</span>
                   ))}
                 </div>
               )}
               {index === 4 && (
                 <div class="ml-auto w-[88%] rounded-l-2xl bg-white p-5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
                   {[['31 Okt', 'Customer Obsession', 'Menunggu skor'], ['30 Okt', 'Ownership', '9/10'], ['29 Okt', 'Integritas', '8/10'], ['28 Okt', 'Kolaborasi', '7/10']].map(([date, value, status]) => (
-                    <div class="flex items-center justify-between border-b border-[#F4F4F4] py-2.5 text-sm last:border-0">
-                      <span class="w-14 font-mono text-xs text-[#999]">{date}</span>
-                      <span class="flex-1 text-[#111]">{value}</span>
-                      <span class="text-xs text-[#666]">{status}</span>
+                    <div class="flex items-center justify-between border-b border-[#F3ECE1] py-2.5 text-sm last:border-0">
+                      <span class="w-14 font-mono text-xs text-[#A39384]">{date}</span>
+                      <span class="flex-1 text-[#352015]">{value}</span>
+                      <span class="text-xs text-[#7A685B]">{status}</span>
                     </div>
                   ))}
                 </div>
               )}
               {index === 5 && (
                 <div class="mx-auto w-[85%] rounded-2xl bg-white p-5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.4)]">
-                  <p class="mb-4 text-sm font-medium text-[#111]">Rata-rata skor per value</p>
+                  <p class="mb-4 text-sm font-medium text-[#352015]">Rata-rata skor per value</p>
                   {[['Ownership', 'w-[86%]', '8,6'], ['Integritas', 'w-[80%]', '8,0'], ['Customer', 'w-[72%]', '7,2'], ['Kolaborasi', 'w-[58%]', '5,8']].map(([name, width, score]) => (
                     <div class="mb-3">
-                      <div class="mb-1 flex justify-between text-xs"><span class="text-[#666]">{name}</span><span class="text-[#111]">{score}</span></div>
-                      <div class="h-2 rounded-full bg-[#F4F4F4]"><div class={`h-2 rounded-full bg-[#111] ${width}`}></div></div>
+                      <div class="mb-1 flex justify-between text-xs"><span class="text-[#7A685B]">{name}</span><span class="text-[#352015]">{score}</span></div>
+                      <div class="h-2 rounded-full bg-[#F3ECE1]"><div class={`h-2 rounded-full bg-[#352015] ${width}`}></div></div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            <p class="mt-4 text-[15px] leading-snug"><span class="font-medium text-[#111]">{feature.title}</span> <span class="text-[#999]">{feature.body}</span></p>
+            <p class="mt-4 text-[15px] leading-snug"><span class="font-medium text-[#352015]">{feature.title}</span> <span class="text-[#A39384]">{feature.body}</span></p>
           </article>
         ))}
       </div>
@@ -389,56 +391,41 @@ const structuredData = [
     <!-- 4. Engine: toggle headline + wall panel with tabs and app mockup -->
     <section id="how-it-works" class="bg-white px-4 pt-24 sm:px-6 sm:pt-32">
       <div class="mx-auto max-w-3xl text-center reveal">
-        <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">
+        <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#352015] sm:text-6xl md:text-7xl">
           Ritual budaya yang
           <span class="relative inline-flex h-[0.6em] w-[1.15em] translate-y-[0.02em] items-center rounded-full bg-emerald-500 p-[0.07em] align-middle" aria-hidden="true"><span class="ml-auto h-[0.46em] w-[0.46em] rounded-full bg-white"></span></span>
           <br />selalu jalan
         </h2>
-        <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Dari menyiapkan value sampai membaca insight, ValueLoop menjaga ritmenya untuk Anda.</p>
+        <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#7A685B] sm:text-lg">Dari menyiapkan value sampai membaca insight, ValueLoop menjaga ritmenya untuk Anda.</p>
       </div>
 
-      <div class="wall mx-auto mt-14 max-w-[1440px] overflow-hidden rounded-2xl px-4 pt-12 text-center text-[#111] sm:px-12">
+      <div class="wall mx-auto mt-14 max-w-[1440px] overflow-hidden rounded-2xl px-4 pt-12 text-center text-[#352015] sm:px-12">
         <div role="tablist" aria-label="Alur ValueLoop" class="inline-flex rounded-full bg-black/5 p-1">
           {engineTabs.map((tab, index) => (
-            <button type="button" role="tab" data-engine-tab={tab.key} aria-selected={index === 0 ? 'true' : 'false'} class="rounded-full px-4 py-2 text-sm font-medium text-[#111] transition-colors aria-selected:bg-white aria-selected:shadow-sm sm:px-5">{tab.label}</button>
+            <button type="button" role="tab" data-engine-tab={tab.key} aria-selected={index === 0 ? 'true' : 'false'} class="rounded-full px-4 py-2 text-sm font-medium text-[#352015] transition-colors aria-selected:bg-white aria-selected:shadow-sm sm:px-5">{tab.label}</button>
           ))}
         </div>
 
         {engineTabs.map((tab, index) => (
           <div data-engine-panel={tab.key} class={index === 0 ? '' : 'hidden'}>
             <h3 class="mx-auto mt-6 max-w-2xl text-4xl font-medium leading-[1.05] tracking-tighter sm:text-6xl">{tab.title}</h3>
-            <p class="mx-auto mt-4 max-w-lg text-[15px] text-[#111]/70">{tab.body}</p>
-            <a href={tab.href} class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full bg-[#111] px-6 text-sm font-medium text-white transition-colors hover:bg-[#111]/85">{tab.cta}</a>
+            <p class="mx-auto mt-4 max-w-lg text-[15px] text-[#352015]/70">{tab.body}</p>
+            <a href={tab.href} class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full bg-[#352015] px-6 text-sm font-medium text-white transition-colors hover:bg-[#352015]/85">{tab.cta}</a>
           </div>
         ))}
 
-        <div class="mx-auto mt-14 max-w-[1300px] overflow-hidden rounded-t-[22px] bg-[#0e0e0e] p-2 pb-0 text-left">
+        <div class="mx-auto mt-14 max-w-[1300px] overflow-hidden rounded-t-[22px] bg-[#24140C] p-2 pb-0 text-left">
           <div class="flex items-center gap-3 px-3 py-2.5">
             <div class="flex gap-1.5"><span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span></div>
-            <div class="mx-auto hidden w-1/2 rounded-full bg-white/5 py-1.5 text-center text-xs text-white/80 sm:block">app.valueloop.id/challenge</div>
+            {engineTabs.map((tab, index) => (
+              <div data-engine-panel={tab.key} class={`mx-auto w-1/2 rounded-full bg-white/5 py-1.5 text-center text-xs text-white/80 max-sm:!hidden ${index === 0 ? '' : 'hidden'}`}>app.valueloop.id/{tab.path}</div>
+            ))}
           </div>
-          <div class="grid h-[360px] grid-cols-1 gap-2 sm:h-[440px] sm:grid-cols-[220px_1fr]">
-            <aside class="hidden rounded-t-xl bg-[#1a1a1a] p-3 sm:block">
-              <div class="flex items-center gap-2 border-b border-white/5 px-1 pb-3 text-xs text-white"><span class="flex h-5 w-5 items-center justify-center rounded bg-emerald-500 text-[10px] text-white">A</span>Acme Studio</div>
-              <div class="mt-3 space-y-0.5 text-xs text-white/50">
-                {['Core Values', 'Daily Challenge', 'Scoring', 'Insights'].map((label, i) => (
-                  <div class={`rounded-md px-2 py-1.5 ${i === 1 ? 'bg-white/10 text-white' : ''}`}>{label}</div>
-                ))}
-              </div>
-            </aside>
-            <div class="rounded-t-xl bg-[#1a1a1a] p-5 sm:p-8">
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div><p class="text-[10px] uppercase tracking-wider text-white/40">Challenge #38 · 31 Okt</p><p class="mt-1 text-sm text-white">Dipilih oleh randomizer</p></div>
-                <span class="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">● Menunggu jawaban</span>
-              </div>
-              <div class="mt-6 grid gap-3 sm:grid-cols-2">
-                <div class="rounded-xl bg-white/[0.04] p-4"><p class="text-[10px] uppercase tracking-wider text-white/40">Member terpilih</p><p class="mt-1 text-base text-white">Sari Wulandari</p><p class="text-xs text-white/40">Tim Customer Success</p></div>
-                <div class="rounded-xl bg-white/[0.04] p-4"><p class="text-[10px] uppercase tracking-wider text-white/40">Value</p><p class="mt-1 flex items-center gap-2 text-base text-white"><span class="h-2 w-2 rounded-full bg-sky-500"></span>Customer Obsession</p><p class="text-xs text-white/40">9 pertanyaan aktif</p></div>
-              </div>
-              <div class="mt-3 rounded-xl bg-white p-5 text-[#111]"><p class="text-[10px] uppercase tracking-wider text-[#999]">Pertanyaan</p><p class="mt-2 text-lg font-medium leading-snug tracking-tight sm:text-xl">"Ceritakan momen kamu menolong customer tanpa diminta. Apa dampaknya?"</p></div>
-              <div class="mt-3 flex items-center justify-between rounded-xl bg-white/[0.04] p-4 text-xs"><span class="text-white/50">Jawaban member</span><span class="rounded-full bg-white px-3 py-1 font-medium text-black">Catat jawaban</span></div>
+          {engineTabs.map((tab, index) => (
+            <div data-engine-panel={tab.key} class={`h-[300px] overflow-hidden rounded-t-xl bg-[#F6F3EE] sm:h-[520px] ${index === 0 ? '' : 'hidden'}`}>
+              <img src={tab.shot.src} width={tab.shot.width} height={tab.shot.height} alt={tab.alt} loading="lazy" decoding="async" class={`block h-full w-full object-cover ${tab.key === 'nilai' ? 'object-left-bottom' : 'object-left-top'}`} />
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -447,28 +434,28 @@ const structuredData = [
     <section class="bg-white px-6 py-24 sm:py-32">
       <div class="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-2 lg:items-start">
         <div>
-          <p class="text-[15px] font-medium text-[#111]">Dirancang untuk tim yang serius soal budaya kerja.</p>
+          <p class="text-[15px] font-medium text-[#352015]">Dirancang untuk tim yang serius soal budaya kerja.</p>
           <div role="tablist" aria-label="Tipe tim" class="mt-6 flex flex-col items-start">
             {roles.map((role, index) => (
-              <button type="button" role="tab" data-role-tab={index} aria-selected={index === 0 ? 'true' : 'false'} class="text-left text-3xl font-medium leading-[1.25] tracking-tight text-[#bdbdbd] transition-colors duration-300 hover:text-[#666] aria-selected:text-[#111] sm:text-[32px]">{role.name}</button>
+              <button type="button" role="tab" data-role-tab={index} aria-selected={index === 0 ? 'true' : 'false'} class="text-left text-3xl font-medium leading-[1.25] tracking-tight text-[#C2B5A4] transition-colors duration-300 hover:text-[#7A685B] aria-selected:text-[#352015] sm:text-[32px]">{role.name}</button>
             ))}
           </div>
           {roles.map((role, index) => (
             <div data-role-panel={index} class={index === 0 ? '' : 'hidden'}>
-              <p class="mt-10 max-w-sm text-[15px] leading-relaxed text-[#666]">{role.body}</p>
+              <p class="mt-10 max-w-sm text-[15px] leading-relaxed text-[#7A685B]">{role.body}</p>
             </div>
           ))}
-          <a href="/bantuan" class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full border border-[#E5E5E5] px-6 text-sm font-medium text-[#111] transition-colors hover:bg-[#f5f5f5]">Hubungi kami</a>
+          <a href="/bantuan" class="btn-interactive mt-6 inline-flex h-11 items-center rounded-full border border-[#DDD3C4] px-6 text-sm font-medium text-[#352015] transition-colors hover:bg-[#F3ECE1]">Hubungi kami</a>
         </div>
 
         <div class="wall flex min-h-[420px] flex-col justify-between gap-10 overflow-hidden rounded-xl p-6 sm:aspect-[4/3.6] sm:p-10">
           <div class="space-y-3">
-            <div class="ml-auto w-fit max-w-[80%] rounded-2xl rounded-br-md bg-white/90 px-4 py-3 text-sm text-[#111] backdrop-blur">Minggu lalu klien minta revisi jam 11 malam. Saya kerjakan, lalu besoknya saya buat checklist supaya tidak terulang.</div>
-            <div class="w-fit rounded-2xl rounded-bl-md bg-[#111]/85 px-4 py-3 text-sm text-white backdrop-blur">Ownership · Skor 9/10 · "Contoh konkret dan ada perbaikan sistem."</div>
+            <div class="ml-auto w-fit max-w-[80%] rounded-2xl rounded-br-md bg-white/90 px-4 py-3 text-sm text-[#352015] backdrop-blur">Minggu lalu klien minta revisi jam 11 malam. Saya kerjakan, lalu besoknya saya buat checklist supaya tidak terulang.</div>
+            <div class="w-fit rounded-2xl rounded-bl-md bg-[#352015]/85 px-4 py-3 text-sm text-white backdrop-blur">Ownership · Skor 9/10 · "Contoh konkret dan ada perbaikan sistem."</div>
           </div>
           <div class="relative flex h-14 w-full items-center rounded-full bg-white pl-5 pr-1.5 shadow-[0_0_0_6px_rgb(255_255_255_/_0.35)]">
-            <span class="flex-1 truncate text-[15px] text-[#111]">Bagaimana kamu menjaga kualitas saat deadline?</span>
-            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#111] text-white"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></span>
+            <span class="flex-1 truncate text-[15px] text-[#352015]">Bagaimana kamu menjaga kualitas saat deadline?</span>
+            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#352015] text-white"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></span>
           </div>
         </div>
       </div>
@@ -477,54 +464,54 @@ const structuredData = [
     <!-- 6. Compounding: headline + illustrative chart with toggle -->
     <section class="bg-white px-6 pb-24 sm:pb-32">
       <div class="mx-auto max-w-3xl text-center reveal">
-        <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#111] sm:text-6xl md:text-7xl">Seperti menabung,<br />mulai lebih awal.</h2>
-        <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#666] sm:text-lg">Setiap challenge adalah satu percakapan tentang value. Kebiasaan yang dibangun hari ini terasa di bulan-bulan berikutnya.</p>
+        <h2 class="text-4xl font-medium leading-[1.05] tracking-tighter text-[#352015] sm:text-6xl md:text-7xl">Seperti menabung,<br />mulai lebih awal.</h2>
+        <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#7A685B] sm:text-lg">Setiap challenge adalah satu percakapan tentang value. Kebiasaan yang dibangun hari ini terasa di bulan-bulan berikutnya.</p>
       </div>
 
-      <div class="mx-auto mt-14 max-w-[900px] rounded-3xl border border-[#E5E5E5] p-6 sm:p-8 reveal">
+      <div class="mx-auto mt-14 max-w-[900px] rounded-3xl border border-[#DDD3C4] p-6 sm:p-8 reveal">
         <div class="flex items-start justify-between gap-4">
           <div class="flex gap-10">
-            <div><p class="text-sm text-[#111]">Partisipasi</p><p data-chart-stat="participation" class="mt-1 text-4xl font-normal tracking-tight text-[#111]">86%</p></div>
-            <div><p class="text-sm text-[#999]">Skor rata-rata</p><p data-chart-stat="score" class="mt-1 text-4xl font-normal tracking-tight text-[#999]">8,4</p></div>
+            <div><p class="text-sm text-[#352015]">Partisipasi</p><p data-chart-stat="participation" class="mt-1 text-4xl font-normal tracking-tight text-[#352015]">86%</p></div>
+            <div><p class="text-sm text-[#A39384]">Skor rata-rata</p><p data-chart-stat="score" class="mt-1 text-4xl font-normal tracking-tight text-[#A39384]">8,4</p></div>
           </div>
-          <span class="rounded-full bg-[#F9F9F9] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#999]">Ilustrasi</span>
+          <span class="rounded-full bg-[#EBE2D5] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#A39384]">Ilustrasi</span>
         </div>
-        <div class="mt-6 border-t border-[#E5E5E5] pt-6">
+        <div class="mt-6 border-t border-[#DDD3C4] pt-6">
           <svg viewBox="0 0 800 260" class="h-auto w-full" fill="none" aria-label="Ilustrasi pertumbuhan partisipasi">
-            <defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111" stop-opacity=".08" /><stop offset="1" stop-color="#111" stop-opacity="0" /></linearGradient></defs>
-            {[40, 100, 160, 220].map((y) => <line x1="0" x2="740" y1={y} y2={y} stroke="#EDEDED" />)}
-            {['100%', '66%', '33%', '0'].map((label, i) => <text x="752" y={44 + i * 60} fill="#999" font-size="12">{label}</text>)}
+            <defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#352015" stop-opacity=".08" /><stop offset="1" stop-color="#352015" stop-opacity="0" /></linearGradient></defs>
+            {[40, 100, 160, 220].map((y) => <line x1="0" x2="740" y1={y} y2={y} stroke="#E3D9CA" />)}
+            {['100%', '66%', '33%', '0'].map((label, i) => <text x="752" y={44 + i * 60} fill="#A39384" font-size="12">{label}</text>)}
             <g data-chart-line="with">
               <path d="M0 214 C 80 206 140 196 210 178 C 290 158 350 128 430 104 C 520 78 600 58 740 44 L740 220 L0 220 Z" fill="url(#chart-fill)" />
-              <path d="M0 214 C 80 206 140 196 210 178 C 290 158 350 128 430 104 C 520 78 600 58 740 44" stroke="#111" stroke-width="2.5" />
+              <path d="M0 214 C 80 206 140 196 210 178 C 290 158 350 128 430 104 C 520 78 600 58 740 44" stroke="#352015" stroke-width="2.5" />
             </g>
             <g data-chart-line="without" class="hidden">
               <path d="M0 200 C 80 170 120 150 170 172 C 230 198 300 210 380 196 C 460 182 520 206 600 210 C 660 213 700 205 740 208 L740 220 L0 220 Z" fill="url(#chart-fill)" />
-              <path d="M0 200 C 80 170 120 150 170 172 C 230 198 300 210 380 196 C 460 182 520 206 600 210 C 660 213 700 205 740 208" stroke="#999" stroke-width="2.5" />
+              <path d="M0 200 C 80 170 120 150 170 172 C 230 198 300 210 380 196 C 460 182 520 206 600 210 C 660 213 700 205 740 208" stroke="#A39384" stroke-width="2.5" />
             </g>
-            {['Jan', 'Apr', 'Jul', 'Okt'].map((label, i) => <text x={i * 230 + 4} y="248" fill="#999" font-size="12">{label}</text>)}
+            {['Jan', 'Apr', 'Jul', 'Okt'].map((label, i) => <text x={i * 230 + 4} y="248" fill="#A39384" font-size="12">{label}</text>)}
           </svg>
         </div>
       </div>
       <div class="mt-6 flex justify-center">
-        <div role="tablist" aria-label="Bandingkan" class="inline-flex rounded-full bg-[#F4F4F4] p-1">
-          <button type="button" role="tab" data-chart-tab="with" aria-selected="true" class="rounded-full px-5 py-2 text-sm font-medium text-[#999] transition-colors aria-selected:bg-white aria-selected:text-[#111]">Dengan ValueLoop</button>
-          <button type="button" role="tab" data-chart-tab="without" aria-selected="false" class="rounded-full px-5 py-2 text-sm font-medium text-[#999] transition-colors aria-selected:bg-white aria-selected:text-[#111]">Tanpa ValueLoop</button>
+        <div role="tablist" aria-label="Bandingkan" class="inline-flex rounded-full bg-[#F3ECE1] p-1">
+          <button type="button" role="tab" data-chart-tab="with" aria-selected="true" class="rounded-full px-5 py-2 text-sm font-medium text-[#A39384] transition-colors aria-selected:bg-white aria-selected:text-[#352015]">Dengan ValueLoop</button>
+          <button type="button" role="tab" data-chart-tab="without" aria-selected="false" class="rounded-full px-5 py-2 text-sm font-medium text-[#A39384] transition-colors aria-selected:bg-white aria-selected:text-[#352015]">Tanpa ValueLoop</button>
         </div>
       </div>
     </section>
 
     <!-- 7. FAQ -->
     <section id="faq" class="bg-white px-6 pb-24 sm:pb-32">
-      <h2 class="text-center text-6xl font-normal tracking-tighter text-[#111] sm:text-7xl reveal">FAQ</h2>
-      <div class="mx-auto mt-14 max-w-[672px] divide-y divide-[#E5E5E5] border-b border-[#E5E5E5]">
+      <h2 class="text-center text-6xl font-normal tracking-tighter text-[#352015] sm:text-7xl reveal">FAQ</h2>
+      <div class="mx-auto mt-14 max-w-[672px] divide-y divide-[#DDD3C4] border-b border-[#DDD3C4]">
         {faqs.map((faq) => (
           <details class="group">
-            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-[15px] font-medium text-[#111] [&::-webkit-details-marker]:hidden">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-[15px] font-medium text-[#352015] [&::-webkit-details-marker]:hidden">
               <span>{faq.q}</span>
-              <svg class="h-4 w-4 shrink-0 text-[#999] transition-transform duration-300 group-open:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.5" d="M12 5v14M5 12h14"></path></svg>
+              <svg class="h-4 w-4 shrink-0 text-[#A39384] transition-transform duration-300 group-open:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.5" d="M12 5v14M5 12h14"></path></svg>
             </summary>
-            <p class="pb-4 pr-8 text-[15px] leading-relaxed text-[#666]">{faq.a}</p>
+            <p class="pb-4 pr-8 text-[15px] leading-relaxed text-[#7A685B]">{faq.a}</p>
           </details>
         ))}
       </div>

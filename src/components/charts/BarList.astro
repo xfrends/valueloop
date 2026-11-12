@@ -16,7 +16,7 @@ type Props = {
   emptyText?: string;
 };
 
-const { rows, max, color = '#2a78d6', emptyText = 'Belum ada data.' } = Astro.props;
+const { rows, max, color = '#0C7C62', emptyText = 'Belum ada data.' } = Astro.props;
 const scaleMax = max > 0 ? max : 1;
 ---
 {rows.length ? (
